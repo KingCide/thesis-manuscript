@@ -361,18 +361,14 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 \subsection{可分性分析与退化动机}
 SatShield 的关键观察是：在现有 LEO 系统约束下，攻击者要使目标 ISL 达到拥塞，必须注入接近链路容量量级的总攻击流量；而受单终端上行能力、单星可服务用户数等约束，攻击流在以源/目的地址聚合后仍会呈现 Mb/s 量级的重尾分布，从而与绝大多数良性聚合速率形成可分性\cite{satshield}。为了将该观察落到可复现实验，本章采用与 SatShield 一致的 LEO 仿真与流量构造思路：使用 Starlink Shell 1 星座拓扑（1584 颗卫星）与 ISL 容量 $20$~Gb/s 作为基本网络模型，良性背景流量由 CAIDA 匿名互联网 trace 经重放得到，并通过人口分布模型映射到城市对之间的通信需求\cite{satshield}。
 
-图~\ref{fig:ch3_fig1_cdf} 给出了良性与攻击流在“每个地址 key 的聚合速率”维度上的经验分布函数（CDF）。具体绘制过程如下：首先在仿真中固定 epoch 长度 $\Delta$，对每个 epoch 统计所有 key 的 $\text{bytes}_t(a)$，由式~(\ref{eq:rate_def}) 得到 $R_t(a)$；随后对多窗口、多随机城市对样本进行汇聚，分别得到良性集合与攻击集合的 $\{R_t(a)\}$ 样本，绘制其 CDF 曲线。该图在数值上体现出良性聚合速率的长尾但总体偏低，而攻击聚合速率整体右移的趋势，从而为“top-$k$ 候选生成”提供依据。
+图~\ref{fig:ch3_fig1_cdf} 以 $2\times2$ 子图的形式展示了不同 decoy 数 $M$ 下，良性与攻击流量在“每个地址 key 的聚合速率”维度上的经验分布函数（CDF）。具体绘制过程如下：首先在仿真中固定 epoch 长度 $\Delta$，对每个 epoch 统计所有 key 的 $\text{bytes}_t(a)$，由式~(\ref{eq:rate_def}) 得到 $R_t(a)$；随后分别对良性与攻击 key 集合绘制 CDF 曲线。当 $M=1$ 时，良性 $p_{99}\approx485$~Mb/s 与攻击聚合速率 $10{,}024$~Mb/s 之间存在约 $21$ 倍的可分性间隙；$M=10$ 时间隙缩小至约 $2$ 倍；$M=100$ 时攻击 key 速率下探至 $100$~Mb/s，已融入良性分布的长尾区间；$M=1000$ 时攻击 key 与良性 key 完全重叠。该图直观展示了“可分性随 $M$ 退化”的全过程，为后续多签名检测（图~\ref{fig:ch3_fig2_f1}）提供了动机。
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{figs/ch3/fig3_1_cdf.pdf}
-  \caption{良性与攻击流量在每个地址 key 上的聚合速率分布（CDF）。图中良性曲线由 CAIDA trace 重放并映射到 LEO 仿真得到，攻击曲线由 LFA 流量生成器在相同拓扑与背景负载下得到。}
+  \caption{可分性随 decoy 数 $M$ 退化的 CDF 对比。四个子图分别对应 $M=1,10,100,1000$，蓝色实线为良性 key 聚合速率 CDF，红色虚线为攻击 key 聚合速率 CDF（$M\leq10$ 时因攻击 key 数量少，改用垂直线与散点标注）。绿色阴影区标注可分性间隙及倍数，红色“重叠”标注表示攻击与良性分布已交叉。}
   \label{fig:ch3_fig1_cdf}
 \end{figure}
-% TODO (图3-1)：放入你已生成的 CDF 图。理想图像包含：
-% 1) 至少两条曲线：benign per-key rate vs attack per-key rate；
-% 2) 横轴可采用对数刻度以展示长尾；
-% 3) 标注 p99 或关键分位点（如 0.99）以便后续阈值选择与 K 选型解释。
 
 需要强调的是，图~\ref{fig:ch3_fig1_cdf} 的可分性并非“无条件成立”。当攻击者采取更强的隐蔽策略时，速率特征可能退化到与良性长尾区间发生重叠。为在论文层面明确方法的适用边界并给出可对齐的退化证据链，本章构造三类典型退化设定：其一为 bot 规模增大并降低单 bot 速率（速率下沉）；其二为将攻击流量分摊到更多 decoy 目的（多 decoy 分摊）；其三为采用脉冲式 on-off 策略使攻击 key 在窗口边界处“若隐若现”（引出持续性特征）。这些设定均满足 LFA 的基本约束：总攻击注入量需要与目标链路剩余容量同量级，即
 \begin{equation}
@@ -490,14 +486,15 @@ ISL 容量 $C_e$ & 20 Gb/s \\
 单终端上行/下行峰值 & 64 Mb/s / 384 Mb/s \\
 单星最大服务终端数 & 2080 \\
 背景流量来源 & CAIDA trace 重放并按 Pop 模型映射 \\
-epoch 长度 $\Delta$ & TODO（填入你实际实验值，例如 1s/500ms） \\
-候选规模 $K$ & TODO（填入你实际实验值，例如 10k） \\
-位图长度 $m$ & TODO（填入你实际实验值，例如 256） \\
-持续窗口 $k_p$ & TODO（填入你实际实验值，例如 3 或 5） \\
+epoch 长度 $\Delta$ & 1.0~s \\
+候选规模 $K$ & $\mathrm{clip}(0.3\cdot N_{\text{keys}},\;50,\;1000)$（自适应） \\
+位图长度 $m$ & 256~bits \\
+持续窗口 $k_p$ & 5~epochs \\
+可疑度阈值 $\tau$ & 0.5 \\
+高优先级带宽比 & 0.8（80\% 带宽保留给良性/低可疑流量）\\
 \hline
 \end{tabular}
 \end{table}
-% TODO (表3-?参数)：将你最终实验采用的 Δ、K、m、k_p 等填入，并与后续敏感性实验保持一致。
 
 为了系统展示“速率特征退化—多签名恢复”的过程，本文在保持总攻击注入量 $A$ 基本不变的前提下，构造多 decoy 分摊的退化设定。表~\ref{tab:ch3_deg_decoy} 给出了该设定的参数组。表中包含 $M=1$ 的退化下界情形，其目的并非声称真实攻击会只选择一个 decoy，而是作为对照用来展示“当每个目的聚合速率极大时，rate-only 必然有效”；随 $M$ 增大，单 decoy 的聚合速率约为 $A/M$ 并逐步逼近正常业务长尾区间，从而使 rate-only 的候选质量下降并引出 FI/FO 的必要性。
 
@@ -534,57 +531,84 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 
 \begin{figure}[t]
   \centering
-  \subfloat[top-$k$ 候选生成（detector）在不同 trace/负载下的 F1]{%
+  \subfloat[rate-only 检测器各指标随 $M$ 变化]{%
     \includegraphics[width=0.48\linewidth]{figs/ch3/fig3_2a_topk_f1.pdf}%
   }%
   \hfill
-  \subfloat[攻击相关 key 识别（多签名判决）在退化设定下的 F1]{%
+  \subfloat[S0(rate-only) vs S1(+FO/FI) 的 F1 对比]{%
     \includegraphics[width=0.48\linewidth]{figs/ch3/fig3_2b_degrade_f1.pdf}%
   }
-  \caption{两类 F1 结果对比。(a) top-$k$ 候选生成（detector）在不同 trace/负载下的 F1；(b) 攻击相关 key 识别（多签名判决）在退化设定下的 F1。}
+  \caption{退化攻击下的检测性能。(a) 仅靠聚合速率（rate-only）的 top-$k$ 候选 Recall、阈值判决 Recall/Precision/F1 随 decoy 数 $M$ 的变化；(b) rate-only (S0) 与引入 FO/FI 后 (S1) 的 F1 对比，展示 FO/FI 特征在静态退化场景下的核心价值。ground truth 以 decoy 目的地址为 key。}
   \label{fig:ch3_fig2_f1}
 \end{figure}
-% TODO (图3-2)：放入你已生成的两幅/两子图 F1 图。理想图像建议：
-% (a) 复现 SatShield 的 top-k detector F1（可按 CAIDA08/12/16/19 或按包量/内存扫）；
-% (b) 在退化设定 A/B/C 下对比 S0(rate-only)、S1(+FO/FI)、S2(+persist) 的 F1。
-% 同时在图注或正文明确：ground truth 的 key 定义（src bot 或 dst decoy）。
 
 \subsection{结果分析：退化证据链与多签名收益}
-首先，图~\ref{fig:ch3_fig1_cdf} 从分布层面验证了在基准设定下攻击聚合速率与良性聚合速率存在显著差异，因此 rate-only 的 top-$k$ 策略可以在较小状态下捕获攻击相关 key。进一步地，图~\ref{fig:ch3_fig2_f1}(a) 表明 top-$k$ detector 在不同背景 trace 下保持了稳定的候选捕获能力，说明“候选生成”这一在网基础模块具有跨流量模式的鲁棒性。
 
-其次，在多 decoy 分摊与脉冲式 on-off 等退化设定下，rate-only 的候选质量与判别能力均出现下降。以表~\ref{tab:ch3_deg_decoy} 的多 decoy 分摊为例：当 $M$ 增大导致单目的聚合速率约为 $A/M$ 并下沉到正常大流区间时，攻击目的在 top-$k$ 中的占比下降，rate-only 的 Recall 先下降并出现较大波动；而引入 FI/FO 后，攻击相关 key 的结构性特征（大量 distinct 对端）仍然显著，从而使多签名判决的 Recall 与 F1 得到恢复。图~\ref{fig:ch3_fig2_f1}(b) 定量展示了该恢复效果。
+\paragraph{（1）可分性分析与 top-$k$ 候选诊断}
+图~\ref{fig:ch3_fig1_cdf} 从分布层面验证了速率可分性随 $M$ 退化的完整过程。$M=1$ 时，良性 $p_{99}\approx485$~Mb/s 与攻击聚合速率 $10{,}024$~Mb/s 之间存在约 $21$ 倍间隙，top-$k$ 候选可轻松捕获攻击 key。随着 $M$ 增大到 $100$，攻击 key 的 per-key 速率降至 $100$~Mb/s，已完全融入良性长尾区间，速率特征失去区分力。
 
-最后，持续性特征进一步改善了动态攻击下的稳定性。图~\ref{fig:ch3_fig4_attackstate} 展示了脉冲式 on-off 攻击下系统的关键状态随时间的变化：子图给出攻击开关状态、攻击 key 在 top-$k$ 中的命中数量以及 Recall 等指标的时间序列。可以看到，当攻击的 on/off 周期与 epoch 边界不对齐时，rate-only 的 top-$k$ 命中会出现间歇性“掉出”，从而带来 Recall 的周期性下跌；引入持续性后，可疑 key 即便在少数窗口短暂跌出 top-$k$，其 $P_t(a)$ 仍可维持较高水平，使得队列降权更连续，最终表现为更平滑、更高的 Recall 曲线。
+图~\ref{fig:ch3_fig2_f1}(a) 从检测管线角度进一步诊断了 rate-only 方案的失效模式。该图同时给出 top-$k$ 候选 Recall、阈值判决 Recall、Precision 与 F1 四条曲线。当 $M\leq100$ 时 top-$k$ 候选 Recall 保持 $1.0$，说明候选生成模块在中等退化下仍具备完整的攻击 key 捕获能力；然而阈值判决 Recall 在 $M=50$ 时骤降至 $0.04$，F1 全程不超过 $0.52$，表明 rate-only 方案的瓶颈在于判决阈值无法区分攻击 key 与良性重流 key。当 $M\geq500$ 时，top-$k$ 候选 Recall 本身亦降至约 $0.3$，意味着大量攻击 key 的聚合速率已低于良性 key 而被 top-$k$ 排除。需要说明的是，$M\geq500$ 时 rate-only 的 Precision 出现回升（$M=1000$ 时达 $1.0$），但这是小样本统计效应——当仅约 $30\%$ 攻击 key 被 top-$k$ 捕获且 Recall 极低（$\sim0.02$）时，极少数被判为正的 key 恰好为真正攻击 key，导致 Precision 虚高，不代表检测能力恢复。
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.98\linewidth]{figs/ch3/fig3_4_onoff.pdf}
-  \caption{脉冲式 on-off 攻击下的时序结果。(a) 攻击状态（on/off）与目标链路利用率；(b) 攻击相关 key 在 top-$k$ 中的命中数量；(c) 检测 Recall 随时间变化；(d) 队列调度后良性吞吐恢复情况。}
-  \label{fig:ch3_fig4_attackstate}
-\end{figure}
-% TODO (图3-4)：放入你已生成的多子图时序图。理想图像建议：
-% (a) 给出 ground truth 的 attack state（on/off）并叠加 victim link utilization；
-% (b) 给出 |F ∩ H_t| 或命中数量；
-% (c) 给出 Recall=|F ∩ \hat{F}|/|F|；
-% (d) 给出 benign throughput 或 throughput drop 随时间变化。
-% 备注：若(b)与(c)形状几乎一致，正文需解释：当 |F| 固定时，命中数与 Recall 仅差常数倍，曲线相似是预期现象。
+\paragraph{（2）FO/FI 在静态退化场景下的核心价值}
+图~\ref{fig:ch3_fig2_f1}(b) 对比了 S0（rate-only, $\alpha=1$）与 S1（+FO/FI, $\alpha=\beta=0.5$）的 F1 随 $M$ 的变化，展示了 FO/FI 特征在静态退化场景下的核心贡献。S1 的 F1 曲线呈现三阶段行为：
+
+\begin{itemize}
+  \item \textbf{重叠段}（$M\leq10$）：S0$\approx$S1，两条线几乎重合。此时攻击 key 聚合速率$\geq1$~Gb/s，rate-only 已能检出全部攻击 key，FO/FI 不提供额外增益。
+  \item \textbf{分离段}（$M=50\sim100$）：S1 大幅超越 S0。$M=50$ 时 S0 F1 骤降至 $0.057$，而 S1 跃升至 $0.84$；$M=100$ 时 S1 达峰值 $0.908$，S0 仅 $0.017$。其机理在于：虽然攻击 per-key 速率（$100\sim200$~Mb/s）已接近良性 $p_{99}$，但每个 decoy 的 fan-in（$\text{FI}=B/M=20\sim40$）仍远高于良性 key 的典型 FI（$1\sim5$），FO/FI 特征提供了有效的判别能力。
+  \item \textbf{衰减段}（$M\geq500$）：S1 F1 下降至 $0.42$。攻击 per-key 速率降至 $20\sim35$~Mb/s，部分攻击 key 脱离 top-$k$ 候选集（top-$k$ Recall$\sim0.3$），候选集的覆盖率瓶颈成为 S1 F1 的天花板。
+\end{itemize}
+
+需要指出的是，在所有 $M$ 值下均存在约 $20$ 个良性重流 key（rate=$290\sim606$~Mb/s，FI=$13\sim26$）被误判为可疑。这些 key 代表真实的热门目的地，其评分天然超过阈值 $\tau=0.5$，构成了任何基于 rate+FI 检测器的固有误报下限。在实际部署中，队列缓解是渐进式而非二元阻断，约 $20$ 个被轻微降级服务质量的良性 key 是可接受的代价。
+
+\paragraph{（3）持续性特征在动态攻击场景下的价值}
+图~\ref{fig:ch3_fig2_f1}(b) 仅展示 S0 与 S1 的对比，未包含 S2（+persist）。其原因在于：在静态退化场景中，攻击 key 在每个 epoch 均进入 top-$k$，导致持续性 $\widetilde{P}\approx1.0$；同时约 $20$ 个良性重流 key 也几乎每个 epoch 进入候选集，$\widetilde{P}$ 同样趋近 $1.0$，持续性特征对两者加分相同，无法提供额外区分能力。
+
+持续性的核心价值体现在\emph{动态退化}场景中。图~\ref{fig:ch3_fig4_attackstate} 展示了脉冲式 on-off 攻击（$M=100$，on/off 各 $10$ epoch）下 S0、S1、S2 三种方案的时域对比。结果呈现明显的层次分化：S0 在 $M=100$ 下完全失效（on-phase 平均 Recall$\approx0.01$），S1 通过 FO/FI 实现即时检测（Recall$\approx0.990$），S2 进一步将 Recall 提升至 $0.999$。S2 的改进来源于两个机制：其一，采用加性奖励权重（$\alpha=\beta=0.5$, $\gamma=0.2$），即持续性为额外加分而非从基础权重中借用，保证 S2 的基础检测能力与 S1 完全相同；其二，当 $\gamma>0$ 时，系统将历史上 $P\geq2$ 但未进入当前 top-$k$ 的 key 也纳入评分候选集，实现了对短暂跌出 top-$k$ 的可疑 key 的"记忆"功能。在缓解层面，S0 的良性吞吐仅为 $0.572$，S1 恢复至 $0.881$，S2 进一步达到 $0.885$。
+
 
 \subsection{消融实验与参数敏感性分析}
 \label{sec:ch3_eval_ablation}
-为进一步说明“仅对 top-$k$ 候选维护 FO/FI”的资源—精度权衡，本节对候选规模 $K$、位图长度 $m$、epoch 长度 $\Delta$ 以及权重 $(\alpha,\beta,\gamma)$ 进行敏感性实验。实验结果表明：在固定内存预算下，增大 $K$ 可显著降低候选漏检概率，但会线性增加 FO/FI 位图状态；增大 $m$ 可降低位图饱和导致的估计失真，使得 $\widehat{F}_t(a)$ 的区分度提升；减小 $\Delta$ 可减少“攻击突发未被覆盖”的窗口效应并缩短系统反应时间，但会增加代理交互频率。综合考虑后，本文选择的默认参数能够在片上资源约束下取得较高 F1 与较低误伤，并维持稳定的缓解收益（具体数值见图表 TODO 部分）。
+为进一步说明"仅对 top-$k$ 候选维护 FO/FI"的资源—精度权衡，本节对候选规模 $K$、位图长度 $m$、epoch 长度 $\Delta$ 三个关键参数进行敏感性实验。实验固定退化设定为 $M=100$（速率特征失效的分界点），采用 S1（$\alpha=\beta=0.5$）方案进行评估。
 
-% TODO (消融与敏感性图表)：建议至少给出 3 张图或 1 张图+1 张表：
-% 1) K 扫描：Recall/F1 vs K；
-% 2) m 扫描：F1 vs m（bitmap 128/256；可加 HLL-lite 对比）；
-% 3) Δ 扫描：reaction time vs Δ，或 throughput drop vs Δ；
-% 并在正文用段落解释“为什么只对 top-k 维护 FO/FI 不会导致不可接受漏检”的经验依据。
+\paragraph{（1）候选规模 $K$}
+图~\ref{fig:ch3_ablation_K} 展示了 Recall 与 F1 随 $K$ 的变化。当 $K<500$ 时，Recall 与 F1 几乎同步上升——此区间 $K$ 过小导致大量攻击 key 落选候选集，是检测性能的瓶颈。$K$ 增至 $1000$ 时 Recall 饱和至 $1.0$，F1 达到约 $0.91$。继续增大 $K$（$2000\sim20000$）后 Recall 保持 $1.0$，F1 略有下降（趋近 $0.90$），原因是更多良性 key 涌入候选集增加了误报基数。从资源角度看，每个候选 key 需维护 $m=256$~bit 位图，$K=1000$ 时总内存约 $K\times m / 8 = 32$~KB，在可编程交换机片上 SRAM（通常 $\geq$10~MB）中仅占极小比例。因此 $K\approx1000$（或等效地 $K\approx0.3\cdot N_{\text{keys}}$）为推荐的默认值。
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_K.pdf}
+  \caption{候选规模 $K$ 对 Recall 与 F1 的影响（$M=100$, S1 方案）。$K=1000$ 时 Recall 饱和至 $1.0$，F1 达到约 $0.91$，为推荐的默认值。}
+  \label{fig:ch3_ablation_K}
+\end{figure}
+
+\paragraph{（2）位图长度 $m$}
+图~\ref{fig:ch3_ablation_m} 展示了 FO/FI 估计误差（MAPE）与总内存随 $m$ 的变化。$m=32$ 时 MAPE 约 $4.4\%$，$m=256$ 时降至 $1.1\%$，$m=1024$ 时进一步降至 $0.5\%$。内存开销从 $m=32$ 的约 $20$~KB 线性增长至 $m=1024$ 的约 $700$~KB（$K=1000$ 时）。综合考虑精度与开销，$m=256$ 是帕累托最优点：MAPE 已降至 $1.1\%$，足以区分攻击 FI（$\geq20$）与良性 FI（$1\sim5$）；内存约 $200$~KB，处于可编程交换机可承受范围内。
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_m.pdf}
+  \caption{位图长度 $m$ 对 FO/FI 估计误差（MAPE）与总内存的影响（$M=100$, S1 方案）。$m=256$ 时 MAPE 降至 $1.1\%$，内存约 $200$~KB，为推荐的默认值。}
+  \label{fig:ch3_ablation_m}
+\end{figure}
+
+\paragraph{（3）epoch 长度 $\Delta$}
+图~\ref{fig:ch3_ablation_delta} 展示了反应时间与平均良性吞吐下降随 $\Delta$ 的变化。$\Delta=0.1$~s 时反应时间最短（约 $0.2$~s），但代理交互频率高达 $10$ 次/秒，星上计算开销显著增加；$\Delta=5$~s 时反应时间增至 $10$~s，对应良性吞吐下降约 $24\%$。在 $\Delta=0.5\sim1.0$~s 的推荐区间内，反应时间为 $0.5\sim1.0$~s（约 $1\sim2$ 个 epoch），良性吞吐下降约 $12\sim14\%$，系统在响应速度与计算开销之间取得较好平衡。本文选择 $\Delta=1.0$~s 作为默认值。
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_delta.pdf}
+  \caption{epoch 长度 $\Delta$ 对反应时间与良性吞吐下降的影响（$M=100$, S1 方案）。$\Delta=1.0$~s 时反应时间约 $1$~s，良性吞吐下降约 $14\%$，为推荐的默认值。}
+  \label{fig:ch3_ablation_delta}
+\end{figure}
+
+
 
 \section{本章小结}
-本章针对大规模低轨卫星网络中的链路洪泛攻击，提出了 MS-SatShield 多签名在网检测与队列缓解方法。该方法在 SatShield 的 top-$k$ 在网候选生成与队列调度框架上，引入 fan-in/fan-out 与持续性等结构性签名，实现了对速率特征退化场景的鲁棒识别；同时通过“仅对候选集合维护 FO/FI”的设计，将 distinct 统计的状态成本严格控制在可编程交换机可承受范围内。实验结果表明，在多 decoy 分摊与脉冲式攻击等退化设定下，单一速率特征的 F1 会显著下降，而多签名融合能够有效恢复候选判别能力，并在队列调度层面实现对良性吞吐的稳定保护。
+本章针对大规模低轨卫星网络中的链路洪泛攻击，提出了 MS-SatShield 多签名在网检测与队列缓解方法。该方法在 SatShield 的 top-$k$ 在网候选生成与队列调度框架上，引入 fan-in/fan-out 与持续性等结构性签名，实现了对速率特征退化场景的鲁棒识别；同时通过"仅对候选集合维护 FO/FI"的设计，将 distinct 统计的状态成本严格控制在 $O(K\cdot m)$（默认 $K=1000$, $m=256$，约 $32$~KB）范围内。
 
-% TODO(章节过渡)：可在此自然引出第四章研究点：
-% 例如：在多星多链路全局视角下如何进行“协同部署/推回/激活-休眠优化”，
-% 或者如何在在网计算约束下实现跨链路的轻量协同检测，从而进一步提升 LSN 可扩展性与能耗效率。
+实验结果表明：（1）在多 decoy 分摊退化下（$M=100$），仅靠聚合速率的 S0 方案 F1 降至 $0.017$，而引入 FO/FI 后的 S1 方案 F1 恢复至 $0.908$，FO/FI 特征提供了核心检测增益；（2）在脉冲式 on-off 攻击下，持续性特征通过加性奖励与候选集扩展机制将 S2 方案的 on-phase 平均 Recall 提升至 $0.999$，良性吞吐恢复至 $0.885$；（3）消融实验确认了 $K\approx1000$、$m=256$、$\Delta=1.0$~s 在检测精度与资源开销之间的帕累托最优性。
+
+然而，上述结果仍局限于单星/单链路视角。当 $M\geq500$ 时所有方案 F1 均下降至 $0.42\sim0.46$，受限于单链路 top-$k$ 候选集的覆盖率瓶颈（top-$k$ Recall$\sim0.3$）。此外，单节点缓解仅在拥塞已形成后的末端丢弃攻击流量，无法阻止攻击流在上游链路上的带宽浪费。这些局限性自然引出第四章的研究方向：通过多星协同的证据融合与逐跳推回机制，在网络级实现更早期、更彻底的攻击缓解。
+
 
 
 %========================

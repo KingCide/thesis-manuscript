@@ -225,7 +225,7 @@ $$B_{\text{EG}} \leq \frac{N_R \cdot L_{\text{EG}}}{\Delta} = \frac{161 \times 5
 
 | 基线量 | 值 | 用途 |
 |--------|---|------|
-| 良性 rate_p99 | 484.9 Mb/s | $\tilde{R}(a)$ 归一化分母 |
+| 良性 rate_p99 | 484.9 Mb/s | $\tilde{R}(a)$ 归一化分母（纯良性 377 key 聚合）。注意：fig3_1 CDF 子图中标注的 p99 随 M 略有不同（485~495），因混合聚合后部分良性 key 被攻击 key 占据后移除 |
 | 良性 fofi_p99 | 21.5 | $\tilde{F}(a)$ 归一化分母 |
 | 良性 key 数/链路 | ~377 | K 自适应的 $N_{\text{keys}}$ 基数 |
 | 良性重流 FP 数 | ~20 | 检测器固有 FP 下限，来自 rate>290 且 FI>13 的良性重流 key |
