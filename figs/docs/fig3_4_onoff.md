@@ -6,21 +6,27 @@
 
 实际攻击者常采用脉冲式 on-off 策略：周期性开关攻击流量，以逃避基于持续高速率的检测。这张图验证 MS-SatShield 在这种动态攻击模式下的检测响应和吞吐保护能力。
 
+论文第 557 行声称："rate-only 的 top-k 命中会出现间歇性掉出...引入持续性后 Recall 曲线更平滑。"
+
 ### 攻击模型
 
 - 攻击流量按固定周期（on_duration=10, off_duration=10 epoch）交替出现
 - 每次 on 阶段发起 M=100 的退化攻击
 - warmup 阶段（5 epoch）无攻击，用于建立基线
 
-### 持续性特征的价值
+### S0/S1/S2 三方案对比
 
-- **on 阶段**：攻击 key 迅速进入 top-k，P&#x0303; 累积增长
-- **off 阶段**：攻击 key 离开 top-k，但 P&#x0303; 仍保持 k_p-1 个 epoch（窗口效应）
-- **on-off 切换**：系统能更快识别"反复出现"的 key，off→on 切换时检测加速
+本图是三种检测方案在动态攻击下的时域对比：
+
+| 方案 | 权重 (α,β,γ) | 特征 |
+|------|-------------|------|
+| S0 (rate-only) | (1.0, 0.0, 0.0) | 仅用归一化速率 |
+| S1 (+FO/FI) | (0.5, 0.5, 0.0) | 加入 fan-in/fan-out |
+| S2 (+persist) | (0.4, 0.4, 0.2) | 加入持续性 |
 
 ### 队列缓解模型
 
-链路过载时，高优先级队列保留 `high_prio_bw_ratio x capacity`（默认 80%）给检测到的良性流，低优先级队列承受丢弃。
+链路过载时，高优先级队列保留 `high_prio_bw_ratio × capacity`（默认 80%）给检测到的良性流，低优先级队列承受丢弃。
 
 ### 位置
 
@@ -37,51 +43,117 @@
 
 ### (b) top-k 命中数
 
-- on 阶段迅速上升至接近攻击 key 总数
+- on 阶段迅速上升至接近攻击 key 总数（~100）
 - off 阶段降为 0
-- 随 on-off 周期重复，上升速度可能加快（持续性记忆）
+- top-k 候选生成与评分方案无关（仅依赖速率排序），三种方案共用
 
-### (c) Recall
+### (c) Recall —— 三方案核心对比
 
-- on 阶段初期 Recall 从 0 上升到 >0.9（1~2 epoch 延迟）
-- off 阶段迅速归 0
-- 随着 on-off 周期重复，P&#x0303; 特征使 Recall 上升更快
+三方案呈现截然不同的 Recall 行为：
 
-### (d) 良性吞吐
+1. **S0 (rate-only)**：M=100 下 rate-only 完全失效（per-key rate=100 Mb/s < rate_p99=484.9），Recall ≈ 0
+2. **S1 (+FO/FI)**：FO/FI 特征（FI=20 ≈ fofi_p99=21.5）立即使 score > τ=0.5，Recall ≈ 1.0
+3. **S2 (+persist)**：每个 on-phase 前 2 epoch 有"冷启动延迟"，之后 Recall 上升至接近 1.0
 
-- on 阶段初始下降（检测未生效），随后恢复（队列调度生效）
-- off 阶段完全恢复到 1.0
-- 吞吐下降的"谷"应随周期推移变浅（持续性加速检测）
+### (d) 良性吞吐 —— 缓解效果对比
+
+- S0：检测失效，吞吐下降严重（~0.57）
+- S1：检测快速生效，吞吐保持较高（~0.88）
+- S2：冷启动期吞吐下降，持续性积累后恢复
+
+### off-phase 行为
+
+off 阶段无攻击 key，Recall 取空真值 1.0（无正类需检出）。三方案 off-phase 曲线重叠于 1.0。
 
 ---
 
-## 三、代码流程（数据从哪来、怎么处理、如何画图）
+## 三、当前实验数据（22×72 合成拓扑，M=100）
+
+### on-phase 平均指标
+
+| 方案 | on-phase 平均 Recall | on-phase 平均良性吞吐 |
+|------|---------------------|---------------------|
+| S0 (rate-only) | 0.010 | 0.572 |
+| S1 (+FO/FI) | 0.990 | 0.881 |
+| S2 (+persist) | 0.863 | 0.837 |
+
+### S2 冷启动延迟的数学解释
+
+M=100 时每个攻击 key: rate=100 Mb/s, FI=20
+
+```
+S1 score = 0.5 × min(1, 100/484.9) + 0.5 × min(1, 20/21.5)
+         = 0.5 × 0.206 + 0.5 × 0.930
+         = 0.568 > τ=0.5 ✓ （首 epoch 即检出）
+
+S2 score(P̃=0) = 0.4 × 0.206 + 0.4 × 0.930 + 0.2 × 0
+              = 0.454 < τ=0.5 ✗ （未检出）
+
+S2 score(P̃=1/5) = 0.454 + 0.2 × 0.2 = 0.494 < τ=0.5 ✗
+S2 score(P̃=2/5) = 0.454 + 0.2 × 0.4 = 0.534 > τ=0.5 ✓ （第 3 epoch 检出）
+```
+
+S2 将 20% 权重分配给持续性 → α+β=0.8（vs S1 的 1.0）→ 在 on-phase 开头 P̃=0 时 score 不足 τ。需等 2 epoch 使 P̃ ≥ 2/5 才突破阈值。
+
+off_duration=10 > k_p=5，持续性在 off 期间完全衰减，因此每个 on-phase 都需重新积累。
+
+### 讨论：静态最优 vs 动态场景的权衡
+
+- **静态攻击**（图 3-2）：S2 ≈ S1（F1 均约 0.91），persistence 在 M≥500 时提供额外增益
+- **动态 on-off**（图 3-4）：S2 < S1，因 γ=0.2 的权重分配导致冷启动延迟
+
+潜在调整：若需 S2 在 on-off 下也优于 S1，可减小 γ（如 γ=0.1，α=β=0.45），使 base score = 0.45×0.206+0.45×0.930 = 0.511 > τ 即可立即检出。但这会削弱 S2 在高 M 静态场景下的优势。
+
+---
+
+## 四、代码流程
+
+### 入口
+
+`experiments/ch3_ms_satshield/fig3_4_onoff.py` → `generate_fig3_4()`
 
 ### 核心处理步骤
 
 ```python
-# fig3_4_onoff.py 主流程:
-
-# 1. 加载 icarus 数据，生成 benign_flows 和 attack_flows (M=100)
+# 1. 加载数据，生成 benign_flows 和 attack_flows (M=100)
 
 # 2. 构建 on-off schedule
 #    warmup(5) + 周期性 on(10)/off(10)，共 100 epoch
-#    schedule = [False]*5 + [True,True,...,False,False,...] 循环
 
-# 3. run_multi_epoch_sim(benign, attack, capacity, schedule, cfg):
-#    每 epoch:
-#      a. 按 schedule 决定是否加入攻击流
-#      b. 良性流加 ±10% 速率抖动
-#      c. aggregate_by_key → top-k → bitmap FO/FI → score → detect
-#      d. 计算链路利用率、topk_hit_count、recall、benign_throughput_ratio
-#    返回 EpochResult 列表
+# 3. 定义三种检测方案（使用 dataclasses.replace 创建不同权重配置）
+#    S0: replace(MS_CFG, alpha=1.0, beta=0.0, gamma=0.0)
+#    S1: replace(MS_CFG, alpha=0.5, beta=0.5, gamma=0.0)
+#    S2: MS_CFG (α=0.4, β=0.4, γ=0.2)
 
-# 4. 提取 4 个时间序列，绘制 4 子图（共享 x 轴）
-#    axvspan 标注攻击区间（红色半透明带）
+# 4. 对每种方案运行仿真（固定 random.seed(42) 保证公平对比）
+#    run_multi_epoch_sim(benign, attack, capacity, schedule, cfg)
+
+# 5. 绘制 4 子图：
+#    (a) 攻击状态 + 利用率（仅 S2，与方案无关）
+#    (b) top-k 命中数（仅 S2，与方案无关）
+#    (c) Recall —— S0/S1/S2 三条曲线
+#    (d) 良性吞吐 —— S0/S1/S2 三条曲线
 ```
 
 ### 绘图参数
 
-- 4 子图垂直排列，共享 x 轴（epoch）
+- 4 子图垂直排列，figsize=(10, 13)，共享 x 轴
+- S0：灰色虚线，S1：蓝色点划线，S2：红色实线
 - 攻击 on 区间用红色半透明带标注
-- 输出：`experiments/figures/ch3/fig3_4_onoff.pdf` 和 `.png`
+- 输出：`experiments/figures/ch3/fig3_4_onoff.{pdf,png}`
+
+---
+
+## 五、修改历史
+
+### 2026-02-26：添加 S0/S1/S2 对比（P1-2）
+
+**问题**：论文声称"引入持续性后 Recall 曲线更平滑"，但图 3-4 只展示了一条曲线（S2），无法验证。
+
+**修复**：
+1. 使用 `dataclasses.replace` 创建三种权重配置
+2. 固定随机种子对每种方案分别运行仿真
+3. 子图 (c) Recall 和 (d) 良性吞吐展示三条曲线
+4. 不同颜色+线型区分方案
+
+**发现**：S2 在 on-off 场景下因冷启动延迟导致 Recall 低于 S1（0.863 vs 0.990）。这是 γ=0.2 权重分配的数学必然结果，非 bug。
