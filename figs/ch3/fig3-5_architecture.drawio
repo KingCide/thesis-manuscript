@@ -1,0 +1,271 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- ========== 数据平面背景 ========== -->
+    <mxCell id="dp_bg" value="" style="rounded=1;whiteSpace=wrap;fillColor=#EBF5FB;strokeColor=#2E86C1;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="20" y="20" width="760" height="195" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_label" value="P4 数据平面（线速流水线）" style="text;fontSize=14;fontStyle=1;fontColor=#1A5276;align=left;" vertex="1" parent="1">
+      <mxGeometry x="30" y="25" width="260" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- Stage labels -->
+    <mxCell id="s0" value="Stage 0" style="text;fontSize=8;fontColor=#95A5A6;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="55" y="48" width="70" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="s1" value="Stage 1" style="text;fontSize=8;fontColor=#95A5A6;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="185" y="48" width="90" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="s2" value="Stage 2" style="text;fontSize=8;fontColor=#95A5A6;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="345" y="48" width="70" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="s3" value="Stage 3" style="text;fontSize=8;fontColor=#95A5A6;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="485" y="48" width="90" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="s4" value="Stage 4" style="text;fontSize=8;fontColor=#95A5A6;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="640" y="48" width="80" height="12" as="geometry"/>
+    </mxCell>
+
+    <!-- ① Parser -->
+    <mxCell id="parser" value="Parser&#xa;───────&#xa;提取 (a, x, len)" style="rounded=1;whiteSpace=wrap;fillColor=#D6EAF8;strokeColor=#2E86C1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+      <mxGeometry x="40" y="65" width="100" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- ② Top-K 更新 -->
+    <mxCell id="topk" value="Top-K 更新&#xa;───────&#xa;bytes(a) += len&#xa;维护候选集 Ht" style="rounded=1;whiteSpace=wrap;fillColor=#D6EAF8;strokeColor=#2E86C1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="175" y="63" width="110" height="60" as="geometry"/>
+    </mxCell>
+
+    <!-- ③ 候选命中判断 -->
+    <mxCell id="check" value="a ∈ Ht ?" style="rhombus;whiteSpace=wrap;fillColor=#FDEBD0;strokeColor=#E67E22;fontSize=11;fontStyle=1;align=center;" vertex="1" parent="1">
+      <mxGeometry x="340" y="55" width="90" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- ④ FO/FI 位图 -->
+    <mxCell id="bitmap" value="FO/FI 位图&#xa;───────&#xa;bitmap[h(x)%m]←1&#xa;双缓冲, K×m bits" style="rounded=1;whiteSpace=wrap;fillColor=#D6EAF8;strokeColor=#2E86C1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="475" y="63" width="115" height="60" as="geometry"/>
+    </mxCell>
+
+    <!-- ⑤ Queue Map -->
+    <mxCell id="qmap" value="Queue Map&#xa;───────&#xa;rank(a) → QID" style="rounded=1;whiteSpace=wrap;fillColor=#D6EAF8;strokeColor=#2E86C1;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="630" y="65" width="100" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- 仅候选 Key 标注 -->
+    <mxCell id="cand_note" value="仅候选 Key" style="text;fontSize=8;fontColor=#E67E22;fontStyle=3;" vertex="1" parent="1">
+      <mxGeometry x="498" y="126" width="68" height="12" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== Packet Path 箭头 ===== -->
+    <mxCell id="pkt_label" value="数据包" style="text;fontSize=9;fontColor=#2E86C1;fontStyle=1;align=right;" vertex="1" parent="1">
+      <mxGeometry x="-10" y="85" width="42" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_in" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;entryX=0;entryY=0.5;" edge="1" parent="1" target="parser">
+      <mxGeometry relative="1" as="geometry"><mxPoint x="8" y="92" as="sourcePoint"/></mxGeometry>
+    </mxCell>
+    <mxCell id="e1" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;" edge="1" parent="1" source="parser" target="topk">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e2" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;" edge="1" parent="1" source="topk" target="check">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3" value="Y" style="endArrow=classic;strokeColor=#27AE60;strokeWidth=2;fontSize=10;fontColor=#27AE60;fontStyle=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="check" target="bitmap">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e4" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;" edge="1" parent="1" source="bitmap" target="qmap">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- N bypass -->
+    <mxCell id="e5" value="N" style="endArrow=classic;strokeColor=#E74C3C;strokeWidth=1.5;dashed=1;fontSize=10;fontColor=#E74C3C;fontStyle=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;curved=1;" edge="1" parent="1" source="check" target="qmap">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="385" y="168"/>
+          <mxPoint x="530" y="180"/>
+          <mxPoint x="680" y="168"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="bypass_txt" value="跳过位图更新" style="text;fontSize=8;fontColor=#E74C3C;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="480" y="182" width="80" height="12" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 分隔线 ===== -->
+    <mxCell id="sep" value="" style="endArrow=none;strokeColor=#BDC3C7;strokeWidth=1;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="20" y="228" as="sourcePoint"/>
+        <mxPoint x="780" y="228" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="sep_u" value="↑ 数据平面（每包线速处理）" style="text;fontSize=8;fontColor=#7F8C8D;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="25" y="216" width="180" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="sep_d" value="↓ 星上代理（每 epoch 执行）" style="text;fontSize=8;fontColor=#7F8C8D;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="25" y="230" width="180" height="12" as="geometry"/>
+    </mxCell>
+
+    <!-- ========== 星上代理背景 ========== -->
+    <mxCell id="ag_bg" value="" style="rounded=1;whiteSpace=wrap;fillColor=#FDEBD0;strokeColor=#E67E22;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="20" y="252" width="760" height="155" as="geometry"/>
+    </mxCell>
+    <mxCell id="ag_label" value="星上代理（每 Δ = 1.0 s 执行一次）" style="text;fontSize=14;fontStyle=1;fontColor=#784212;align=left;" vertex="1" parent="1">
+      <mxGeometry x="30" y="257" width="320" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- ① 读取 -->
+    <mxCell id="a1" value="① 读取&#xa;─────&#xa;Top-K 列表&#xa;bytes 寄存器&#xa;位图缓冲区" style="rounded=1;whiteSpace=wrap;fillColor=#FAE5D3;strokeColor=#E67E22;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="40" y="285" width="110" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- ② 特征估计 -->
+    <mxCell id="a2" value="② 特征估计&#xa;─────&#xa;R(a) = bytes / Δ&#xa;F̂(a) = −m·ln(Z/m)&#xa;P(a) = Σ𝟙[a∈H]" style="rounded=1;whiteSpace=wrap;fillColor=#FAE5D3;strokeColor=#E67E22;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="190" y="285" width="135" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- ③ 可疑度计算 -->
+    <mxCell id="a3" value="③ 可疑度计算&#xa;─────&#xa;归一化: R̃, F̃, P̃&#xa;S = αR̃ + βF̃ + γP̃&#xa;rank = g(S)" style="rounded=1;whiteSpace=wrap;fillColor=#FAE5D3;strokeColor=#E67E22;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="365" y="285" width="140" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- ④ 写回 -->
+    <mxCell id="a4" value="④ 写回&#xa;─────&#xa;更新 Ht+1 表项&#xa;更新 rank 表项&#xa;清零位图缓冲" style="rounded=1;whiteSpace=wrap;fillColor=#FAE5D3;strokeColor=#E67E22;fontSize=10;align=center;" vertex="1" parent="1">
+      <mxGeometry x="545" y="285" width="115" height="75" as="geometry"/>
+    </mxCell>
+
+    <!-- Agent 内部箭头 -->
+    <mxCell id="ea1" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;" edge="1" parent="1" source="a1" target="a2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="ea2" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;" edge="1" parent="1" source="a2" target="a3">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="ea3" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;" edge="1" parent="1" source="a3" target="a4">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 数据平面 ↔ 代理 读写箭头 ===== -->
+    <!-- 读 Top-K + bytes -->
+    <mxCell id="r1" value="读 Top-K + bytes" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;dashed=1;dashPattern=8 4;fontSize=8;fontColor=#E67E22;labelBackgroundColor=#FDEBD0;" edge="1" parent="1">
+      <mxGeometry x="-0.3" relative="1" as="geometry">
+        <mxPoint x="230" y="123" as="sourcePoint"/>
+        <mxPoint x="95" y="285" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="230" y="240"/>
+          <mxPoint x="95" y="240"/>
+        </Array>
+        <mxPoint as="offset"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 读 bitmap -->
+    <mxCell id="r2" value="读 bitmap" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;dashed=1;dashPattern=8 4;fontSize=8;fontColor=#E67E22;labelBackgroundColor=#FDEBD0;" edge="1" parent="1">
+      <mxGeometry x="-0.3" relative="1" as="geometry">
+        <mxPoint x="532" y="123" as="sourcePoint"/>
+        <mxPoint x="95" y="285" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="532" y="243"/>
+          <mxPoint x="95" y="243"/>
+        </Array>
+        <mxPoint as="offset"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 写 Ht+1 -->
+    <mxCell id="w1" value="写 Ht+1" style="endArrow=classic;strokeColor=#C0392B;strokeWidth=1.5;dashed=1;dashPattern=8 4;fontSize=8;fontColor=#C0392B;labelBackgroundColor=#FDEBD0;" edge="1" parent="1">
+      <mxGeometry x="0.3" relative="1" as="geometry">
+        <mxPoint x="602" y="285" as="sourcePoint"/>
+        <mxPoint x="385" y="135" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="690" y="246"/>
+          <mxPoint x="385" y="246"/>
+        </Array>
+        <mxPoint as="offset"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 写 rank -->
+    <mxCell id="w2" value="写 rank" style="endArrow=classic;strokeColor=#C0392B;strokeWidth=1.5;dashed=1;dashPattern=8 4;fontSize=8;fontColor=#C0392B;labelBackgroundColor=#FDEBD0;" edge="1" parent="1">
+      <mxGeometry x="0.3" relative="1" as="geometry">
+        <mxPoint x="640" y="285" as="sourcePoint"/>
+        <mxPoint x="680" y="120" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="720" y="246"/>
+          <mxPoint x="680" y="246"/>
+        </Array>
+        <mxPoint as="offset"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ========== 流量管理器 ========== -->
+    <mxCell id="tm_bg" value="" style="rounded=1;whiteSpace=wrap;fillColor=#F8F9FA;strokeColor=#2C3E50;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="20" y="435" width="760" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="tm_label" value="Traffic Manager（队列调度）" style="text;fontSize=14;fontStyle=1;fontColor=#2C3E50;align=left;" vertex="1" parent="1">
+      <mxGeometry x="30" y="440" width="280" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- Queue 0 -->
+    <mxCell id="q0" value="Queue 0（高优先级, 80% BW）&#xa;良性 / 低可疑流量" style="rounded=1;whiteSpace=wrap;fillColor=#D5F5E3;strokeColor=#27AE60;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+      <mxGeometry x="50" y="465" width="310" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- Queue 1 -->
+    <mxCell id="q1" value="Queue 1（低优先级, 20% BW）&#xa;高可疑 → 拥塞时优先丢弃" style="rounded=1;whiteSpace=wrap;fillColor=#FADBD8;strokeColor=#E74C3C;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+      <mxGeometry x="400" y="465" width="340" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- Queue Map → TM -->
+    <mxCell id="e_to_tm" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;exitX=0.5;exitY=1;" edge="1" parent="1" source="qmap">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="680" y="435" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="680" y="205"/>
+          <mxPoint x="745" y="205"/>
+          <mxPoint x="745" y="425"/>
+          <mxPoint x="680" y="425"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 出端口 -->
+    <mxCell id="out_txt" value="出端口 →" style="text;fontSize=9;fontColor=#2C3E50;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="748" y="478" width="50" height="14" as="geometry"/>
+    </mxCell>
+
+    <!-- ========== 内存布局表 ========== -->
+    <mxCell id="mem_title" value="片上内存" style="text;fontSize=9;fontStyle=5;fontColor=#1A5276;align=center;" vertex="1" parent="1">
+      <mxGeometry x="680" y="370" width="70" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="mem_box" value="Top-K:  12 KB&#xa;Bytes:   8 KB&#xa;Bitmap: 64 KB&#xa;Tables: 12 KB&#xa;───────&#xa;总计: ~96 KB&#xa;(＜ 10MB SRAM)" style="text;fontSize=8;fontColor=#5D6D7E;align=left;fillColor=#F2F4F4;strokeColor=#AEB6BF;rounded=1;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="668" y="385" width="102" height="96" as="geometry"/>
+    </mxCell>
+
+    <!-- ========== 图例 ========== -->
+    <mxCell id="leg_bg" value="" style="rounded=1;fillColor=#F8F9FA;strokeColor=#BDC3C7;" vertex="1" parent="1">
+      <mxGeometry x="35" y="383" width="220" height="56" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_t" value="图例" style="text;fontSize=9;fontStyle=1;fontColor=#2C3E50;" vertex="1" parent="1">
+      <mxGeometry x="42" y="385" width="30" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="l1a" style="endArrow=classic;strokeColor=#2E86C1;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="48" y="408" as="sourcePoint"/>
+        <mxPoint x="88" y="408" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="l1t" value="包级数据流 (Packet Path)" style="text;fontSize=8;fontColor=#2E86C1;" vertex="1" parent="1">
+      <mxGeometry x="92" y="402" width="155" height="12" as="geometry"/>
+    </mxCell>
+    <mxCell id="l2a" style="endArrow=classic;strokeColor=#E67E22;strokeWidth=1.5;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="48" y="425" as="sourcePoint"/>
+        <mxPoint x="88" y="425" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="l2t" value="Epoch 级控制流 (读/写寄存器)" style="text;fontSize=8;fontColor=#E67E22;" vertex="1" parent="1">
+      <mxGeometry x="92" y="419" width="155" height="12" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
