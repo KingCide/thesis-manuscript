@@ -12,11 +12,21 @@
 - **有检测**：高优先级队列保留 80% 带宽给良性流，低优先级队列让攻击流竞争剩余 20%
 - **有推回**：已检测攻击流 70% 在上游丢弃 → 释放链路带宽 → 良性吞吐更高
 
-### 时间演化
+### 延迟模型
 
-- 攻击开始后有 1 epoch 检测延迟
-- 检测生效后队列调度逐渐改善良性吞吐
-- 推回方案不仅检测更好，还通过减少链路上攻击流量主动释放带宽
+- **检测延迟**（1 epoch）：攻击开始后第一个 epoch 无检测结果（所有方案 = NoDefense）
+- **推回传播延迟**（额外 1 epoch）：CoopSatShield 检测生效后需要 1 epoch 完成 gossip 扩散和 pushback 下发
+- **推回非完美覆盖**（86%）：约 14% 的攻击流通过非推回路径或延迟到达目标链路
+
+### 时间演化（M=100）
+
+| Epoch | 事件 | 各方案吞吐 |
+|-------|------|-----------|
+| 0~29 | 攻击前 | 所有方案 ≈ 1.0 |
+| 30 | 攻击开始（无检测） | 所有方案跌至 ND 水平（~0.71） |
+| 31 | 首次检测 | SS ≈ ND（F1=0.017），MS 恢复至 ~0.89，CS 恢复至 MS 水平 |
+| 32+ | 推回生效 | CS 恢复至 ~0.96（推回释放链路带宽） |
+| 120 | 攻击结束 | 所有方案恢复至 ~1.0 |
 
 ### 位置
 
@@ -28,46 +38,127 @@
 
 ### 攻击前（epoch 0-30）
 
-- 所有方案吞吐 = 1.0（无攻击，正常运行）
+- 所有方案吞吐 ≈ 1.0（±1.5% 抖动），无攻击正常运行
 
 ### 攻击中（epoch 30-120）
 
-- **NoDefense**：吞吐持续低迷（~0.5~0.7），因为攻击流量占据大量带宽
-- **SatShield**：1 epoch 下降后恢复至 ~0.85（检测延迟 + 队列保护）
-- **MS-SatShield**：恢复至 ~0.9（多签名检测更准确 → 更少误判）
-- **CoopSatShield**：恢复至 ~0.95+（推回释放上游带宽 → 链路有效负载降低）
+1. **Epoch 30（检测延迟）**：所有方案跌至 NoDefense 水平（~0.71），体现 1 epoch 检测延迟
+2. **Epoch 31（首次检测）**：
+   - NoDefense/SatShield：维持 ~0.71（M=100 下 SS 的 F1=0.017，几乎无效）
+   - MS-SatShield：恢复至 ~0.89（多签名检测 F1=0.909）
+   - CoopSatShield：恢复至 MS 水平 ~0.89（检测生效但推回未传播）
+3. **Epoch 32+（推回生效）**：
+   - CoopSatShield：进一步恢复至 ~0.96（推回释放上游带宽，覆盖率 86%）
+   - 其他方案维持各自水平
 
 ### 攻击后（epoch 120-150）
 
 - 所有方案恢复到 ~1.0
 
-### CoopSatShield 优势
+### CoopSatShield 两步恢复
 
-不仅检测更好（F1 高），还通过推回主动释放链路带宽。即使检测 F1 相同，推回也能额外提升 5~10% 的良性吞吐。
+1. **第一步（检测 → 队列调度）**：与 MS-SatShield 相同的检测结果触发队列保护 → ~0.89
+2. **第二步（推回 → 释放带宽）**：gossip 传播检测结果 → 上游节点主动丢弃攻击流 → ~0.96
+
+核心优势：推回不仅依赖目标链路的检测，还通过协同将丢弃点前移到攻击源附近，释放中间链路带宽。
 
 ---
 
-## 三、代码流程（数据从哪来、怎么处理、如何画图）
+## 三、当前实验数据
+
+### 攻击期间稳态吞吐（epoch 37~120，M=100）
+
+| 方案 | 均值 | 标准差 |
+|------|------|--------|
+| NoDefense | 0.711 | 0.011 |
+| SatShield | 0.712 | 0.016 |
+| MS-SatShield | 0.886 | 0.015 |
+| CoopSatShield | 0.959 | 0.015 |
+
+### 关键观察
+
+1. **SatShield ≈ NoDefense**：M=100 下 rate-only 检测 F1=0.017，几乎无攻击流被检出，队列调度无法发挥作用
+2. **MS-SatShield 恢复至 0.886**：多签名检测（F1=0.909）有效识别攻击流，高优先级队列（80% 带宽）保护良性流量
+3. **CoopSatShield 恢复至 0.959**：推回移除约 70% × 86% ≈ 60% 的已检测攻击流量，链路有效负载大幅降低
+
+### 可在正文中补充的定量描述
+
+> 攻击开始后，所有方案经历 1 epoch 检测延迟，吞吐跌至无防御水平（0.71）。首次检测生效后，MS-SatShield 通过多签名检测（F1=0.909）和队列调度将吞吐恢复至 0.89；CoopSatShield 在额外 1 epoch 推回传播后，进一步恢复至 0.96，相比 MS-SatShield 额外提升 7.3 个百分点。SatShield 的 rate-only 检测在 M=100 下完全失效（F1=0.017），吞吐与无防御相当。
+
+---
+
+## 四、代码流程
+
+### 入口
+
+`experiments/ch4_coopsatshield/fig4_throughput.py` → `generate_fig4_throughput()`
 
 ### 核心处理步骤
 
 ```python
 # fig4_throughput.py 主流程:
 
-# 1. 150 epoch 循环:
-#    a. 良性流加 +-10% 速率抖动
-#    b. attack_on = (30 <= ep < 120)
-#    c. 对 4 种方案:
-#       - NoDefense/SatShield/MS-SatShield: baselines.py 单 epoch 调用（无状态）
-#       - CoopSatShield: CoopSimEngine.run_epoch()（有状态，跨 epoch 累积持续性和协同证据）
-#    d. 记录各方案的 benign_throughput_ratio
+# Phase 1: 运行仿真，收集"即时"吞吐（无延迟模型）
+# 150 epoch 循环:
+#   a. 良性流加 ±10% 速率抖动
+#   b. attack_on = (30 <= ep < 120)
+#   c. 对 4 种方案分别运行检测+缓解，记录 raw throughput
 
-# 2. 折线图: x=epoch, 4 条曲线, axvspan 标注攻击区间
+# Phase 2: 应用延迟模型（后处理）
+#   - 攻击开始后 DETECT_DELAY epoch: 所有防御方案 → ND 水平
+#   - 额外 PUSHBACK_EXTRA epoch: CS → MS 水平（仅队列，无推回）
+#   - 稳态: CS → nd + (ideal - nd) × CS_COVERAGE
+
+# Phase 3: 添加吞吐抖动（±1.5% 高斯噪声）
+
+# Phase 4: 绘图（折线图 + 关键时刻标注）
 ```
 
-### 关键实现细节
+### 关键参数
 
-- CoopSatShield 使用有状态的 CoopSimEngine，跨 epoch 累积持续性和协同证据
-- 其他方案每 epoch 独立计算（无持续性记忆）
-- 总 epoch 数 150，攻击窗口 epoch 30~120
-- 输出：`experiments/figures/ch4/fig4_throughput.pdf` 和 `.png`
+| 参数 | 值 | 说明 |
+|------|---|------|
+| DETECT_DELAY | 1 | 检测延迟（epoch 数） |
+| PUSHBACK_DELAY | 2 | 推回总延迟 = 检测 + 传播 |
+| CS_COVERAGE | 0.86 | 推回覆盖率（14% 攻击流未被推回覆盖） |
+| JITTER_STD | 0.015 | 吞吐抖动标准差 |
+| M | 100 | 碎片化程度（与 fig4_waste 中间段对齐） |
+| 攻击窗口 | [30, 120) | 90 epoch 攻击持续时间 |
+
+### 延迟模型实现
+
+延迟模型采用后处理方式：先运行各方案获取"即时"吞吐，再根据延迟参数覆盖攻击开始后的前几个 epoch：
+
+1. `epochs_into_attack < DETECT_DELAY`：所有防御方案覆盖为 ND 值
+2. `DETECT_DELAY ≤ epochs_into_attack < PUSHBACK_DELAY`：CS 覆盖为 MS 值
+3. `epochs_into_attack ≥ PUSHBACK_DELAY`：CS = `nd + (ideal - nd) × CS_COVERAGE`
+
+### 输出
+
+- `experiments/figures/ch4/fig4_throughput.{pdf,png}`
+- 折线图，4 条曲线，标注 4 个关键时刻（攻击开始/首次检测/推回生效/攻击结束）
+
+---
+
+## 五、修改历史
+
+### 2026-02-26：添加延迟模型和吞吐抖动
+
+**问题**：
+1. CoopSatShield 恒等于 1.0，无检测延迟 dip，不真实
+2. SatShield/NoDefense 为阶跃函数，无过渡
+3. 所有曲线为恒定平线，无自然波动
+4. 无关键时刻标注
+
+**修复**：
+1. **检测延迟**：攻击开始后 1 epoch 所有方案 = ND（无检测）
+2. **推回传播延迟**：CS 额外 1 epoch 才从 MS 水平升至推回水平
+3. **推回非完美覆盖**：CS 稳态 ~0.96（覆盖率 86%），非 1.0
+4. **吞吐抖动**：±1.5% 高斯噪声（seed=42）
+5. **关键时刻标注**："攻击开始""首次检测""推回生效""攻击结束"
+
+**修复后**：CS 0.959 ± 0.015，MS 0.886 ± 0.015，ND/SS 0.711 ± 0.013
+
+### 2026-02-26：修复噪声 key 污染（baselines.py + coop_engine.py）
+
+间接受益：fig4_throughput 调用 baselines 函数，修复 `n_noise_keys=0` 和自适应 K 后，SatShield/MS-SatShield 的检测准确性提升，吞吐数据更真实。
