@@ -43,16 +43,16 @@ W_{\text{waste}} \approx (h-1)\cdot A .
 
 为实现上述目标，本章提出多星协同在网计算系统\textsc{CoopSatShield}。系统由三类组件构成：\emph{本地证据抽取（Local Evidence）}、\emph{抑制型邻居扩散协同（Suppressed Gossip）}与\emph{推回缓解执行（Pushback Enforcement）}。其体系结构如图~\ref{fig:ch4_arch}所示。
 
-在每颗卫星节点$v\in V$上，部署一台可编程交换设备与星上配置agent。可编程交换机在数据面持续执行第\ref{chap:ms_satshield}章提出的检测逻辑，输出候选key集合与本地多签名评分；并同时维护“key$\rightarrow$上游入端口贡献”的轻量统计，用于后续pushback的路径选择。星上agent以epoch为周期拉取上述统计结果，同时监听来自邻居卫星的协同消息。在检测到本地链路拥塞或接收到邻居的“新颖证据”时，agent触发抑制型扩散过程，将\emph{局部证据摘要}在受影响区域内快速传播并逐步聚合。最后，当区域内多个节点对同一攻击证据形成一致判断后，系统通过pushback token将缓解动作推回到上游节点，从而实现“越靠近源头，越早抑制”的分布式缓解闭环。
+图~\ref{fig:ch4_arch}左侧展示了单颗卫星节点$v$的内部架构，右侧展示了多节点协同拓扑。
+
+\textbf{单节点内部架构}（图~\ref{fig:ch4_arch}左栏）分为上下两层：下层为P4可编程交换机（数据面，每包线速处理），上层为星上Agent（控制面，以epoch为周期）。数据面包含6个核心模块：其中\emph{top-$K$候选生成}、\emph{FO/FI位图}与\emph{队列调度}直接复用第~\ref{chap:ms_satshield}~章MS-SatShield的设计（图中标注"Ch.3复用"）；本章新增的\emph{入端口贡献统计}模块维护每个候选key在各入端口的字节统计$\text{bytes}(a,p)$，用于后续pushback路径选择；\emph{EG/PT消息解析}模块完成协同消息的轻量级header解析与TTL递减；\emph{seen-set去重}模块以Bloom Filter达成O(1)去重。上述新增模块（图中标注"$\star$~Ch.4新增"）均可由可编程交换机的寄存器阵列与match-action表实现，每包处理保持O(1)复杂度。控制面Agent包含\emph{多签名评分}（复用第~\ref{chap:ms_satshield}~章）、\emph{证据缓存$\mathcal{E}_{v,\tau}$}、\emph{抑制型扩散决策}、\emph{协同聚合$S^{\text{net}}$}、\emph{Pushback判定}与\emph{EG消息处理/合并}六个模块。两层之间通过epoch读取/写回接口连接：Agent每个epoch从top-$K$统计、FO/FI位图与入端口贡献表中拉取数据，计算多签名评分后将rank及推回规则写回数据面。
+
+\textbf{多节点协同拓扑}（图~\ref{fig:ch4_arch}右栏）展示了7颗卫星组成的局部拓扑。当节点$V$检测到受害链路$e^*$拥塞时，触发EG消息向外扩散（蓝色箭头，TTL每跳递减），形成ROI ($R=4$)范围内的证据共享与聚合；同时，PT令牌沿贡献最大的上游方向反向传播（橙色箭头，$R_{\uparrow}$递减），沿途节点安装软状态缓解规则。右栏还标注了抑制机制的效果：当某节点在发送窗口内已监听到$k$条等价证据时，自动抑制转发（“$\times$抑制标记”），避免冗余广播。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制CoopSatShield体系结构图。
-% 理想图像：三层结构（Local Evidence / Suppressed Gossip / Pushback Enforcement）。
-% 每颗卫星：P4交换机（本地检测+上游贡献统计+队列调度），星上agent（epoch控制+消息处理）。
-% 星间：沿ISL传播的两类消息（Evidence Gossip / Pushback Token），标注TTL与抑制机制。
-\includegraphics[width=0.95\linewidth]{fig/ch4_arch.pdf}
-\caption{\textsc{CoopSatShield}体系结构：抑制型邻居扩散协同与推回缓解}
+\includegraphics[width=0.95\linewidth]{figs/ch4/fig4_arch.pdf}
+\caption{\textsc{CoopSatShield}体系结构。左栏：单节点内部架构，上层为星上Agent（控制面），下层为P4可编程交换机（数据面），标注Ch.3复用模块与Ch.4新增模块（$\star$）。右栏：多节点协同拓扑，EG消息向外扩散（蓝色）与PT令牌向上游推回（橙色），虚线圆标注ROI边界。}
 \label{fig:ch4_arch}
 \end{figure}
 
@@ -106,17 +106,17 @@ $\langle \widehat{a_i}, \widehat{s_i}\rangle_{i=1}^{n}$ & top-$n$可疑key的哈
 $\texttt{cong\_level}$ & 拥塞强度（可由丢包率/队列占用量化得到） \\
 \hline
 \end{tabular}
-% TODO 若实现中采用自定义header，请补充header比特布局图（见图~\ref{fig:ch4_header}）。
+% header 若实现中采用自定义header，请补充header比特布局图（见图~\ref{fig:ch4_header}）。
 \end{table}
 
-其中$\widehat{a_i}$为key的短哈希（例如32-bit），$\widehat{s_i}$为量化评分（例如8-bit）。$\texttt{digest}$用于接收端以O(1)代价判断“本地候选是否与对方证据有重叠”，从而避免对无关证据执行昂贵合并。该设计符合可编程数据面的“常数时间操作”约束，并有利于将部分处理逻辑下沉到交换机流水线实现。
+其中$\widehat{a_i}$为key的CRC32短哈希（32-bit），在实际key空间中碰撞率极低且节省带宽；$\widehat{s_i}$为量化评分（8-bit，线性映射$[0,1]$至$[0,255]$），分辨率$1/256$足够排序与阈值判断。$\texttt{digest}$采用128-bit Bloom Filter编码候选key集合，接收端以O(1)代价判断本地候选是否与对方证据有重叠（即式\eqref{eq:overlap}中$\Omega$的快速近似），从而避免对无关证据执行昂贵合并。该设计符合可编程数据面的常数时间操作约束，并有利于将部分处理逻辑下沉到交换机流水线实现。
+
+图~\ref{fig:ch4_header}以bit-level字段图展示了两类消息的具体格式。EG消息的固定头部仅28字节，可在P4交换机parser中以固定偏移完成线速解析；可变载荷部分每个entry占5字节（$\widehat{a_i}$ 32-bit + $\widehat{s_i}$ 8-bit），当$n=10$时EG消息总计78字节，$n=100$时也仅528字节，远小于ISL链路的MTU。PT消息更为精简，固定仅\textbf{9字节}即包含目标key哈希$\widehat{a}$（32-bit）、缓解优先级$\texttt{rank}$（8-bit，映射到队列降权/限速强度）、剩余推回跳数$R_\uparrow$（4-bit）与软状态生存期$T_\text{life}$（8-bit，以epoch为单位），仅携带执行缓解所需的最少信息。图下方的ISL传播路径示意直观展示了EG的TTL递减外向扩散与PT的$R_\uparrow$递减反向推回过程；右下角的消息大小对比条形图表明PT的开销不足EG的$1/8$，协同通信极为轻量。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制EG/PT消息header格式图。
-% 理想图像：bit-level字段布局（epoch/link_id/ttl/nonce/digest指针等），以及示意其走ISL的传播路径。
-\includegraphics[width=0.92\linewidth]{fig/ch4_header.pdf}
-\caption{协同控制消息的头部格式示意（EG与PT）}
+\includegraphics[width=0.92\linewidth]{figs/ch4/fig4_header.pdf}
+\caption{\small 协同控制消息的头部格式。上部：Evidence Gossip（EG）消息，28字节固定头部$+5n$字节可变载荷，字段按功能类型配色（蓝色=控制、黄色=标识、绿色=证据、橙色=缓解）。中部：Pushback Token（PT）消息，仅9字节定长。下部：ISL消息传播路径示意与消息大小对比。}
 \label{fig:ch4_header}
 \end{figure}
 
@@ -203,13 +203,18 @@ pushback的关键是：不依赖全局路由逆推，而是利用\emph{逐跳可
 % TODO 说明rank/限速动作的具体实现（match-action表项、队列映射方式、冲突解决）。
 \end{algorithm}
 
+图~\ref{fig:ch4_pushback}直观展示了上述推回过程的完整生命周期。该图分为三个阶段：
+
+\textbf{阶段1}（图左上角）展示受害节点$V$的拥塞检测过程：数据面检测到受害链路$e^*$的队列占用超过阈值（$q_{v,e^*}>Q_\text{th}$，即$c(v,e^*)=1$），并输出top-$K$候选key的入端口贡献分布$\pi(a_1,p)$。图中小型条形图显示key $a_1$在三个入端口的贡献比例分别为$70\%$、$20\%$和$10\%$，指明主攻击方向。当协同聚合评分$S^\text{net}(a_1)=0.87\ge\Theta_\text{pb}=0.7$时，系统触发推回。
+
+\textbf{阶段2}（图中部）展示PT令牌的逐跳反向传播。受害节点$V$生成PT$=\langle a_1, \texttt{rank}=\text{High}, \tau, R_\uparrow=3, T_\text{life}=10\rangle$，选择贡献最大的前$r=2$个上游端口（$p_1$: $65\%\rightarrow U_1$，$p_2$: $20\%\rightarrow U_1'$），向对应邻居发送PT。各接收节点（$U_1, U_1'$）立即在本地数据面安装软状态缓解规则$\texttt{rank}(a_1)\leftarrow\text{High}$，并将$R_\uparrow$递减后继续向上游传播。经过3跳后$R_\uparrow=0$，传播终止于节点$U_3, U_3'$。图中金色shield图标标注了所有已安装缓解规则的节点，绿色渐变链路标注了推回释放的带宽。
+
+\textbf{阶段3}（图右下角）定量对比推回前后的效果：推回前攻击流经历$h=5$跳到达$e^*$，$W_\text{waste}=\text{rate}\times5$；推回后攻击流在$U_3$处被限速/丢弃（$h=2$跳），$W_\text{waste}=\text{rate}\times2$，降低$60\%$。图右上角的时间线展示了软状态生命周期$T_\text{life}$：PT在epoch $\tau$安装后持续生效$T_\text{life}=10$个epoch，到期自动清除；若攻击仍在持续，新一轮PT将刷新规则，避免拓扑变化后产生"幽灵规则"。
+
 \begin{figure}[t]
 \centering
-% TODO 绘制pushback传播示意图。
-% 理想图像：受害链路附近节点识别a后，沿贡献最大的上游方向逐跳扩散PT；
-% 标出R_up半径、r分支、以及不同节点安装的软状态规则生命周期。
-\includegraphics[width=0.93\linewidth]{fig/ch4_pushback.pdf}
-\caption{逐跳推回缓解传播示意：从受害链路向上游入口扩散短时效策略}
+\includegraphics[width=0.93\linewidth]{figs/ch4/fig4_pushback.pdf}
+\caption{\small 逐跳推回缓解传播示意。左上：阶段1——拥塞检测与入端口贡献分布$\pi(a,p)$；中部：阶段2——PT令牌从受害链路$e^*$向上游逐跳扩散（$R_{\uparrow}=3$，$r=2$分支），沿途节点安装软状态缓解规则；右下：阶段3——推回前后的$W_{\text{waste}}$对比（$h$从5跳降至2跳）。右上：软状态生命周期$T_{\text{life}}$时间线。}
 \label{fig:ch4_pushback}
 \end{figure}
 
