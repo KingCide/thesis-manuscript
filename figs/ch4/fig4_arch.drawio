@@ -1,0 +1,409 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- ========== LEFT PANEL: 单节点内部结构 ========== -->
+    <mxCell id="sat_border" value="" style="rounded=1;arcSize=3;fillColor=none;strokeColor=#546E7A;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="20" y="30" width="740" height="560" as="geometry"/>
+    </mxCell>
+    <mxCell id="sat_title" value="卫星节点 v" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#37474F;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="30" y="35" width="150" height="25" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 控制面 ===== -->
+    <mxCell id="cp_bg" value="" style="rounded=1;arcSize=5;fillColor=#E8F5E9;strokeColor=#43A047;strokeWidth=2;opacity=90;" vertex="1" parent="1">
+      <mxGeometry x="40" y="65" width="700" height="225" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_title" value="星上 Agent（控制面）" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#2E7D32;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="50" y="70" width="200" height="22" as="geometry"/>
+    </mxCell>
+
+    <!-- 控制面 Row 1 -->
+    <mxCell id="cp_score" value="&lt;b&gt;多签名评分&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;S&lt;sub&gt;v,τ&lt;/sub&gt;(a)&lt;br&gt;R(a), F(a), P(a)&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#2E86C1;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="55" y="98" width="140" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_cache" value="&lt;b&gt;证据缓存 E&lt;sub&gt;v,τ&lt;/sub&gt;&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;存储本地 + 收到的&lt;br&gt;EG 证据摘要&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="210" y="98" width="155" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_suppress" value="&lt;b&gt;抑制型扩散决策&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;cnt &amp;lt; k → 发送&lt;br&gt;cnt ≥ k → 抑制&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="98" width="155" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- 控制面 Row 2 -->
+    <mxCell id="cp_agg" value="&lt;b&gt;协同聚合&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;S&lt;sup&gt;net&lt;/sup&gt;(a)&lt;br&gt;加权聚合 ROI 内评分&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="55" y="168" width="140" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_pb" value="&lt;b&gt;Pushback 判定&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;S&lt;sup&gt;net&lt;/sup&gt; ≥ Θ&lt;sub&gt;pb&lt;/sub&gt;&lt;br&gt;→ 生成 PT 令牌&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="210" y="168" width="155" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_eg_merge" value="&lt;b&gt;EG 消息处理/合并&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;top-n 合并&lt;br&gt;+ digest 并集&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E8F5E9;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="168" width="155" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- Ch 标记 -->
+    <mxCell id="ch3_tag_cp" value="⟵ Ch.3" style="text;html=1;fontSize=8;fontColor=#2E86C1;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="130" y="148" width="50" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="ch4_tag_cp1" value="★ Ch.4 新增" style="text;html=1;fontSize=8;fontColor=#F57C00;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="300" y="148" width="70" height="14" as="geometry"/>
+    </mxCell>
+
+    <!-- ISL 侧标注 -->
+    <mxCell id="isl_cp_out" value="↔ ISL" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#1976D2;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="555" y="110" width="50" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- 控制面内部箭头 -->
+    <mxCell id="cp_e1" value="" style="endArrow=classic;strokeColor=#43A047;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cp_score" target="cp_cache">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_e2" value="" style="endArrow=classic;strokeColor=#43A047;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cp_cache" target="cp_suppress">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_e3" value="" style="endArrow=classic;strokeColor=#43A047;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="cp_score" target="cp_agg">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="cp_e4" value="" style="endArrow=classic;strokeColor=#43A047;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cp_agg" target="cp_pb">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 分隔线 ===== -->
+    <mxCell id="epoch_sep" value="" style="endArrow=none;strokeColor=#78909C;strokeWidth=1;dashed=1;dashPattern=3 3;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="40" y="300" as="sourcePoint"/>
+        <mxPoint x="740" y="300" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="epoch_up" value="↑ 控制面（epoch 级，复杂运算）" style="text;html=1;fontSize=8;fontColor=#78909C;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="50" y="287" width="200" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="epoch_down" value="↓ 数据面（P4 线速，每包处理）" style="text;html=1;fontSize=8;fontColor=#78909C;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="50" y="301" width="200" height="14" as="geometry"/>
+    </mxCell>
+
+    <!-- epoch 读写箭头 -->
+    <mxCell id="epoch_read" value="" style="endArrow=classic;startArrow=classic;strokeColor=#43A047;strokeWidth=1.5;dashed=1;dashPattern=4 4;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="350" y="230" as="sourcePoint"/>
+        <mxPoint x="350" y="325" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="epoch_label" value="每 epoch&lt;br&gt;读取/写回" style="text;html=1;fontSize=9;fontColor=#43A047;fontStyle=1;align=center;rotation=-90;" vertex="1" parent="1">
+      <mxGeometry x="290" y="258" width="55" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 数据面 ===== -->
+    <mxCell id="dp_bg" value="" style="rounded=1;arcSize=5;fillColor=#E3F2FD;strokeColor=#2E86C1;strokeWidth=2;opacity=90;" vertex="1" parent="1">
+      <mxGeometry x="40" y="320" width="700" height="225" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_title" value="P4 可编程交换机（数据面·线速）" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1565C0;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="50" y="325" width="280" height="22" as="geometry"/>
+    </mxCell>
+
+    <!-- 数据面 Row 1 -->
+    <mxCell id="dp_topk" value="&lt;b&gt;top-K 候选生成&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;(key, len) 更新计数&lt;br&gt;维护候选集 H&lt;sub&gt;t&lt;/sub&gt;&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#2E86C1;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="55" y="355" width="145" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_bitmap" value="&lt;b&gt;FO/FI 位图&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;仅对 H&lt;sub&gt;t&lt;/sub&gt; 中候选 key&lt;br&gt;维护 bitmap(a)&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#2E86C1;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="215" y="355" width="150" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_port" value="&lt;b&gt;入端口贡献统计&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;bytes(a,p)&lt;br&gt;→ pushback 路径选择&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="355" width="155" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- 数据面 Row 2 -->
+    <mxCell id="dp_queue" value="&lt;b&gt;队列调度&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;rank(a) → 队列映射&lt;br&gt;+ Pushback 软状态规则&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#2E86C1;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="55" y="425" width="145" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_queue_star" value="★" style="text;html=1;fontSize=10;fontColor=#F57C00;fontStyle=1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="185" y="425" width="15" height="15" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_egpt" value="&lt;b&gt;EG/PT 消息解析&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;轻量 header 解析&lt;br&gt;+ TTL 递减&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="215" y="425" width="150" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_seen" value="&lt;b&gt;seen-set 去重&lt;/b&gt;&lt;br&gt;&lt;span style='font-size:9px'&gt;Bloom Filter&lt;br&gt;去重 EG 消息&lt;/span&gt;" style="rounded=1;arcSize=12;fillColor=#E3F2FD;strokeColor=#F57C00;strokeWidth=1.5;fontSize=10;fontFamily=Helvetica;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="425" width="155" height="55" as="geometry"/>
+    </mxCell>
+
+    <!-- 数据面箭头 -->
+    <mxCell id="dp_e1" value="" style="endArrow=classic;strokeColor=#1565C0;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="dp_topk" target="dp_bitmap">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="dp_e2" value="" style="endArrow=classic;strokeColor=#1565C0;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="dp_bitmap" target="dp_port">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Ch 标记(数据面) -->
+    <mxCell id="ch3_tag_dp" value="⟵ Ch.3 复用" style="text;html=1;fontSize=8;fontColor=#2E86C1;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="130" y="405" width="70" height="14" as="geometry"/>
+    </mxCell>
+    <mxCell id="ch4_tag_dp" value="★ Ch.4 新增" style="text;html=1;fontSize=8;fontColor=#F57C00;fontStyle=2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="410" y="405" width="70" height="14" as="geometry"/>
+    </mxCell>
+
+    <!-- ISL/地面 标注 -->
+    <mxCell id="isl_bottom" value="← ISL 入端口 p₁...p₄ →　← ISL 出端口 →" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#546E7A;align=center;" vertex="1" parent="1">
+      <mxGeometry x="55" y="555" width="300" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="ground_link" value="← 地面链路 ↑↓ →" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#546E7A;align=center;" vertex="1" parent="1">
+      <mxGeometry x="400" y="555" width="120" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- 数据包入口 -->
+    <mxCell id="pkt_in_label" value="数据包" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#1565C0;align=right;" vertex="1" parent="1">
+      <mxGeometry x="0" y="376" width="45" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="pkt_in_arrow" value="" style="endArrow=classic;strokeColor=#1565C0;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="15" y="383" as="sourcePoint"/>
+        <mxPoint x="55" y="383" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ===== 图例 ===== -->
+    <mxCell id="legend_bg" value="" style="rounded=1;arcSize=10;fillColor=#FAFAFA;strokeColor=#BDBDBD;strokeWidth=1;" vertex="1" parent="1">
+      <mxGeometry x="555" y="333" width="175" height="205" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_title" value="图例" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#37474F;align=left;" vertex="1" parent="1">
+      <mxGeometry x="565" y="338" width="40" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_ch3_box" value="" style="rounded=1;fillColor=#E3F2FD;strokeColor=#2E86C1;strokeWidth=1.5;" vertex="1" parent="1">
+      <mxGeometry x="565" y="360" width="25" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_ch3_text" value="Ch.3 复用模块" style="text;html=1;fontSize=9;fontColor=#2E86C1;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="357" width="100" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_ch4_box" value="★" style="rounded=1;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=1.5;fontSize=9;fontColor=#F57C00;html=1;" vertex="1" parent="1">
+      <mxGeometry x="565" y="383" width="25" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_ch4_text" value="Ch.4 新增模块" style="text;html=1;fontSize=9;fontColor=#F57C00;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="380" width="100" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_eg_line" value="" style="endArrow=classic;strokeColor=#1976D2;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="565" y="412" as="sourcePoint"/>
+        <mxPoint x="590" y="412" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg_eg_text" value="EG 消息传播" style="text;html=1;fontSize=9;fontColor=#1976D2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="404" width="100" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_pt_line" value="" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="565" y="434" as="sourcePoint"/>
+        <mxPoint x="590" y="434" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg_pt_text" value="PT 消息传播" style="text;html=1;fontSize=9;fontColor=#F57C00;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="426" width="100" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_victim_line" value="" style="endArrow=none;strokeColor=#D32F2F;strokeWidth=3;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="565" y="456" as="sourcePoint"/>
+        <mxPoint x="590" y="456" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg_victim_text" value="受害链路 e*" style="text;html=1;fontSize=9;fontColor=#D32F2F;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="448" width="100" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_atk_line" value="" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=1.5;opacity=50;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="565" y="478" as="sourcePoint"/>
+        <mxPoint x="590" y="478" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg_atk_text" value="攻击流路径" style="text;html=1;fontSize=9;fontColor=#9E9E9E;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="470" width="100" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_roi_line" value="" style="endArrow=none;strokeColor=#7B1FA2;strokeWidth=1.5;dashed=1;dashPattern=5 3;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="565" y="500" as="sourcePoint"/>
+        <mxPoint x="590" y="500" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="leg_roi_text" value="ROI 边界 (R=4)" style="text;html=1;fontSize=9;fontColor=#7B1FA2;align=left;" vertex="1" parent="1">
+      <mxGeometry x="595" y="492" width="100" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg_sup_text" value="✕ 抑制标记" style="text;html=1;fontSize=9;fontColor=#757575;align=left;" vertex="1" parent="1">
+      <mxGeometry x="565" y="515" width="100" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- ========== RIGHT PANEL ========== -->
+    <mxCell id="net_border" value="" style="rounded=1;arcSize=3;fillColor=none;strokeColor=#546E7A;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="780" y="30" width="580" height="560" as="geometry"/>
+    </mxCell>
+    <mxCell id="net_title" value="多节点协同拓扑（网络视角）" style="text;html=1;fontSize=15;fontStyle=1;fontColor=#37474F;align=left;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="790" y="35" width="280" height="25" as="geometry"/>
+    </mxCell>
+
+    <!-- ROI 椭圆 -->
+    <mxCell id="roi_ellipse" value="" style="ellipse;fillColor=none;strokeColor=#7B1FA2;strokeWidth=1.5;dashed=1;dashPattern=5 3;opacity=60;" vertex="1" parent="1">
+      <mxGeometry x="810" y="80" width="440" height="420" as="geometry"/>
+    </mxCell>
+    <mxCell id="roi_label" value="ROI (R=4)" style="text;html=1;fontSize=10;fontStyle=3;fontColor=#7B1FA2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="1165" y="85" width="75" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 卫星节点 ===== -->
+    <mxCell id="node_v" value="&lt;b&gt;V&lt;/b&gt;" style="ellipse;fillColor=#FFCDD2;strokeColor=#D32F2F;strokeWidth=2.5;fontSize=14;fontColor=#C62828;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="990" y="270" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_v_label" value="受害节点，触发 EG" style="text;html=1;fontSize=9;fontColor=#D32F2F;fontStyle=1;align=center;" vertex="1" parent="1">
+      <mxGeometry x="965" y="322" width="100" height="16" as="geometry"/>
+    </mxCell>
+
+    <!-- 受害链路 -->
+    <mxCell id="victim_link" value="" style="endArrow=none;strokeColor=#D32F2F;strokeWidth=4;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1040" y="295" as="sourcePoint"/>
+        <mxPoint x="1140" y="295" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="victim_link_label" value="受害链路 e*" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#D32F2F;align=center;" vertex="1" parent="1">
+      <mxGeometry x="1050" y="275" width="75" height="16" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="node_a" value="&lt;b&gt;A&lt;/b&gt;" style="ellipse;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;fontSize=14;fontColor=#1565C0;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="880" y="270" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_b" value="&lt;b&gt;B&lt;/b&gt;" style="ellipse;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;fontSize=14;fontColor=#1565C0;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="880" y="170" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_c" value="&lt;b&gt;C&lt;/b&gt;" style="ellipse;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;fontSize=14;fontColor=#1565C0;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="990" y="120" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_d" value="&lt;b&gt;D&lt;/b&gt;" style="ellipse;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;fontSize=14;fontColor=#1565C0;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="1100" y="90" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_e" value="&lt;b&gt;E&lt;/b&gt;" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2;fontSize=14;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="880" y="380" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_f" value="&lt;b&gt;F&lt;/b&gt;" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2;fontSize=14;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="1050" y="380" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_g" value="&lt;b&gt;G&lt;/b&gt;" style="ellipse;fillColor=#EFEBE9;strokeColor=#757575;strokeWidth=2;fontSize=14;fontColor=#424242;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+      <mxGeometry x="880" y="480" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_g_label" value="攻击流入口 (bot 接入)" style="text;html=1;fontSize=9;fontColor=#757575;fontStyle=2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="845" y="530" width="120" height="16" as="geometry"/>
+    </mxCell>
+
+    <!-- ISL 底层连接 -->
+    <mxCell id="isl_va" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_v" target="node_a">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_ab" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_a" target="node_b">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_bc" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_b" target="node_c">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_cd" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_c" target="node_d">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_ae" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_a" target="node_e">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_vf" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_v" target="node_f">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="isl_eg" value="" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" edge="1" parent="1" source="node_e" target="node_g">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== EG 传播 ===== -->
+    <mxCell id="eg_vb" value="" style="endArrow=classic;strokeColor=#1976D2;strokeWidth=2.5;curved=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_v" target="node_b">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="eg_vb_label" value="EG(TTL=3)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#1976D2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="920" y="234" width="72" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="eg_bc" value="" style="endArrow=classic;strokeColor=#1976D2;strokeWidth=2.5;curved=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_b" target="node_c">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="eg_bc_label" value="EG(TTL=2)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#1976D2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="920" y="138" width="72" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="eg_cd" value="" style="endArrow=classic;strokeColor=#1976D2;strokeWidth=2.5;curved=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_c" target="node_d">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="eg_cd_label" value="EG(TTL=1)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#1976D2;align=center;" vertex="1" parent="1">
+      <mxGeometry x="1042" y="90" width="72" height="16" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== PT 传播 ===== -->
+    <mxCell id="pt_vf" value="" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_v" target="node_f">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="pt_vf_label" value="PT(R↑=3)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#F57C00;align=center;" vertex="1" parent="1">
+      <mxGeometry x="1052" y="348" width="68" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="pt_va" value="" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="990" y="302" as="sourcePoint"/>
+        <mxPoint x="930" y="302" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="pt_ae" value="" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_a" target="node_e">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="pt_ae_label" value="PT(R↑=2)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#F57C00;align=center;" vertex="1" parent="1">
+      <mxGeometry x="835" y="348" width="68" height="16" as="geometry"/>
+    </mxCell>
+    <mxCell id="pt_eg" value="" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="node_e" target="node_g">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="pt_eg_label" value="PT(R↑=1)" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#F57C00;align=center;" vertex="1" parent="1">
+      <mxGeometry x="835" y="458" width="68" height="16" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== 攻击流 ===== -->
+    <mxCell id="atk_gea" value="" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=2;opacity=40;curved=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="915" y="480" as="sourcePoint"/>
+        <mxPoint x="915" y="320" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="920" y="400"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="atk_av" value="" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=2;opacity=40;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="930" y="288" as="sourcePoint"/>
+        <mxPoint x="990" y="288" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="atk_ve" value="" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=2;opacity=40;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1040" y="288" as="sourcePoint"/>
+        <mxPoint x="1140" y="288" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="atk_label" value="攻击流：G → E → A → V → e*" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#9E9E9E;align=center;opacity=70;" vertex="1" parent="1">
+      <mxGeometry x="925" y="487" width="160" height="16" as="geometry"/>
+    </mxCell>
+
+    <!-- 抑制标注 -->
+    <mxCell id="suppress_mark" value="✕ 抑制：cnt ≥ k" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#757575;align=center;verticalAlign=middle;labelBackgroundColor=#FFFFFF;labelBorderColor=#BDBDBD;spacingLeft=4;spacingRight=4;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="1148" y="130" width="105" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="suppress_arrow" value="" style="endArrow=classic;strokeColor=#BDBDBD;strokeWidth=1;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1148" y="141" as="sourcePoint"/>
+        <mxPoint x="1150" y="128" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 良性流恢复 -->
+    <mxCell id="benign_label" value="攻击流被限速/丢弃&lt;br&gt;良性流正常通过 ✓" style="text;html=1;fontSize=9;fontColor=#43A047;align=center;" vertex="1" parent="1">
+      <mxGeometry x="1120" y="305" width="115" height="28" as="geometry"/>
+    </mxCell>
+
+    <!-- 推回半径 -->
+    <mxCell id="rpush_label" value="推回半径 R↑=3" style="text;html=1;fontSize=9;fontStyle=3;fontColor=#F57C00;align=center;" vertex="1" parent="1">
+      <mxGeometry x="840" y="548" width="100" height="16" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

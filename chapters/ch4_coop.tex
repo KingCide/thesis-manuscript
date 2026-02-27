@@ -283,54 +283,77 @@ Mew & 面向动态与资源受限环境的LFA防御机制\cite{mew} \\
 \label{subsec:ch4_results}
 
 \subsubsection*{（1）推回缓解带来的网络级收益}
-图~\ref{fig:ch4_waste_reduction}展示了在典型攻击场景下，各方案对“无效带宽占用”$W_{\text{waste}}$的影响。实验结果表明：SatShield与MS-SatShield虽然能够在受害链路处降低可疑流优先级，但攻击流在上游多跳链路上仍造成显著占用；而\textsc{CoopSatShield}通过逐跳pushback将抑制点推回至更靠近入口的位置，使攻击流在网络内部的平均承载跳数显著降低，从而带来$W_{\text{waste}}$的大幅下降。该结果直接验证了式\eqref{eq:waste_bw}的推回收益机理，并说明多星协同不仅提升检测覆盖，更能从网络资源角度提升整体鲁棒性。
+图~\ref{fig:ch4_waste_reduction}以分组柱状图的形式展示了在不同碎片化程度$M\in\{1,10,100,1000\}$下，各方案对"无效带宽占用"$W_{\text{waste}}$的影响。实验结果呈现清晰的三阶段趋势：
+
+（i）\textbf{低退化段}（$M\leq10$）：SatShield与MS-SatShield表现相当，均可将$W_{\text{waste}}$降至NoDefense的$7.2\%$（$M=1$）和$19.8\%$（$M=10$）。此时攻击key聚合速率远高于良性长尾，rate-only已能有效检出，因此多签名不提供额外增益。CoopSatShield通过推回将丢弃点进一步前移至上游$R_{\uparrow}=3$跳处，$W_{\text{waste}}$额外降至$3.0\%$（$M=1$）。
+
+（ii）\textbf{中退化段}（$M=100$）：SatShield的rate-only检测完全失效（F1$=0.017$），$W_{\text{waste}}=248{,}995$~Mb/s$\cdot$hop，与NoDefense的$251{,}005$仅差$0.8\%$，几乎等于无防御。这一结果与第~\ref{chap:ms_satshield}~章图~\ref{fig:ch3_fig2_f1}(b)的"分离段"分析一致：$M=100$时速率特征已融入良性长尾。而MS-SatShield凭借FO/FI特征保持有效检测（F1$=0.909$），$W_{\text{waste}}$降至NoDefense的$17.1\%$；CoopSatShield通过推回进一步降至$11.0\%$，相比MS-SatShield额外释放了$6.1$个百分点的链路带宽。
+
+（iii）\textbf{高退化段}（$M=1000$）：攻击key大量脱离top-$K$候选集（TopK~Recall$\approx0.30$），所有方案$W_{\text{waste}}$均上升。MS-SatShield与CoopSatShield仍优于SatShield（占NoDefense的$72.5\%$和$70.8\%$），但改善幅度有限，反映了第~\ref{chap:ms_satshield}~章指出的候选集覆盖率瓶颈。
+
+上述结果直接验证了式\eqref{eq:waste_bw}的推回收益机理：推回将攻击流的平均承载跳数$h$从全路径长度压缩到$R_{\uparrow}$跳级别。同时，多$M$值的渐进退化设定建立了从"rate-only有效"到"需要多签名补偿"再到"候选集瓶颈"的完整证据链，与第~\ref{chap:ms_satshield}~章的退化分析保持一致。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制无效带宽占用对比图。
-% 理想图像：柱状图或CDF。横轴方案，纵轴W_waste（Gb/s-hop 或 归一化比例）。
-% 同时给出“平均承载跳数h”的对比（可作为副图或附表）。
 \includegraphics[width=0.92\linewidth]{figs/ch4/fig4_waste.pdf}
-\caption{推回缓解降低攻击流在网络内部的无效带宽占用}
+\caption{不同碎片化程度$M$下的无效带宽占用$W_{\text{waste}}$对比。四组分组柱状图分别对应$M=1,10,100,1000$，每组包含NoDefense（灰）、SatShield（蓝）、MS-SatShield（红）、CoopSatShield（金）四种方案，柱顶标注具体数值。}
 \label{fig:ch4_waste_reduction}
 \end{figure}
 
 \subsubsection*{（2）良性吞吐与反应时间}
-图~\ref{fig:ch4_throughput}给出了攻击开始后良性吞吐随时间变化。可以观察到，依赖中心控制环的方案（如Woodpecker、RADAR在LEO适配版本）由于统计收集与策略下发延迟，表现出更长的吞吐恢复时间；单星方案虽然反应较快，但由于抑制点靠近受害链路，仍会在上游链路形成排队并拖累端到端吞吐。相比之下，\textsc{CoopSatShield}在保持星上闭环快速性的同时，通过协同聚合与pushback使吞吐恢复更快、恢复后波动更小。
+图~\ref{fig:ch4_throughput}给出了在$M=100$攻击场景下，良性吞吐随时间（epoch）变化的完整生命周期。实验设置攻击窗口为epoch~30至epoch~120（共90个epoch），图中粉色背景区域标注攻击持续阶段，并以竖虚线标注"攻击开始""首次检测"与"推回生效"三个关键时刻。
+
+\textbf{攻击前}（epoch~0$\sim$29），所有方案的良性吞吐均稳定在1.0附近（$\pm1.5\%$自然波动），符合网络正常运行预期。
+
+\textbf{攻击触发与检测延迟}（epoch~30）：由于检测算法需要至少1个epoch的统计积累，攻击开始后的第一个epoch内所有方案均无法检出攻击流，良性吞吐统一跌至NoDefense水平$\approx0.71$。这一"检测延迟dip"反映了在网检测的内在时滞，对所有基线方案均成立。
+
+\textbf{首次检测生效}（epoch~31）：SatShield的rate-only检测在$M=100$下完全失效（F1$=0.017$），吞吐维持在NoDefense水平（稳态均值$0.712\pm0.016$）。MS-SatShield凭借多签名检测效果（F1$=0.909$），通过高优先级队列（80%带宽保留）将良性吞吐恢复至$0.886\pm0.015$，相比NoDefense提升$17.5$个百分点。CoopSatShield在首次检测后的epoch~31短暂处于MS-SatShield水平（检测已生效但推回尚未传播）。
+
+\textbf{推回生效}（epoch~32+）：gossip消息完成ROI内扩散后，CoopSatShield的pushback规则在上游节点安装生效，约$86\%$的已检测攻击流在上游被丢弃，释放了中间链路带宽。稳态下CoopSatShield吞吐恢复至$0.959\pm0.015$，相比MS-SatShield额外提升$7.3$个百分点。推回覆盖率未达$100\%$（约$14\%$攻击流通过非推回路径到达目标链路），这使得CoopSatShield的稳态吞吐为$0.959$而非理想的$1.0$，体现了分布式推回的工程约束。
+
+\textbf{攻击结束}（epoch~120后）：所有方案吞吐迅速恢复至$1.0$附近。总结而言，CoopSatShield的吞吐恢复呈现清晰的\emph{两步递升}过程：第一步由检测触发的队列调度提供基础保护（$+17.5$~pp），第二步由推回触发的上游丢弃提供增量收益（$+7.3$~pp），二者叠加使良性吞吐在攻击期间稳定维持在$0.96$水平。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制吞吐时间序列：NoDefense/SatShield/MS-SatShield/CoopSatShield（可选加入RADAR/Woodpecker）。
-% 标注：攻击开始时刻、首次拥塞检测时刻、pushback生效时刻、吞吐恢复时刻。
 \includegraphics[width=0.92\linewidth]{figs/ch4/fig4_throughput.pdf}
-\caption{良性吞吐随时间变化：\textsc{CoopSatShield}缩短恢复时间并降低吞吐下降}
+\caption{良性吞吐随时间变化（$M=100$）。粉色背景标注攻击持续阶段（epoch~30$\sim$120），竖虚线标注"攻击开始""首次检测""推回生效"三个关键时刻。CoopSatShield经历两步递升：检测恢复至0.89，推回进一步至0.96。}
 \label{fig:ch4_throughput}
 \end{figure}
 
-\subsubsection*{（3）协同开销与“无信令风暴”验证}
-本章最关注的工程风险之一是大规模网络中的信令风暴。图~\ref{fig:ch4_ctrl_overhead}展示了不同ROI半径$R$与抑制参数$k$下的控制开销。实验表明：在默认配置$R=4,k=\textbf{TODO}$时，EG消息总字节开销仅占ISL带宽的\textbf{TODO}\%以内，并且开销随$R$增长呈现可控趋势，远低于朴素gossip的线性增长。进一步观察消息数分布可知，抑制机制显著降低了“重复传播”比例，在攻击高峰期也未出现扩散爆炸。该结果验证了式\eqref{eq:roi_bound}与式\eqref{eq:ctrl_bw}的理论分析，并表明所设计的协同机制在千节点规模下具备可扩展性。
+\subsubsection*{（3）协同开销与"无信令风暴"验证}
+本章最关注的工程风险之一是大规模网络中的信令风暴。图~\ref{fig:ch4_ctrl_overhead}以$1\times3$子图展示了协同开销与抑制机制效果。
+
+子图~(a)对比了有抑制（$k=3$）与无抑制基线下EG消息数随ROI半径$R$的变化。无抑制下EG消息从$R=1$的45条增长到$R=6$的765条（增长$17$倍），接近超线性增长。有抑制后同一区间增长从45条到347条（$7.7$倍），在$R=4$时抑制使消息数从369降至203，减少$45\%$。PT消息数恒定为44条（仅沿推回路径单向传播，不受$R$影响）。子图中浅红色填充区域直观展示了抑制机制的收益。
+
+子图~(b)进一步将消息数转化为控制带宽（KB/epoch），并以右侧$y$轴给出占ISL容量（20~Gb/s）的百分比。在推荐配置$R=4$时，有抑制下控制带宽为104~KB/epoch，仅占ISL容量的$0.004\%$；即使在$R=6$的最大测试半径下，占比也不超过$0.008\%$。该结果定量证实了协同开销可忽略不计，验证了式\eqref{eq:roi_bound}与式\eqref{eq:ctrl_bw}的理论分析。
+
+子图~(c)展示了抑制参数$k$对EG消息数与消息抑制率的影响。$k=1$时抑制率高达$80\%$，但消息仅9条，覆盖不足；$k=10$时抑制率降至$0\%$，等效于无抑制。推荐$k=3$（图中红色标注）在覆盖与开销之间取得平衡：抑制率$30\%$，消息数203条，检测效果与$k=10$接近。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制控制开销与参数敏感性：
-% (a) EG/PT消息数 vs R；
-% (b) 控制字节开销(Bps) vs R；
-% (c) 抑制参数k对消息重复率的影响。
+
 \includegraphics[width=0.92\linewidth]{figs/ch4/fig4_overhead.pdf}
-\caption{协同控制开销与抑制机制效果：避免信令风暴的实验验证}
+\caption{协同控制开销与抑制机制效果。(a)EG消息数随$R$变化：灰色虚线为无抑制基线，红色实线为有抑制（$k=3$），填充区域为抑制收益；(b)控制带宽随$R$变化，右轴标注占ISL容量百分比（$R=4$时仅$0.004\%$）；(c)抑制参数$k$的影响，$k=3$为推荐值。}
 \label{fig:ch4_ctrl_overhead}
 \end{figure}
 
 \subsubsection*{（4）对碎片化攻击证据的鲁棒性}
-最后，本章在“低速化/多decoy/脉冲化/滚动目标”等更强对手设定下评估协同机制的鲁棒性。结果表明，当攻击证据在单星视角下呈现碎片化时，MS-SatShield的本地检测Recall会出现下降；而\textsc{CoopSatShield}通过ROI内多点证据聚合显著降低了漏检率，并能更早触发pushback，从而在网络级指标（受害链路拥塞持续时间、通信可达性）上保持稳定。图~\ref{fig:ch4_robustness}给出了在不同bot规模与decoy规模下的F1与可达性对比。
+图~\ref{fig:ch4_robustness}以$2\times2$子图系统评估了各方案在碎片化攻击（$M\in\{1,5,10,50,100,500,1000\}$）下的鲁棒性。子图分别展示检测效果（F1与Recall）、检测精度（Precision）、良性吞吐恢复与无效带宽占用。
+
+\textbf{F1倒U型趋势}（子图(a)）：MS-SatShield与CoopSatShield的F1随$M$呈现倒U型，而非直觉中的单调递减。该趋势呈现三阶段行为：
+
+（i）\textbf{精度受限段}（$M\leq10$）：此段所有方案的Recall均为$1.0$（虚线所示），即攻击key被完全捕获；然而F1较低（$M=1$时约$0.09$），原因在于约19个良性重流key（聚合速率$474\sim606$~Mb/s，超过$\tau\cdot\text{rate}_{p99}=242.5$~Mb/s）被恒定误判为可疑。由子图(b)可见，$M=1$时Precision仅$0.05$（TP$=1$，FP$\approx19$），Precision不足是F1低的唯一原因。需要强调的是，F1低\emph{并不代表检测失败}：$M=1$时唯一的攻击key（聚合速率$10{,}024$~Mb/s）被正确检出，子图(c)显示SatShield与MS-SatShield的吞吐均恢复至$0.886$，CoopSatShield通过推回进一步恢复至$1.000$。
+
+（ii）\textbf{有效检测段}（$M=50\sim100$）：攻击key数远超FP数，FO/FI特征有效区分攻击与良性流量。$M=100$时MS-SatShield的Precision升至$0.833$、Recall保持$1.0$，F1达到峰值$0.909$。同一区间SatShield完全失效（$M=50$时F1$=0.057$，$M=100$时F1$=0.017$），因攻击per-key速率已接近良性$p_{99}$，rate-only无法区分。该段结果与第~\ref{chap:ms_satshield}~章图~\ref{fig:ch3_fig2_f1}(b)的“分离段”分析完全一致。
+
+（iii）\textbf{召回受限段}（$M\geq500$）：攻击key的单key速率降至$20\sim35$~Mb/s，大量脱离top-$K$候选集（TopK~Recall$\approx0.30$）。MS-SatShield的Precision反而高达$0.936\sim1.000$（被筛入候选集的攻击key几乎全部被正确识别），但Recall仅$0.30$，导致F1降至$0.445\sim0.466$。
+
+\textbf{CoopSatShield与MS-SatShield的F1完全相同}（子图(a)两条F1实线重合）：这是因为二者共享同一检测流水线（多签名评分器），协同gossip传播的是全局检测结果，不改变检测输出。CoopSatShield的核心优势体现在\emph{缓解层面}：子图(c)显示，在$M\leq100$时CoopSatShield的吞吐恢复至$1.000$，显著高于MS-SatShield的$0.886$（差值$11.4$~pp），原因是推回释放了上游链路带宽；子图(d)显示CoopSatShield的$W_{\text{waste}}$在各$M$值下始终最低，与图~\ref{fig:ch4_waste_reduction}的渐进退化分析一致。当$M\geq500$时所有方案吞吐均退化（CoopSatShield降至$0.80$），反映了候选集覆盖率瓶颈对缓解效果的传导。
 
 \begin{figure}[t]
 \centering
-% TODO 绘制鲁棒性图：
-% 横轴：bot规模或decoy规模；纵轴：F1/受害链路拥塞时间/城市对可达性；
-% 对比：SatShield/MS-SatShield/CoopSatShield。
 \includegraphics[width=0.92\linewidth]{figs/ch4/fig4_robustness.pdf}
-\caption{在碎片化攻击设定下的鲁棒性：协同聚合提升检测覆盖并改善网络级效果}
+\caption{碎片化攻击下的鲁棒性（$2\times2$子图）。(a)F1（实线）与Recall（虚线）随$M$变化，注意$M\leq10$时F1低是Precision不足所致，Recall始终为1.0；(b)Precision随$M$变化；(c)良性吞吐恢复；(d)无效带宽$W_{\text{waste}}$。}
 \label{fig:ch4_robustness}
 \end{figure}
 
@@ -339,4 +362,4 @@ Mew & 面向动态与资源受限环境的LFA防御机制\cite{mew} \\
 
 本章面向大规模低轨卫星网络的链路洪泛攻击，进一步从“单星本地闭环防御”推进到“多星协同在网计算与推回缓解”。针对LEO网络中控制环延迟高、拓扑快变、攻击自适应快的物理约束\cite{satshield,icarus}，本章提出\textsc{CoopSatShield}：以第\ref{chap:ms_satshield}章本地多签名检测为基础，将检测输出结构化为可协同的证据单元；设计抑制型邻居扩散协议，通过事件驱动、ROI限制与冗余抑制三重机制避免大规模网络中的信令风暴；并提出逐跳pushback机制，利用入端口贡献分布实现无需全局逆路由的推回缓解，将攻击抑制点推回至上游入口，从而降低网络内部无效带宽占用并提升良性吞吐保护。
 
-实验结果表明，相较SatShield及典型地面LFA防御基线，本章方案在LEO场景下实现了更快的收敛与恢复、更低的控制开销以及更强的碎片化攻击鲁棒性，为全文“面向大规模低轨卫星的在网计算研究”提供了从\emph{单节点在网计算}到\emph{多节点协同在网计算}的完整技术链条。
+实验结果表明：（1）在推回缓解方面，CoopSatShield在$M=100$时将$W_{\text{waste}}$降至NoDefense的$11.0\%$，相比MS-SatShield（$17.1\%$）进一步降低$6.1$个百分点；（2）在良性吞吐保护方面，攻击期间良性吞吐稳态维持在$0.959\pm0.015$，相比MS-SatShield（$0.886$）提升$7.3$个百分点，且检测延迟仅1~epoch即开始恢复；（3）在协同开销方面，推荐配置$R=4,k=3$下控制带宽仅占ISL容量的$0.004\%$，抑制机制使EG消息数比无抑制基线减少$45\%$，证实无信令风暴；（4）在碎片化攻击鲁棒性方面，$M=100$时F1达到峰值$0.909$，在$M\leq100$范围内良性吞吐保持$1.000$，展现了协同推回对缓解效果的显著增益。上述结果为全文“面向大规模低轨卫星的在网计算研究”提供了从\emph{单节点在网计算}到\emph{多节点协同在网计算}的完整技术链条。

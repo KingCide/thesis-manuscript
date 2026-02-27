@@ -1,0 +1,487 @@
+<mxfile host="embed.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="29.5.6">
+  <diagram id="wrgYIL9duDVOl9GHNRAf" name="第 1 页">
+    <mxGraphModel dx="706" dy="527" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="victim_link" edge="1" parent="1" style="endArrow=none;strokeColor=#D32F2F;strokeWidth=5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="430" y="500" as="sourcePoint" />
+            <mxPoint x="690" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="victim_label" parent="1" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#D32F2F;align=center;" value="受害链路 e*（拥塞！）" vertex="1">
+          <mxGeometry height="18" width="180" x="470" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="node_v" parent="1" style="ellipse;fillColor=#FFCDD2;strokeColor=#D32F2F;strokeWidth=3;fontSize=15;fontColor=#C62828;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;V&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="395" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="v_cong" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#D32F2F;align=center;" value="⚠ c=1, S&lt;sup&gt;net&lt;/sup&gt;≥Θ&lt;sub&gt;pb&lt;/sub&gt;" vertex="1">
+          <mxGeometry height="14" width="110" x="365" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="node_vp" parent="1" style="ellipse;fillColor=#FFCDD2;strokeColor=#D32F2F;strokeWidth=3;fontSize=15;fontColor=#C62828;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;V&#39;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="675" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r1" parent="1" style="ellipse;fillColor=none;strokeColor=#F57C00;strokeWidth=1;dashed=1;dashPattern=4 3;opacity=40;" value="" vertex="1">
+          <mxGeometry height="180" width="180" x="330" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r1_label" parent="1" style="text;html=1;fontSize=8;fontStyle=3;fontColor=#F57C00;align=left;" value="R↑=1" vertex="1">
+          <mxGeometry height="12" width="35" x="505" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r2" parent="1" style="ellipse;fillColor=none;strokeColor=#F57C00;strokeWidth=1;dashed=1;dashPattern=4 3;opacity=30;" value="" vertex="1">
+          <mxGeometry height="310" width="310" x="265" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r2_label" parent="1" style="text;html=1;fontSize=8;fontStyle=3;fontColor=#F57C00;align=left;" value="R↑=2" vertex="1">
+          <mxGeometry height="12" width="35" x="505" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r3_label" parent="1" style="text;html=1;fontSize=8;fontStyle=3;fontColor=#F57C00;align=left;" value="R↑=3" vertex="1">
+          <mxGeometry height="12" width="35" x="505" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="node_u1" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₁&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="395" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="u1_shield" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="🛡 rank(a₁)=High" vertex="1">
+          <mxGeometry height="14" width="105" x="448" y="393" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_v_u1" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="475" as="sourcePoint" />
+            <mxPoint x="420" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_u2" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₂&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="395" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="u2_shield" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="🛡 rank(a₁)=High" vertex="1">
+          <mxGeometry height="14" width="105" x="448" y="298" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u1_u2" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="380" as="sourcePoint" />
+            <mxPoint x="420" y="335" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_u3" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₃&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="395" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="u3_shield" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="🛡 rank(a₁)=High" vertex="1">
+          <mxGeometry height="14" width="105" x="448" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="u3_stop" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#D32F2F;align=left;" value="R↑=0, 停止 ■" vertex="1">
+          <mxGeometry height="14" width="80" x="448" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u2_u3" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="285" as="sourcePoint" />
+            <mxPoint x="420" y="245" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_g1" parent="1" style="shape=mxgraph.basic.diamond;fillColor=#EFEBE9;strokeColor=#795548;strokeWidth=2;fontSize=11;fontColor=#4E342E;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;G₁&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="40" x="400" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="g1_label" parent="1" style="text;html=1;fontSize=8;fontStyle=2;fontColor=#795548;align=center;" value="Bot 接入" vertex="1">
+          <mxGeometry height="14" width="55" x="393" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u3_g1" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="195" as="sourcePoint" />
+            <mxPoint x="420" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_u1p" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₁&#39;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="675" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="u1p_shield" parent="1" style="text;html=1;fontSize=8;fontColor=#F57C00;align=center;" value="🛡" vertex="1">
+          <mxGeometry height="14" width="20" x="728" y="393" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_vp_u1p" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="475" as="sourcePoint" />
+            <mxPoint x="700" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_u2p" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₂&#39;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="675" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="u2p_shield" parent="1" style="text;html=1;fontSize=8;fontColor=#F57C00;align=center;" value="🛡" vertex="1">
+          <mxGeometry height="14" width="20" x="728" y="298" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u1p_u2p" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="380" as="sourcePoint" />
+            <mxPoint x="700" y="335" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_u3p" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2.5;fontSize=13;fontColor=#E65100;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;U₃&#39;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="50" x="675" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="u3p_shield" parent="1" style="text;html=1;fontSize=8;fontColor=#F57C00;align=center;" value="🛡" vertex="1">
+          <mxGeometry height="14" width="20" x="728" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="u3p_stop" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#D32F2F;align=left;" value="■ R↑=0" vertex="1">
+          <mxGeometry height="14" width="50" x="728" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u2p_u3p" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="285" as="sourcePoint" />
+            <mxPoint x="700" y="245" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="node_g2" parent="1" style="shape=mxgraph.basic.diamond;fillColor=#EFEBE9;strokeColor=#795548;strokeWidth=2;fontSize=11;fontColor=#4E342E;fontStyle=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;G₂&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="40" x="680" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="g2_label" parent="1" style="text;html=1;fontSize=8;fontStyle=2;fontColor=#795548;align=center;" value="Bot 接入" vertex="1">
+          <mxGeometry height="14" width="55" x="673" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="isl_u3p_g2" edge="1" parent="1" style="endArrow=none;strokeColor=#B0BEC5;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="700" y="195" as="sourcePoint" />
+            <mxPoint x="700" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_l1" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="140" as="sourcePoint" />
+            <mxPoint x="415" y="195" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_l2" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="245" as="sourcePoint" />
+            <mxPoint x="415" y="285" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_l3" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="335" as="sourcePoint" />
+            <mxPoint x="415" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_l4" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="415" y="430" as="sourcePoint" />
+            <mxPoint x="415" y="475" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_r1" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="140" as="sourcePoint" />
+            <mxPoint x="695" y="195" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_r2" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="245" as="sourcePoint" />
+            <mxPoint x="695" y="285" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_r3" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="335" as="sourcePoint" />
+            <mxPoint x="695" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_r4" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=3;opacity=35;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="695" y="430" as="sourcePoint" />
+            <mxPoint x="695" y="475" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="atk_l_text" parent="1" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#9E9E9E;align=center;rotation=-90;" value="攻击流 ↓" vertex="1">
+          <mxGeometry height="14" width="50" x="375" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="atk_r_text" parent="1" style="text;html=1;fontSize=9;fontStyle=2;fontColor=#9E9E9E;align=center;rotation=90;" value="攻击流 ↓" vertex="1">
+          <mxGeometry height="14" width="50" x="735" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_v_u1" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="480" as="sourcePoint" />
+            <mxPoint x="400" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_v_u1_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=right;" value="PT(R↑=3)" vertex="1">
+          <mxGeometry height="12" width="58" x="340" y="447" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_u1_u2" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="383" as="sourcePoint" />
+            <mxPoint x="400" y="335" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_u1_u2_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=right;" value="PT(R↑=2)" vertex="1">
+          <mxGeometry height="12" width="58" x="340" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_u2_u3" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="288" as="sourcePoint" />
+            <mxPoint x="400" y="245" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_u2_u3_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=right;" value="PT(R↑=1)" vertex="1">
+          <mxGeometry height="12" width="58" x="340" y="257" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_v_u1p" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="480" as="sourcePoint" />
+            <mxPoint x="720" y="430" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_v_u1p_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="PT(R↑=3)" vertex="1">
+          <mxGeometry height="12" width="58" x="724" y="447" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_u1p_u2p" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="383" as="sourcePoint" />
+            <mxPoint x="720" y="335" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_u1p_u2p_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="PT(R↑=2)" vertex="1">
+          <mxGeometry height="12" width="58" x="724" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_u2p_u3p" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;curved=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="720" y="288" as="sourcePoint" />
+            <mxPoint x="720" y="245" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_u2p_u3p_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="PT(R↑=1)" vertex="1">
+          <mxGeometry height="12" width="58" x="724" y="257" as="geometry" />
+        </mxCell>
+        <mxCell id="cutoff_l" parent="1" style="text;html=1;fontSize=16;fontStyle=1;fontColor=#D32F2F;align=center;" value="✖" vertex="1">
+          <mxGeometry height="24" width="24" x="408" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="cutoff_l_text" parent="1" style="text;html=1;fontSize=8;fontColor=#D32F2F;fontStyle=1;align=center;" value="攻击流被限速/丢弃" vertex="1">
+          <mxGeometry height="14" width="100" x="360" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="cutoff_r" parent="1" style="text;html=1;fontSize=16;fontStyle=1;fontColor=#D32F2F;align=center;" value="✖" vertex="1">
+          <mxGeometry height="24" width="24" x="688" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="released_left" edge="1" parent="1" style="endArrow=none;strokeColor=#4CAF50;strokeWidth=3;opacity=50;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="430" y="455" as="sourcePoint" />
+            <mxPoint x="430" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="released_label" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#4CAF50;align=left;rotation=-90;" value="▸ 带宽释放" vertex="1">
+          <mxGeometry height="14" width="55" x="435" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1_bg" parent="1" style="rounded=1;arcSize=8;fillColor=#FFF8E1;strokeColor=#F9A825;strokeWidth=1.5;opacity=95;" value="" vertex="1">
+          <mxGeometry height="155" width="270" x="20" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1_title" parent="1" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#F57F17;align=left;" value="阶段 1：拥塞检测 (epoch τ)" vertex="1">
+          <mxGeometry height="16" width="200" x="30" y="27" as="geometry" />
+        </mxCell>
+        <mxCell id="phase1_text" parent="1" style="text;html=1;fontSize=10;fontColor=#4E342E;align=left;verticalAlign=top;whiteSpace=wrap;" value="&lt;span style=&#39;font-size:9px&#39;&gt;节点 V 数据面：&lt;br&gt;• q&lt;sub&gt;v,e*&lt;/sub&gt; &amp;gt; Q&lt;sub&gt;th&lt;/sub&gt; → c(v,e*)=1&lt;br&gt;• top-K 候选 key: a₁, a₂&lt;br&gt;• π(a₁,p₁)=0.65 ★ 主攻击方向&lt;br&gt;• π(a₁,p₂)=0.20&lt;br&gt;&lt;br&gt;S&lt;sup&gt;net&lt;/sup&gt;(a₁) = 0.87 ≥ Θ&lt;sub&gt;pb&lt;/sub&gt;=0.7 → &lt;b style=&#39;color:#D32F2F&#39;&gt;触发推回!&lt;/b&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="250" x="30" y="47" as="geometry" />
+        </mxCell>
+        <mxCell id="phase3_bg" parent="1" style="rounded=1;arcSize=8;fillColor=#E8F5E9;strokeColor=#43A047;strokeWidth=1.5;opacity=95;" value="" vertex="1">
+          <mxGeometry height="155" width="290" x="790" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="phase3_title" parent="1" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#2E7D32;align=left;" value="阶段 3：缓解效果" vertex="1">
+          <mxGeometry height="16" width="130" x="800" y="407" as="geometry" />
+        </mxCell>
+        <mxCell id="phase3_text" parent="1" style="text;html=1;fontSize=10;fontColor=#37474F;align=left;verticalAlign=top;whiteSpace=wrap;" value="&lt;span style=&#39;font-size:9px&#39;&gt;&lt;b style=&#39;color:#D32F2F&#39;&gt;推回前：&lt;/b&gt;&lt;br&gt;Bot→G→U₃→U₂→U₁→V→e*&lt;br&gt;h=5 跳, W&lt;sub&gt;waste&lt;/sub&gt; = rate × 5&lt;br&gt;&lt;br&gt;&lt;b style=&#39;color:#4CAF50&#39;&gt;推回后：&lt;/b&gt;&lt;br&gt;Bot→G→U₃ ✖ (被限速)&lt;br&gt;h=2 跳, W&lt;sub&gt;waste&lt;/sub&gt; = rate × 2&lt;br&gt;&lt;br&gt;&lt;b&gt;W&lt;sub&gt;waste&lt;/sub&gt; 降低：5→2 (&lt;span style=&#39;color:#4CAF50&#39;&gt;↓60%&lt;/span&gt;)&lt;/b&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="120" width="270" x="800" y="427" as="geometry" />
+        </mxCell>
+        <mxCell id="port_bg" parent="1" style="rounded=1;arcSize=10;fillColor=#FAFAFA;strokeColor=#BDBDBD;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="100" width="218" x="20" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="port_title" parent="1" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#37474F;align=left;" value="U₁ 入端口贡献 π(a₁,p):" vertex="1">
+          <mxGeometry height="14" width="150" x="28" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p1_l" parent="1" style="text;html=1;fontSize=8;fontColor=#546E7A;align=right;" value="p₁ (←U₂)" vertex="1">
+          <mxGeometry height="14" width="60" x="28" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p1_bar" parent="1" style="rounded=0;fillColor=#F57C00;strokeColor=none;opacity=80;" value="" vertex="1">
+          <mxGeometry height="12" width="112" x="92" y="356" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p1_v" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=left;" value="70%" vertex="1">
+          <mxGeometry height="14" width="28" x="208" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p2_l" parent="1" style="text;html=1;fontSize=8;fontColor=#546E7A;align=right;" value="p₂ (←N)" vertex="1">
+          <mxGeometry height="14" width="60" x="28" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p2_bar" parent="1" style="rounded=0;fillColor=#FFB74D;strokeColor=none;opacity=60;" value="" vertex="1">
+          <mxGeometry height="12" width="32" x="92" y="376" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p2_v" parent="1" style="text;html=1;fontSize=8;fontColor=#F57C00;align=left;" value="20%" vertex="1">
+          <mxGeometry height="14" width="28" x="128" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p3_l" parent="1" style="text;html=1;fontSize=8;fontColor=#546E7A;align=right;" value="p₃ (←N&#39;)" vertex="1">
+          <mxGeometry height="14" width="60" x="28" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p3_bar" parent="1" style="rounded=0;fillColor=#FFCC80;strokeColor=none;opacity=50;" value="" vertex="1">
+          <mxGeometry height="12" width="16" x="92" y="396" as="geometry" />
+        </mxCell>
+        <mxCell id="port_p3_v" parent="1" style="text;html=1;fontSize=8;fontColor=#F57C00;align=left;" value="10%" vertex="1">
+          <mxGeometry height="14" width="28" x="112" y="395" as="geometry" />
+        </mxCell>
+        <mxCell id="port_note" parent="1" style="text;html=1;fontSize=8;fontStyle=2;fontColor=#78909C;align=left;" value="→ 选前 r=2 大端口继续推回" vertex="1">
+          <mxGeometry height="12" width="165" x="28" y="413" as="geometry" />
+        </mxCell>
+        <mxCell id="port_conn" edge="1" parent="1" style="endArrow=classic;strokeColor=#BDBDBD;strokeWidth=1;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="238" y="380" as="sourcePoint" />
+            <mxPoint x="395" y="405" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="timeline_bg" parent="1" style="rounded=1;arcSize=8;fillColor=#FAFAFA;strokeColor=#BDBDBD;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="125" width="290" x="790" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="timeline_title" parent="1" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#37474F;align=left;" value="软状态生命周期 (T&lt;sub&gt;life&lt;/sub&gt;)" vertex="1">
+          <mxGeometry height="16" width="200" x="800" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_axis" edge="1" parent="1" style="endArrow=classic;strokeColor=#78909C;strokeWidth=1.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="810" y="110" as="sourcePoint" />
+            <mxPoint x="1060" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tl_axis_l" parent="1" style="text;html=1;fontSize=8;fontColor=#78909C;align=right;" value="epoch →" vertex="1">
+          <mxGeometry height="12" width="50" x="1010" y="113" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t0" parent="1" style="ellipse;fillColor=#F57C00;strokeColor=#F57C00;strokeWidth=0;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="828" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t0_l" parent="1" style="text;html=1;fontSize=8;fontStyle=1;fontColor=#F57C00;align=center;" value="τ" vertex="1">
+          <mxGeometry height="12" width="20" x="822" y="116" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t0_text" parent="1" style="text;html=1;fontSize=7;fontColor=#F57C00;align=center;" value="PT 生成&lt;br&gt;+ 安装" vertex="1">
+          <mxGeometry height="24" width="45" x="808" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t0_line" edge="1" parent="1" style="endArrow=none;strokeColor=#F57C00;strokeWidth=1;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="832" y="70" as="sourcePoint" />
+            <mxPoint x="832" y="106" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="tl_t1" parent="1" style="ellipse;fillColor=#4CAF50;strokeColor=#4CAF50;strokeWidth=0;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="855" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t1_l" parent="1" style="text;html=1;fontSize=8;fontColor=#4CAF50;align=center;" value="τ+1" vertex="1">
+          <mxGeometry height="12" width="30" x="845" y="116" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t1_text" parent="1" style="text;html=1;fontSize=7;fontColor=#4CAF50;align=center;" value="规则生效&lt;br&gt;攻击限速" vertex="1">
+          <mxGeometry height="24" width="50" x="835" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_active" parent="1" style="rounded=0;fillColor=#C8E6C9;strokeColor=none;opacity=50;" value="" vertex="1">
+          <mxGeometry height="14" width="120" x="855" y="103" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_active_l" parent="1" style="text;html=1;fontSize=7;fontStyle=2;fontColor=#4CAF50;align=center;" value="规则持续生效" vertex="1">
+          <mxGeometry height="12" width="70" x="875" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t10" parent="1" style="ellipse;fillColor=#D32F2F;strokeColor=#D32F2F;strokeWidth=0;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="976" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t10_l" parent="1" style="text;html=1;fontSize=8;fontColor=#D32F2F;align=center;" value="τ+10" vertex="1">
+          <mxGeometry height="12" width="35" x="963" y="116" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t10_text" parent="1" style="text;html=1;fontSize=7;fontColor=#D32F2F;align=center;" value="T&lt;sub&gt;life&lt;/sub&gt; 过期&lt;br&gt;规则清除" vertex="1">
+          <mxGeometry height="24" width="50" x="956" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t11" parent="1" style="ellipse;fillColor=#1976D2;strokeColor=#1976D2;strokeWidth=0;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1010" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t11_l" parent="1" style="text;html=1;fontSize=8;fontColor=#1976D2;align=center;" value="τ+11" vertex="1">
+          <mxGeometry height="12" width="35" x="997" y="116" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t11_text" parent="1" style="text;html=1;fontSize=7;fontColor=#1976D2;align=center;" value="若攻击仍在&lt;br&gt;新 PT 刷新" vertex="1">
+          <mxGeometry height="24" width="55" x="990" y="46" as="geometry" />
+        </mxCell>
+        <mxCell id="tl_t11_line" edge="1" parent="1" style="endArrow=none;strokeColor=#1976D2;strokeWidth=1;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1014" y="70" as="sourcePoint" />
+            <mxPoint x="1014" y="106" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_content" parent="1" style="text;html=1;fontSize=9;fontStyle=1;fontColor=#E65100;align=center;labelBackgroundColor=#FFF3E0;labelBorderColor=#F57C00;spacingLeft=6;spacingRight=6;rounded=1;" value="PT = ⟨a₁, rank=High, τ, R↑=3, T&lt;sub&gt;life&lt;/sub&gt;=10⟩" vertex="1">
+          <mxGeometry height="18" width="260" x="360" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="pt_gen_arrow" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=1;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="543" as="sourcePoint" />
+            <mxPoint x="420" y="525" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pt_select" parent="1" style="text;html=1;fontSize=8;fontStyle=2;fontColor=#546E7A;align=center;" value="选前 r=2 大上游端口：&lt;br&gt;p₁(65%) → U₁，p₂(20%) → U₁&#39;" vertex="1">
+          <mxGeometry height="22" width="215" x="380" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="rounded=1;arcSize=10;fillColor=#FAFAFA;strokeColor=#BDBDBD;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="200" width="290" x="790" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" parent="1" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#37474F;align=left;" value="图例" vertex="1">
+          <mxGeometry height="16" width="40" x="800" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_v_icon" parent="1" style="ellipse;fillColor=#FFCDD2;strokeColor=#D32F2F;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="16" width="16" x="807" y="198" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_v_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="受害节点（拥塞检测 c=1）" vertex="1">
+          <mxGeometry height="18" width="170" x="830" y="196" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_pt_icon" parent="1" style="ellipse;fillColor=#FFF3E0;strokeColor=#F57C00;strokeWidth=2;fontSize=8;html=1;" value="🛡" vertex="1">
+          <mxGeometry height="16" width="16" x="807" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_pt_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="PT 已安装（rank(a)=High）" vertex="1">
+          <mxGeometry height="18" width="170" x="830" y="218" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_bot_icon" parent="1" style="text;html=1;fontSize=10;fontColor=#795548;align=center;" value="◆" vertex="1">
+          <mxGeometry height="16" width="18" x="806" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_bot_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="Bot 接入点（攻击源）" vertex="1">
+          <mxGeometry height="18" width="170" x="830" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_elink" edge="1" parent="1" style="endArrow=none;strokeColor=#D32F2F;strokeWidth=4;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="270" as="sourcePoint" />
+            <mxPoint x="823" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg_elink_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="受害链路 e*" vertex="1">
+          <mxGeometry height="18" width="100" x="830" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_atk" edge="1" parent="1" style="endArrow=classic;strokeColor=#9E9E9E;strokeWidth=2.5;opacity=40;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="290" as="sourcePoint" />
+            <mxPoint x="823" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg_atk_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="攻击流路径（灰色半透明）" vertex="1">
+          <mxGeometry height="18" width="170" x="830" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_ptarr" edge="1" parent="1" style="endArrow=classic;strokeColor=#F57C00;strokeWidth=2.5;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="310" as="sourcePoint" />
+            <mxPoint x="823" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg_ptarr_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="PT 令牌传播方向 ↑" vertex="1">
+          <mxGeometry height="18" width="130" x="830" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_green" edge="1" parent="1" style="endArrow=none;strokeColor=#4CAF50;strokeWidth=3;opacity=50;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="330" as="sourcePoint" />
+            <mxPoint x="823" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg_green_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="推回后释放的链路带宽" vertex="1">
+          <mxGeometry height="18" width="150" x="830" y="322" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_arc" edge="1" parent="1" style="endArrow=none;strokeColor=#F57C00;strokeWidth=1;dashed=1;dashPattern=4 3;opacity=50;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="807" y="350" as="sourcePoint" />
+            <mxPoint x="823" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="leg_arc_text" parent="1" style="text;html=1;fontSize=9;fontColor=#37474F;align=left;" value="推回半径 R↑ 范围" vertex="1">
+          <mxGeometry height="18" width="130" x="830" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="phase2_title" parent="1" style="text;html=1;fontSize=12;fontStyle=1;fontColor=#E65100;align=center;" value="阶段 2：PT 逐跳传播 (R↑=3, r=2)" vertex="1">
+          <mxGeometry height="20" width="280" x="410" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="arc_r3" parent="1" style="ellipse;fillColor=none;strokeColor=#F57C00;strokeWidth=1;dashed=1;dashPattern=4 3;opacity=20;" value="" vertex="1">
+          <mxGeometry height="440" width="440" x="200" y="190" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
