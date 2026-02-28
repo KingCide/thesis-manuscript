@@ -20,9 +20,14 @@
 	% 开启中文摘要
 	\zhabstract
 	
-	大规模低轨卫星组成的巨型星座即将成为新一代通信系统的基础设施，它为世界提供给了一种新的连接范式，一方面将全球各地的偏远地区的人相连，另一方面也为大规模全球范围内的物联网提供了新的机遇。
+	大规模低轨（LEO）卫星巨型星座正迅速成为下一代天地一体化通信基础设施的核心组成部分。然而，其星间链路（ISL）带宽有限、轨道参数公开的特点，使星座网络面临链路洪泛攻击（LFA）的严峻威胁。传统依赖地面控制器的集中式安全方案受限于星地控制环路的高时延，难以实时对抗毫秒级自适应变化的 LFA；同时，星载平台的尺寸、重量与功耗（SWaP）约束使得传统高资源消耗的安全引擎无法直接部署于星上。本文以在网计算为核心技术手段，围绕 P4 可编程数据面，为 LEO 星座构建了一套从单节点检测到多节点协同推回的系统性安全防御体系。
+
+	首先，本文提出了面向 LEO 网络的多签名在网检测与队列缓解方法 MS-SatShield。该方法设计了级联式两级检测流水线架构：第一级利用基于 Count-Min Sketch 的 Top-$k$ 重流检测算法快速锁定速率异常的候选流集合；第二级在候选集上部署双缓冲位图结构，在线提取扇入度（FI）、扇出度（FO）和历史持续性（Persist）等多维结构特征签名。实验结果表明，在多 decoy 分摊退化设定下（$M=100$），仅靠聚合速率的基线方案 F1 降至 0.017，而引入 FI/FO 后 F1 恢复至 0.908；在脉冲式 on-off 攻击下，持续性特征将 Recall 进一步提升至 0.999，数据面总状态开销仅约 200~KB。
+
+	其次，本文提出了多星协同在网计算与推回缓解方法 CoopSatShield。该方法包含抑制型流言传播协议和逐跳推回缓解机制两个核心组件：前者通过事件驱动、区域限制（ROI）与冗余抑制三重约束避免信令风暴，实现局部区域内多颗卫星的攻击证据快速交叉验证与聚合；后者利用入端口贡献分布实现无需全局逆路由的推回令牌传播，将攻击抑制点从受害链路前推至上游入口。实验结果表明，在 $M=100$ 退化下，CoopSatShield 将无效带宽占用降至无防御方案的 11.0\%，攻击期间良性吞吐稳态维持在 0.959，控制带宽仅占 ISL 容量的 0.004\%。
+
 	% 中文关键字
-	\zhkeywords{大规模低轨卫星，在网计算，机器学习，物联网}
+	\zhkeywords{大规模低轨卫星网络；链路洪泛攻击；在网计算；P4 可编程数据面；多签名检测；协同推回缓解}
 	
 	
 
@@ -31,10 +36,14 @@
 	% 开启英文摘要
 	\enabstract
 	
-	When Yang was a teenager, his mother contracted a disease and 	
-	
+	Large-scale Low Earth Orbit (LEO) mega-constellations are rapidly becoming a core component of next-generation space-ground integrated communication infrastructure. However, the limited Inter-Satellite Link (ISL) bandwidth and publicly available orbital parameters expose constellation networks to severe Link Flooding Attack (LFA) threats. Traditional centralized security approaches that rely on ground controllers are constrained by the high latency of space-ground control loops and cannot counter millisecond-scale adaptive LFA in real time; meanwhile, the Size, Weight, and Power (SWaP) constraints of spaceborne platforms preclude the direct deployment of resource-intensive conventional security engines on board. This thesis leverages in-network computing as the core technical approach and builds upon P4 programmable data planes to construct a systematic security defense framework for LEO constellations, spanning from single-node detection to multi-node cooperative pushback.
+
+	First, this thesis proposes MS-SatShield, a multi-signature in-network detection and queue-based mitigation method for LEO networks. The method features a cascaded two-stage detection pipeline: the first stage employs a Count-Min Sketch-based Top-$k$ heavy flow detection algorithm to rapidly identify candidate flow sets with abnormal rates; the second stage deploys double-buffered bitmap structures over the candidate set to extract multi-dimensional structural feature signatures online, including Fan-in (FI), Fan-out (FO), and historical Persistence (Persist). Experimental results show that under a multi-decoy dilution degradation setting ($M=100$), the rate-only baseline's F1 drops to 0.017, whereas incorporating FI/FO restores F1 to 0.908; under pulsed on-off attacks, the persistence feature further improves Recall to 0.999, with a total data-plane state overhead of only approximately 200~KB.
+
+	Second, this thesis proposes CoopSatShield, a multi-satellite cooperative in-network computing and pushback mitigation method. The method comprises two core components: a suppressed gossip protocol and a hop-by-hop pushback mechanism. The former avoids signaling storms through a triple constraint of event-driven triggering, Region of Interest (ROI) restriction, and redundancy suppression, enabling rapid cross-validation and aggregation of attack evidence among multiple satellites within a local region; the latter leverages ingress port contribution distributions to propagate pushback tokens without requiring global reverse routing, pushing the attack suppression point from the victim link upstream toward the attack source. Experimental results demonstrate that under $M=100$ degradation, CoopSatShield reduces wasted bandwidth to 11.0\% of the no-defense baseline, maintains benign throughput at a steady state of 0.959 during attacks, and consumes only 0.004\% of ISL capacity for control signaling.
+
 	% 英文关键字
-	\enkeywords{Martial arts, apostasy, revenge, fighting against the enemy, martial arts, apostasy, revenge, fighting against the enemy}
+	\enkeywords{Large-scale LEO Satellite Network; Link Flooding Attack; In-Network Computing; P4 Programmable Data Plane; Multi-Signature Detection; Cooperative Pushback Mitigation}
 
 	
 	\tableofcontents  % 主目录，必要
@@ -53,6 +62,8 @@
 \input{chapters/ch3_ms_satshield}
 
 \input{chapters/ch4_coop}
+
+\input{chapters/ch5_conclusion}
 
 
 	
