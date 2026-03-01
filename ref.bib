@@ -38,12 +38,13 @@
 }
 
 @inproceedings{crossfire,
-  title={Crossfire: An analysis of {Firefox} extension-reuse vulnerabilities},
+  title={The {Crossfire} Attack},
   author={Kang, Min Suk and Lee, Soo Bum and Gligor, Virgil D},
   booktitle={IEEE Symposium on Security and Privacy (S\&P)},
   pages={127--141},
   year={2013},
-  note={Crossfire: attack against network infrastructure via link flooding}
+  doi={10.1109/SP.2013.19},
+  url={https://doi.org/10.1109/SP.2013.19}
 }
 
 @inproceedings{coremelt,
@@ -61,11 +62,14 @@
 
 % --- LFA 攻击与防御 ---
 
-@article{icarus,
+@inproceedings{icarus,
 	title = {{ICARUS}: {Attacking} low {Earth} orbit satellite networks},
-	language = {en},
 	author = {Giuliari, Giacomo and Ciussani, Tommaso and Perrig, Adrian and Singla, Ankit},
+	booktitle = {Proceedings of the 2021 {USENIX} Annual Technical Conference ({USENIX ATC} 2021)},
+	publisher = {{USENIX} Association},
 	year = {2021},
+	pages = {317--331},
+	url = {https://www.usenix.org/conference/atc21/presentation/giuliari},
 }
 
 @incollection{dosat,
@@ -84,10 +88,14 @@
 
 @article{satshield,
 	title = {{SatShield}: {In}-{Network} {Mitigation} of {Link} {Flooding} {Attacks} for {LEO} {Constellation} {Networks}},
-	language = {en},
-	author = {Jiang, Wei and Jiang, Hao and Xie, Yulai and Wu, Jing and He, Xiaofan},
+	author = {Jiang, Wei and Jiang, Hao and Xie, Yulai and Wu, Jing and He, Xiaofan and Li, Hao and Zhou, Pan},
 	journal = {IEEE Internet of Things Journal},
+	volume = {11},
+	number = {16},
+	pages = {27340--27355},
 	year = {2024},
+	doi = {10.1109/JIOT.2024.3397865},
+	url = {https://doi.org/10.1109/JIOT.2024.3397865},
 }
 
 @inproceedings{jaqen,
@@ -264,6 +272,115 @@
 	author = {Bhattacherjee, Debopam and Singla, Ankit},
 	year = {2019},
 	pages = {341--354},
+}
+
+% --- ICARUS 参考文献扩展（第1-3章增强） ---
+
+@article{giuliari2020internet_backbones,
+	title = {Internet backbones in space},
+	journal = {ACM SIGCOMM Computer Communication Review},
+	volume = {50},
+	number = {1},
+	pages = {25--37},
+	year = {2020},
+	doi = {10.1145/3390251.3390256},
+	url = {https://doi.org/10.1145/3390251.3390256},
+	author = {Giuliari, Giacomo and Klenze, Tobias and Legner, Markus and Basin, David A. and Perrig, Adrian and Singla, Ankit},
+}
+
+@inproceedings{handley2018delay_not_option,
+	title = {Delay is Not an Option: Low Latency Routing in Space},
+	booktitle = {Proceedings of the 17th {ACM} Workshop on Hot Topics in Networks ({HotNets} 2018)},
+	pages = {85--91},
+	year = {2018},
+	publisher = {ACM},
+	doi = {10.1145/3286062.3286075},
+	url = {https://doi.org/10.1145/3286062.3286075},
+	author = {Handley, Mark},
+}
+
+@inproceedings{handley2019ground_relays,
+	title = {Using ground relays for low-latency wide-area routing in megaconstellations},
+	booktitle = {Proceedings of the 18th {ACM} Workshop on Hot Topics in Networks ({HotNets} 2019)},
+	pages = {125--132},
+	year = {2019},
+	publisher = {ACM},
+	doi = {10.1145/3365609.3365859},
+	url = {https://doi.org/10.1145/3365609.3365859},
+	author = {Handley, Mark},
+}
+
+@inproceedings{bhattacherjee2018space_race,
+	title = {Gearing up for the 21st century space race},
+	booktitle = {Proceedings of the 17th {ACM} Workshop on Hot Topics in Networks ({HotNets} 2018)},
+	pages = {113--119},
+	year = {2018},
+	publisher = {ACM},
+	doi = {10.1145/3286062.3286079},
+	url = {https://doi.org/10.1145/3286062.3286079},
+	author = {Bhattacherjee, Debopam and Aqeel, Waqar and Bozkurt, Ilker Nadi and Aguirre, Anthony and Chandrasekaran, Balakrishnan and Godfrey, P. Brighten and Laughlin, Gregory and Maggs, Bruce M. and Singla, Ankit},
+}
+
+@inproceedings{singla2014speed_light,
+	title = {The Internet at the Speed of Light},
+	booktitle = {Proceedings of the 13th {ACM} Workshop on Hot Topics in Networks ({HotNets} 2014)},
+	pages = {1--7},
+	year = {2014},
+	publisher = {ACM},
+	doi = {10.1145/2670518.2673876},
+	url = {https://doi.org/10.1145/2670518.2673876},
+	author = {Singla, Ankit and Chandrasekaran, Balakrishnan and Godfrey, P. Brighten and Maggs, Bruce M.},
+}
+
+@inproceedings{rasti2015temporal_lensing,
+	title = {Temporal Lensing and Its Application in Pulsing Denial-of-Service Attacks},
+	booktitle = {2015 {IEEE} Symposium on Security and Privacy ({SP})},
+	pages = {187--198},
+	year = {2015},
+	publisher = {IEEE},
+	doi = {10.1109/SP.2015.19},
+	url = {https://doi.org/10.1109/SP.2015.19},
+	author = {Rasti, Ryan and Murthy, Mukul and Weaver, Nicholas and Paxson, Vern},
+}
+
+@article{usman2020ddos_satellite,
+	title = {Mitigating distributed denial of service attacks in satellite networks},
+	journal = {Transactions on Emerging Telecommunications Technologies},
+	volume = {31},
+	number = {6},
+	pages = {e3936},
+	year = {2020},
+	doi = {10.1002/ett.3936},
+	url = {https://doi.org/10.1002/ett.3936},
+	author = {Usman, Muhammad and Qaraqe, Marwa and Asghar, Muhammad Rizwan and Ansari, Imran Shafique},
+}
+
+@inproceedings{kelso2007sgp4_validation,
+	title = {Validation of {SGP4} and {IS-GPS-200D} Against {GPS} Precision Ephemerides},
+	booktitle = {{AAS/AIAA} Space Flight Mechanics Conference},
+	year = {2007},
+	author = {Kelso, T. S.},
+	note = {待核实：页码与出版方信息},
+}
+
+@article{werner1997dynamic_routing,
+	title = {A dynamic routing concept for {ATM}-based satellite personal communication networks},
+	journal = {IEEE Journal on Selected Areas in Communications},
+	volume = {15},
+	number = {8},
+	pages = {1636--1648},
+	year = {1997},
+	doi = {10.1109/49.634801},
+	url = {https://doi.org/10.1109/49.634801},
+	author = {Werner, M.},
+}
+
+@phdthesis{wood2001internetworking_constellations,
+	title = {Internetworking with satellite constellations},
+	author = {Wood, Lloyd},
+	school = {University of Surrey},
+	year = {2001},
+	note = {待核实：出版地与可获取的持久链接},
 }
 
 % --- 在网计算与P4 ---
