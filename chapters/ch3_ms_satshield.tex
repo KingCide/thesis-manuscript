@@ -268,7 +268,18 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 \noindent\textbf{（3）持续性特征在动态攻击场景下的价值}\quad
 图~\ref{fig:ch3_fig2_f1}(b) 仅展示 S0 与 S1 的对比，未包含 S2（+persist）。其原因在于：在静态退化场景中，攻击 key 在每个 epoch 均进入 top-$k$，导致持续性 $\widetilde{P}\approx1.0$；同时约 $20$ 个良性重流 key 也几乎每个 epoch 进入候选集，$\widetilde{P}$ 同样趋近 $1.0$，持续性特征对两者加分相同，无法提供额外区分能力。
 
-持续性的核心价值体现在动态退化场景中。图~\ref{fig:ch3_fig4_attackstate} 展示了脉冲式 on-off 攻击（$M=100$，on/off 各 $10$ epoch 即各 $10$~s，共运行 $5$ 个完整 on-off 周期，总仿真时长 $100$ epoch）下 S0、S1、S2 三种方案的时域对比。结果呈现明显的层次分化：S0 在 $M=100$ 下完全失效（on-phase 平均 Recall$\approx0.01$），S1 通过 FO/FI 实现即时检测（Recall$\approx0.990$），S2 进一步将 Recall 提升至 $0.999$。S2 的改进来源于两个机制：其一，采用加性奖励权重（$\alpha=\beta=0.5$, $\gamma=0.2$），即持续性为额外加分而非从基础权重中借用（见式~(\ref{eq:score_def}) 的权重设计），保证 S2 的基础检测能力与 S1 完全相同；其二，当 $\gamma>0$ 时，系统将历史上 $P\geq2$ 但未进入当前 top-$k$ 的 key 也纳入评分候选集（见算法~\ref{alg:ms_satshield} 中的持续性扩展步骤），实现了对短暂跌出 top-$k$ 的可疑 key 的"记忆"功能。关于遗忘效应：$k_p=5$ 意味着在 off 持续 $10$ epoch 后，所有攻击 key 的 $P_t(a)$ 均衰减为 $0$，持续性分数完全归零，不会将历史攻击残留误带入下一个 on-phase 的判决中。在缓解层面，S0 的良性吞吐仅为 $0.572$，S1 恢复至 $0.881$，S2 进一步达到 $0.885$。
+持续性的核心价值体现在动态退化场景中。为此，图~\ref{fig:ch3_fig4_attackstate} 给出了脉冲式 on-off 攻击下的时域响应。实验固定退化强度为 $M=100$，前 $5$ 个 epoch 为 warmup，随后攻击按 on/off 各 $10$ 个 epoch 的节律周期性切换，总仿真时长为 $100$ 个 epoch。图中红色阴影表示攻击 on-phase；图~\ref{fig:ch3_fig4_attackstate}(a) 给出目标链路利用率，图~\ref{fig:ch3_fig4_attackstate}(b) 给出 top-$k$ 候选命中的攻击 key 数量，图~\ref{fig:ch3_fig4_attackstate}(c) 和图~\ref{fig:ch3_fig4_attackstate}(d) 分别给出 S0、S1、S2 三种方案的 Recall 与良性吞吐比例时域曲线。
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.94\linewidth]{figs/ch3/fig3_4_onoff.pdf}
+  \caption{脉冲式 on-off 攻击下的时域响应对比（$M=100$）。红色阴影表示攻击 on-phase；(a) 目标链路利用率随 epoch 的变化；(b) top-$k$ 候选命中的攻击 key 数量；(c) S0、S1、S2 三种方案的 Recall 时域曲线；(d) 三种方案下良性吞吐比例的时域曲线。S2 通过持续性加性奖励与历史候选扩展机制，在候选抖动处保持了更平滑、更高的检测与吞吐保护效果。}
+  \label{fig:ch3_fig4_attackstate}
+\end{figure}
+
+图~\ref{fig:ch3_fig4_attackstate} 呈现出清晰的层次分化。首先，图~\ref{fig:ch3_fig4_attackstate}(a) 表明攻击 on-phase 到来时目标链路利用率迅速升至超载区间，而 off-phase 又回落至正常水平，说明该设定确实构成了“时域动态退化”而非前文的静态退化场景。其次，图~\ref{fig:ch3_fig4_attackstate}(b) 表明 top-$k$ 候选集在 on/off 切换附近存在明显抖动：on-phase 内命中数接近攻击 key 总数，但在切换边界处会短暂回落，这正是持续性特征需要解决的对象。进一步看检测结果，图~\ref{fig:ch3_fig4_attackstate}(c) 中 S0 在 $M=100$ 下几乎完全失效（on-phase 平均 Recall$\approx0.01$）；S1 借助 FO/FI 可实现高召回检测（on-phase 平均 Recall$\approx0.990$），但在切换边缘仍会因候选抖动出现轻微波动；S2 则进一步将 on-phase 平均 Recall 提升至 $0.999$。这里需要说明，off-phase 不存在攻击 key，Recall 按空真值 convention 记为 $1.0$，仅用于保持时域曲线连续。
+
+S2 的提升来自两个机制的叠加。其一，持续性采用加性奖励权重（$\alpha=\beta=0.5$, $\gamma=0.2$），即 $\gamma$ 为额外加分而非从基础权重中借用，因此 S2 的基础检测能力与 S1 保持一致；其二，当 $\gamma>0$ 时，系统将历史上 $P\geq2$ 但未进入当前 top-$k$ 的 key 也纳入评分候选集（见算法~\ref{alg:ms_satshield} 中的持续性扩展步骤），从而对短暂跌出候选集的可疑 key 保留“记忆”。该机制也体现在缓解侧收益上：图~\ref{fig:ch3_fig4_attackstate}(d) 显示 S0 的良性吞吐仅为 $0.572$，S1 恢复至 $0.881$，S2 进一步提升到 $0.885$。此外，由于本文取 $k_p=5$，在 off 持续 $10$ 个 epoch 后所有攻击 key 的 $P_t(a)$ 均衰减为 $0$，持续性分数完全归零，因此不会将历史攻击残留误带入后续判决。
 
 
 \subsection{消融实验与参数敏感性分析}
