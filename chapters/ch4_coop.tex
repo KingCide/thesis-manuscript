@@ -45,14 +45,14 @@ W_{\text{waste}} \approx (h-1)\cdot A .
 
 图~\ref{fig:ch4_arch}左侧展示了单颗卫星节点$v$的内部架构，右侧展示了多节点协同拓扑。
 
-\textbf{单节点内部架构}（图~\ref{fig:ch4_arch}左栏）分为上下两层：下层为P4可编程交换机~\cite{bosshart2014p4}（数据面，每包线速处理），上层为星上Agent（控制面，以epoch为周期）。
+\textbf{单节点内部架构}（图~\ref{fig:ch4_arch}左栏）分为上下两层：下层为面向 P4 可编程交换机~\cite{bosshart2014p4} 的数据面快路径，上层为星上Agent（控制面，以epoch为周期）。
 
 数据面包含6个核心模块，分为复用模块与新增模块两组：
 \begin{enumerate}
-\item \textbf{复用模块}（Ch.3 MS-SatShield）：top-$K$候选生成——维护候选key的聚合速率排序；FO/FI位图——记录候选key的扇出/扇入结构特征；队列调度——基于rank执行优先级队列映射与限速。
+\item \textbf{复用模块}（Ch.3 MS-SatShield）：CMS + 候选缓存一级候选生成——维护候选key集合及其近似频次；FO/FI位图——记录候选key的扇出/扇入结构特征；队列调度——基于rank执行优先级队列映射与限速。
 \item \textbf{新增模块}（$\star$~Ch.4）：入端口贡献统计——维护每个候选key在各入端口的字节统计$\text{bytes}(a,p)$，用于后续pushback上游选择；EG/PT消息解析——完成协同消息的轻量级header解析与TTL递减；seen-set去重——以Bloom Filter~\cite{bloom1970space}达成O(1)消息去重。
 \end{enumerate}
-上述所有模块均可由可编程交换机的寄存器阵列与match-action表实现~\cite{bosshart2013rmt}，每包处理保持O(1)复杂度。
+上述所有模块在设计语义上均可映射到可编程交换机的寄存器阵列与match-action表~\cite{bosshart2013rmt}，每包处理保持O(1)复杂度。
 
 控制面Agent包含6个模块：
 \begin{enumerate}
@@ -63,7 +63,7 @@ W_{\text{waste}} \approx (h-1)\cdot A .
 \item Pushback判定——比较$S^{\text{net}}$与阈值$\Theta_{\text{pb}}$触发推回；
 \item EG消息处理/合并——执行Aggregate操作并构造聚合消息。
 \end{enumerate}
-两层之间通过epoch读取/写回接口连接：Agent每个epoch从top-$K$统计、FO/FI位图与入端口贡献表中拉取数据，计算多签名评分后将rank及推回规则写回数据面。
+两层之间通过epoch读取/写回接口连接：Agent每个epoch从 CMS/候选缓存摘要、FO/FI位图与入端口贡献表中拉取数据，计算多签名评分后将rank及推回规则写回数据面。
 
 \textbf{多节点协同拓扑}（图~\ref{fig:ch4_arch}右栏）展示了7颗卫星组成的局部拓扑。当节点$V$检测到受害链路$e^*$拥塞时，触发EG消息向外扩散（蓝色箭头，TTL每跳递减），形成ROI ($R=4$)范围内的证据共享与聚合；同时，PT令牌沿贡献最大的上游方向反向传播（橙色箭头，$R_{\uparrow}$递减），沿途节点安装软状态缓解规则。右栏还标注了抑制机制的效果：当某节点在发送窗口内已监听到$k$条等价证据时，自动抑制转发（“$\times$抑制标记”），避免冗余广播。
 
