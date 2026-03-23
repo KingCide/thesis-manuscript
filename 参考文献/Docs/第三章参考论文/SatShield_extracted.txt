@@ -1,0 +1,1338 @@
+
+
+===== PAGE 1 =====
+27340 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+SatShield: In-Network Mitigation of Link Flooding
+Attacks for LEO Constellation Networks
+Wei Jiang , Hao Jiang ,Member, IEEE ,Y u l a iX i e ,Member, IEEE ,J i n gW u ,Member, IEEE ,
+Xiaofan He ,Senior Member, IEEE , Hao Li, and Pan Zhou ,Senior Member, IEEE
+Abstract —Low Earth orbit (LEO) satellite networks provide
+global connectivity but are vulnerable to security threats, suchas link ﬂooding attacks (LFAs). To defend against such attacks,state-of-the-art approaches employ SDN to acquire a globalview of the network, enabling the detection and mitigation ofmalicious trafﬁc. However, in the LEO constellation networks,the distributed nature of satellites across a large spatial scaleintroduces signiﬁcant latency in both the satellite-to-groundand intersatellite links, with latency reaching up to tens ofmilliseconds, while attack trafﬁc dynamically adapts withinsubmilliseconds. As a result, the existing defense systems facechallenges in countering these attacks effectively due to the
+increased reaction time caused by link latency. In this article,
+we leverage programmable switches to build a real-time defensesystem against LFAs in the LEO constellation networks. Toachieve this, we analyse the practical constraints encounteredin the deployment of LFA attacks against the state-of-the-artLEO satellite systems. We observe that despite the ability ofbots to initiate attack trafﬁc from any location worldwide, ananomalous distribution of ﬂow rate on the affected links canstill be detected. We propose SatShield, an in-network defensesystem that ﬁlters out suspicious trafﬁc (heavy ﬂows) in thenetwork and mitigates these threats by leveraging programmablepacket scheduling. By using SatShield, we are able to achievereal-time identiﬁcation and rate-limiting of attacks at the linerate on a per-packet basis. We implement SatShield with P4 ina commercial programmable switch and evaluate it with real-world trafﬁc traces. Our evaluation shows that the SatShieldautonomously identiﬁes LFA attack ﬂows and rapidly mitigatesLFA attacks.
+Index Terms —Low Earth orbit (LEO) network, link ﬂooding
+attack (LFA), programmable switches, SDN.
+I. I NTRODUCTION
+RECENTLY, the advent of low Earth orbit (LEO) satellite
+constellations has catalyzed the expansion of the Internet
+into space, promising enhanced global connectivity character-ized by low-latency, high-bandwidth, and cost-effectiveness.
+Among the key contenders in this emerging arena are SpaceX,
+Manuscript received 11 January 2024; revised 29 March 2024 and 18 April
+2024; accepted 3 May 2024. Date of publication 14 May 2024; date of currentversion 8 August 2024. This work was supported in part by the National KeyResearch and Development Program of China under Grant 2022YFB2901202.
+(Corresponding author: Xiaofan He.)
+Wei Jiang, Hao Jiang, Jing Wu, Xiaofan He, and Hao Li are with the
+Electronic Information School, Wuhan University, Wuhan 430072, Hubei,China (e-mail: jiangxwei@whu.edu.cn; jh@whu.edu.cn; wujing@whu.edu.cn;
+xiaofanhe@whu.edu.cn; eehaoli@whu.edu.cn).
+Yulai Xie and Pan Zhou are with the School of Cyber Science and
+Engineering, Huazhong University of Science and Technology, Wuhan
+430074, Hubei, China (e-mail: ylxie@hust.edu.cn; panzhou@hust.edu.cn).
+Digital Object Identiﬁer 10.1109/JIOT.2024.3397865Amazon, and Telesat [1]. Notably, SpaceX’s Starlink satellite
+constellation has commenced its phased deployment, com-
+prising thousands of LEO satellites. Since 2020, the Starlink
+Internet service has been operational in selected regions [2].
+This system exhibits the capability to deliver uninterrupted
+services independent of ground network coverage, exempliﬁed
+by its deployment in conﬂict zones, such as Ukraine [3]and
+Gaza [4].
+The security of LEO satellite constellation networks, similar
+to that of critical ground-based communication infrastructurelike ISP and data center networks, is of paramount impor-
+tance. LEO satellite constellation networks, as a distinctive
+form of communication infrastructure, are more vulnerable
+to attacks compared to the terrestrial networks. Due to their
+global coverage, adversaries can launch attacks from any loca-tion worldwide. These attacks include frequency interference,
+service-level denial of access, and ﬂooding attacks on inter-
+satellite links (ISLs), which are the focus of this article.Traditional satellite attack methodologies, such as interference
+with satellite radio frequencies [5]and denial of access attacks
+[6], have been extensively studied over many years. The
+industry now possesses defense strategies and methodologies
+against these attacks [7]. However, there remains a lack
+of corresponding solutions within the network communityfor emerging ﬂooding attacks targeting ISLs in the satellite
+networks.
+Several reasons make the detection and mitigation of satel-
+lite link ﬂooding attack (LFA) a signiﬁcant challenge.
+Indistinguishable Trafﬁc: Attackers generate a substantial
+volume of seemingly normal low-speed trafﬁc, evading effec-
+tive identiﬁcation by the feature-based trafﬁc analysis methods
+[8],[9]or volumetric DDoS defense [10],[11] mechanisms
+until the trafﬁc aggregates at the targeted link.
+High Dynamism: The dynamic nature of satellite network
+topology [12], ﬂuctuating at a second-level timescale, requires
+attackers to adapt their attack strategies dynamically (e.g., bot
+clusters and targeted links) to maintain attacks in the target
+area, effectively circumventing the slower or ﬁxed defensivesystems.
+Global Distribution: Target links may be distributed any-
+where within the constellation network, potentially leaving theendpoint defense system unaware of an ongoing attack.
+Control Channel Limitations: The constraints in control
+channel bandwidth and latency pose challenges to the real-timemonitoring of satellite statuses and the updating of defense
+strategies from ground control centers.
+2327-4662 c/circlecopyrt2024 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 2 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27341
+To mitigate LFA, prevailing approaches entail the collection
+of real-time network data from distributed switches [13] or
+probe packets [8]and their analysis on the centralized servers.
+This analysis aims to discern suspicious trafﬁc patterns,
+enabling the customization of appropriate defense and miti-gation strategies. In theory, such a model can detect network
+congestion and counteract attacks through the rerouting or
+other trafﬁc engineering techniques. However, deploying thesesolutions within a satellite network presents considerable
+challenges. For instance, with LinkScope [8], the constantly
+changing end-to-end paths within the satellite networks hin-der the precise identiﬁcation of LFA occurrences and their
+locations through the packet probing. The LFADefender [9]
+involves deploying agents on switches to gather link status
+information, and analysing the entire network’s link status
+on a controller to monitor and defend against LFA attacks.Nevertheless, within the satellite networks, the signiﬁcant
+asymmetry in control channel latency poses hurdles, making
+it arduous for the controller to attain an accurate global viewof network status.
+The emerging programmable data plane is increasingly
+leveraged for the implementation of high-performance networkdefense systems [10],[14],[15]. These systems achieve ﬂex-
+ible defense strategies by customizing the programmable
+pipeline while maintaining high-performance, such as Tbps-level throughput and microsecond-level latency. Moreover,
+an expanding body of research on software-deﬁned constel-
+lation network architecture and deployment [16],[17],[18]
+suggests a gradual evolution toward full-stack programmability
+in designing and constructing constellation networks [19].
+This trend toward full-stack programmability motivates the
+deployment of the defense systems that utilize programmable
+switch data planes within the constellation networks.
+We present SatShield, a defense system tailored for miti-
+gating LFA within the satellite networks, operating at the line
+rate and based on a programmable data plane architecture.SatShield is based on a critical observation: due to the scale
+limitation of bots, the trafﬁc rate distribution of attack ﬂows
+signiﬁcantly differs from benign trafﬁc rates. Individual botstypically initiate attack trafﬁc of several Mb/s, whereas 99%
+of benign trafﬁc rates fall below 400 Kb/s. A pivotal design
+choice involves ofﬂoading the intensive ﬂow ﬁltering processto the data plane. This approach enables handling all packets at
+line rate, avoiding the need to sample packets or to implement
+heavy ﬂow detection on the controller.
+We deploy SatShield on programmable switches (Intel
+Toﬁno) and conduct an in-depth analysis of its resource
+utilization. Subsequently, we evaluate SatShield‘s heavy ﬂowﬁltering performance across various metrics using multiple
+traces containing diverse trafﬁc patterns. Our experiments
+show that the SatShield‘s ﬂow detector is about 84% smaller in
+average relative error (ARE) compared to its closest competi-
+tor HashFlow [20], while achieving approximately a 4% higher
+F1 score. Finally, we showcase SatShield‘s effective tradeoff
+between responsiveness and defensive capabilities. It achieves
+subsecond reaction times without compromising benigntrafﬁc.
+We list our contributions as follows.1) We study LFA attacks in LEO networks and identify a
+critical trafﬁc pattern that allows us to recognize LFAattack ﬂows within trafﬁc traversing satellite links.
+2) We propose a lightweight top- kﬁlter based on
+programmable switches, capable of continuously moni-toring malicious trafﬁc patterns with minimal resource
+usage.
+3) We design a queue-based trafﬁc policing scheme to
+minimize the impact on benign trafﬁc.
+4) We analyse the overhead of the proposed solution and
+evaluate its performance in a testbed network using real-world trafﬁc traces.
+The remainder of this article is organized as follows.
+Section IIpresents the threat model and motivation. We inves-
+tigate LFA attacks within the LEO network and ascertain that
+ﬂow rates serve as a signiﬁcant distinguishing feature betweenthe benign and attack trafﬁc in Section III. Following the
+guidelines proposed in Section IV, we present the architecture
+of the SatShield, detailing the design and implementation ofits ﬂow detector and ﬂow scheduler within programmable
+switches in Section V. A comprehensive experimental evalu-
+ation of SatShield is in Section VI, and Section VIIdiscusses
+the scalability and compatibility of SatShield. Finally, we
+conclude this article in Section
+VIII.
+II. B ACKGROUND AND RELATED WORK
+A. Link Flooding Attack in LEO
+As a high-value telecommunication infrastructure, a variety
+of potential attack modes, such as eavesdropping [21], satellite
+transponder stealing [22], jamming attacks [23],[24], and
+denial of access attacks [25], have been considered in the
+design and construction process of the satellite networks[26],[27],[28]. However, unlike traditional geosynchronous
+orbit communication satellites that use bent-pipe forwarding
+[29], the emerging LEO satellite constellation network utilizes
+the digital relay forwarding through the free-space laser links
+[30], which introduces a new attack surface: the ISL. Recent
+studies have shown that adversaries can utilize the globalcoverage of the LEO satellite network to launch LFAs against
+the ISL from multiple locations on Earth, and that such
+an attack would deplete the bandwidth of the ISL [31].A
+sustained LFA attack on a collection of time-varying links
+connecting two geographic regions would have the potential
+to completely block all communication between the regions.
+In Fig. 1, the adversary aims to disrupt satellite communi-
+cation from Bangkok to Mexico (indicated by the green path).
+Initially, the attacker leverages publicly available satellite orbitinformation to obtain real-time knowledge of the network’s
+topology [32],[33],[34]. As the satellite networks prefer
+the shortest path to offer lower latency compared to the
+terrestrial networks [35], the adversary can anticipate the
+path from Bangkok to Mexico in real-time or in advance.Subsequently, the adversary ascertains the targeted links for
+the attack (represented by the red ISL in the diagram) and all
+viable attack paths (represented by the pink line) by takinginto consideration the geographical distribution of the bots
+(depicted as red dots in the diagram) and the target paths.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 3 =====
+27342 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+Fig. 1. LFA in LEO constellation.
+They can then schedule the bots to initiate attacking trafﬁc
+and induce congestion on the targeted link.
+Compared to traditional LFAs, such as coremelt [36],
+crossﬁre [37], and attacks targeting SDN architectures
+[38],[39],[40], LFAs targeting the LEO satellite networks
+exhibit several notable features.
+1) An adversary has full access to the network topology
+due to the global exposure of the low-earth orbit satellite
+network. This enables the adversary to recruit bots indiverse locations to generate attack trafﬁc.
+2) The low-latency routing nature of the low-earth orbit
+satellite networks leads to routing predictability.
+3) The high dynamism of the satellite network topology,
+changing within seconds, enables the attacker to swiftly
+adapt their attack strategy.
+4) The attacker’s meticulous selection of bots globally
+complicates their detection.
+B. Existing LFA Defenses and Limitations
+Table Ihighlights the tradeoffs between performance and
+scalability in today’s LFA defenses.
+Most LFA defense systems [9],[13],[41],[42],[43],
+[44] adopt a centralized approach, deploying the defense
+mechanisms on the control plane and gathering networkstatistics from the data plane. These defenses receive trafﬁc
+samples or statistics from the switches, conduct detection, and
+classiﬁcation, and write mitigation rules back to the switches.
+However, using the software-only solutions is not scalable.
+First, there exists a tradeoff between scalability and accuracy.While requesting ﬁne-grained statistics can enhance defense
+effectiveness, impractical scalability in real-world networks
+arises from the potential for overwhelming the control planedue to the enormous volume of statistical information [45].Second, the loop-from data collection at switches to response
+generation at the control plane and subsequent deployment
+of defense strategies back at switches extends the system’sresponse latency. This latency renders the system unable to
+promptly respond to rapidly changing attack trafﬁc within the
+satellite networks.
+The latest LFA defenses, based on the programmable data
+plane technologies [10],[14],[15],[46], operate in an in-
+network manner that achieves high throughput and rapidresponse as attack situations change. Unfortunately, these
+efforts suffer from one or more key limitations in the satellite
+network settings because of the high dynamicity of attacktrafﬁc.
+Low-Accuracy Detection: Poseidon [10] adopts a similar
+approach to the assumption in RADAR. It necessitates dedi-
+cated monitoring infrastructure, akin to NetFlow, to aggregate
+the packet-level data into the ﬂow-level records. However, thismethod faces limitations because packet sampling approaches
+cannot offer detailed detection results, and conducting ofﬂine
+analysis requires additional computational resources, leadingto signiﬁcant delays in detection.
+Ineffective Mitigation: These systems [10],[46] demand
+substantial data plane resources from switches to log ﬂowcharacteristics, rendering them impractical for satellite links
+that manage millions of ﬂows. In the context of satellite
+networks, which typically handle numerous legitimate ﬂows,employing the components from Poseidon and Jaqen may not
+yield optimal performance. For instance, Poseidon’s method of
+recording 65k legitimate ﬂows in a hash table is not scalableto hundreds of thousands of connections, given the limited on-
+chip memory capacity of just a few megabytes. Furthermore,
+simply blocking trafﬁc may cause packet loss for legitimate
+ﬂows, resulting in a Denial of Service (DoS) for benign
+trafﬁc.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 4 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27343
+TABLE I
+COMPARISON OF LFA D EFENSE SOLUTIONS
+C. Opportunities of Programmable LEO
+Modern programmable switches have garnered attention
+for their potential to enhance the performance and ﬂexibility
+of DDoS defenses, as previously mentioned. We envision
+programmable switches as pivotal components within LEOnetworks due to their ability to offer: 1) high line-rate
+assurance, such as state-of-the-art programmable data planes
+offering tens of Tbps of line-rate processing capacity, which
+is attractive for countering large-scale attacks and 2) ﬂexi-
+bility in supporting evolving attacks, whereas the traditionalspaceborne switching systems are either ﬁxed-function or have
+limited programmability. With the help of new switch architec-
+tures, we can ﬂexibly perform detection (e.g., capturing packetsignatures using programmable parsers) and mitigation (e.g.,
+ﬁltering attack trafﬁc using customizable ﬂow tables).
+For completeness, we provide a brief overview of the
+programmable switch architecture illustrated in Fig. 2.T h e
+programmable switch typically consists of several pro-
+grammable blocks and many nonprogrammable components.Programmable blocks include a parser, multiple match-action
+stages, and a deparser. Nonprogrammable components feature
+the trafﬁc manager, packet replication engine, ingress/egressMAC, PCIe, and DMA Engines. Packets enter the switch
+at an ingress MAC and are processed by a programmable
+parser that converts the serialized packet header into well-structured packet header vectors (PHVs). These PHVs are
+then processed by an ingress match-action pipeline, potentially
+replicated by a packet replication engine, and stored in a
+common packet queue. The PHVs are then retrieved from the
+queue and passed through an egress match-action pipeline,possibly with additional packet header modiﬁcations, before
+being transmitted.
+III. D
+ETECTION STRATEGY ANALYSIS
+To effectively detect LFA attacks in LEO networks, we ﬁrst
+explore the practical constraints imposed by the real satellite
+systems, such as user bandwidth in the uplink and downlink,
+as well as the number of users accessing a single satellite.
+We observe that, despite the theoretically arbitrary complexity
+of LFA attacks in the satellite networks, the actual attacktrafﬁc still exhibits distinct patterns. Speciﬁcally, attackers
+can intricately design attack paths to minimize per-ﬂow rates
+when using the ﬁve-tuple as ﬂow keys, a common methodin the existing monitoring systems and network applications.
+However, when delineated by source or destination addresses
+Fig. 2. Programmable switch architecture.
+TABLE II
+SATELLITE NETWORK PARAMETER
+as ﬂow keys, these attack ﬂows’ aggregated rates signiﬁcantly
+exceed those of benign trafﬁc.
+To corroborate our observations, we conducted simulations
+using a network topology based on Starlink Shell 1 [48].
+Using a randomized selection of 20 city pairs, we measured
+the ﬂow rate of attack ﬂows while varying the number ofbots, employing either source or destination addresses as
+ﬂow keys. These simulations serve as the empirical evidence
+supporting our observations and aid in establishing guidelines
+for detecting LFA attacks in LEO networks.
+A. Attack Flow Rates in Empty Network
+As shown in Fig. 3, to ﬂood an ISL with a bandwidth of
+20 Gb/s, approximately 313 source bots (53 destination bots)
+are required to initiate attack trafﬁc using their maximum
+upstream bandwidth. At this point, the rate of the attack
+ﬂow, whether using source or destination addresses as ﬂowkeys (hereafter referred to as “attack ﬂow”), reaches 64 and
+384 Mb/s, respectively. These values signiﬁcantly surpass the
+typical rates of regular Internet ﬂows. As the number of botsincreases, the ﬂow rate of the attack ﬂow gradually diminishes.
+However, unlike adversaries in ground networks who can
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 5 =====
+27344 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+Fig. 3. Attack ﬂow rate versus number of bots.
+theoretically expand their botnet without limit, those targeting
+satellite networks are constrained by the service capacity of
+the network itself. For instance, while Starlink can presently
+serve millions of user terminals, we assume the adversary
+has access to 10 000 user terminals (approximately 1% ofthe overall users). From this point, we use the terms “bot”
+and “user terminal” interchangeably. In such a scenario, the
+average ﬂow rate of the attack ﬂow measures about 2.3 and13.8 Mb/s, respectively. Even these values still surpass the
+observed 650 Kb/s, which represents the 99th percentile of
+ﬂow rates (R
+P99)in Internet ﬂows [49].
+A more complex attack strategy involves the adversary
+minimizing the per-ﬂow rate against the defense systems that
+use the ﬁve-tuple as ﬂow keys. Speciﬁcally, the adversaryconstructs attack ﬂows between each source bot and multiple
+destination bots, thereby signiﬁcantly reducing the per-ﬂow
+rate. For instance, when the adversary controls 10 000 bots,this strategy results in ﬂow rates as low as tens of Kb/s.
+However, when using source or destination addresses as
+the ﬂow key, the aggregated ﬂow rates for each source or
+destination bot remain consistent with rates observed with-
+out employing this strategy. Moreover, this strategy notablyincreases ﬂow fan-out, a characteristic that can be employed
+in detecting attack ﬂows [50].
+B. Attack Flow Rates Amid Benign Trafﬁc
+To verify whether the aforementioned distribution of attack
+ﬂow rates can be utilized to detect attack trafﬁc amidst benign
+background trafﬁc, we employ an evaluation-based approach.To emulate realistic trafﬁc patterns in the satellite networks, we
+utilize the CAIDA19 trace [51], incorporating the Pop trafﬁc
+distribution model.
+The evaluation of these LFA attacks was conducted using
+the state-of-the-art satellite network simulator, Icarus [31].
+All our simulations were performed on a local workstation
+equipped with two Intel XEON Gold 18-core CPU at 2.3 Ghz
+and 256 GB RAM, running Ubuntu 20.04 with kernel version5.15. Table IIlists all the main parameters used in Icarus.
+The maximum uplink rate per user, whether regular or bot,
+is 64 Mb/s, while the downlink rate is 384 Mb/s [52]. Each
+satellite can serve a maximum of 2080 users [53], and the ISL
+Fig. 4. Attack ﬂow rate distribution in the presence of benign background
+trafﬁc.
+has a symmetric bandwidth of 20 Gb/s in both the directions
+[54].
+We simulate LFA attacks on satellite links on the Starlink
+Shell 1 network topology, which consists of 1584 LEO
+satellites equipped with ISL. We assume that bots and benign
+user terminals can be distributed anywhere on the Earth’s
+surface. We introduce benign trafﬁc among 1860 cities with a
+population exceeding 300k [55]. We randomly sample ﬂows
+from the CAIDA 19 data set and distribute them between
+the cities proportionally to their population size. In total, we
+sampled 75 million times, discarding any ﬂow that wouldresult in any link utilization exceeding 90% between the cities.
+This trafﬁc accounted for 14% of the global uplink bandwidth.
+Considering that the majority of the population resides on land,which covers 29% of the Earth’s surface, we believe that this
+setting of benign trafﬁc accurately represents the bandwidth
+usage in the satellite networks.
+We conducted LFA experiments with a varying number of
+bots aimed at disrupting connections between 20 randomly
+selected pairs of cities. Fig. 4illustrates the distribution of
+attack ﬂow rates on the victim links. The presence of benign
+trafﬁc signiﬁcantly impacts the required attack ﬂow rates for
+an LFA attack. However, even with 10 000 bots, the ﬂow
+rate remains inadequate to reduce the attack ﬂow to a level
+indistinguishable from benign trafﬁc.
+Our observations conﬁrm a notable difference in the aggre-
+gated ﬂow rates between attack ﬂow and benign trafﬁc when
+utilizing source/destination addresses as ﬂow keys, regardlessof the benign trafﬁc presence. This disparity is a distinctive
+characteristic that aids in detecting attack ﬂows within the
+satellite network.
+IV . D
+ESIGN GUIDELINES
+Our investigation ﬁndings in Section IIIhighlight the
+presence of a distinct ﬂow pattern within victim links impactedby LFA attacks in the LEO network. Speciﬁcally, we observe
+that the per source/destination aggregation ﬂow rate associated
+with these malicious attack ﬂows surpasses the ﬂow rate ofbenign ﬂows. Leveraging this distinctive ﬂow characterization
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 6 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27345
+enables the effective identiﬁcation and detection of LFA-
+attacking ﬂows within the LEO network.
+A. Straw-Man Solution
+To implement this strategy, a viable approach entails
+the utilization of the sketch-based data structures [56] or
+comparable techniques for efﬁcacious monitoring and analysisof high-volume ﬂows traversing the network links [57],[58].
+Based on the observed ﬂow rates, these ﬂows are categorized
+into benign trafﬁc and suspected attack ﬂows. Followingthe detection phase, a blocking mechanism is enacted to
+halt suspected attack ﬂows promptly. By employing these
+techniques, network administrators can proactively identifyand counter potential threats, thereby bolstering the network’s
+overall security.
+Limitations: However, there are several inherent limitations
+that must be considered:
+1) When employing sketch or its alternatives for monitor
+ﬂows traversing victim links, the straw-man schemerequires substantial memory allocation to achieve an
+acceptable monitoring result. This requirement arises
+from the high inﬂux of ﬂows, reaching millions per
+second, observed on these links. Deploying smaller
+memory sizes would result in signiﬁcant hash collisions,rendering the obtained results statistically insigniﬁcant.
+2) Besides, the inherent irreversibility of sketch or its
+alternatives poses a limitation, as they can only inferthe presence of an attacking ﬂow without directly iden-
+tifying speciﬁc attacking ﬂows amidst a multitude of
+ﬂows. Existing reversible sketch methods [59], however,
+attempt to overcome this limitation by introducing addi-
+tional arrays to store ﬂow metadata and implementing
+complex algorithms to correlate sketch counters withcorresponding ﬂow metadata. Although this provides a
+means to identify speciﬁc attacking ﬂows, it signiﬁcantly
+increases computational requirements and memory con-sumption during the attack detection.
+3) Furthermore, employing a simplistic blocking mecha-
+nism to defend against attacking ﬂows can inadvertently
+cause harm to benign trafﬁc. This issue arises from the
+statistical errors inherent in the sketch-based detectiontechniques and the reality that some benign ﬂows may
+also exhibit high-volume characteristics.
+4) Moreover, using sketch-based approaches necessitates,
+including a controller to compute the rate of each ﬂow
+and generate blocking rules. However, introducing such
+a controller creates a signiﬁcant control loop delay,rendering it unsuitable for the satellite networks. In
+these networks, the attack trafﬁc can rapidly ﬂuctuate
+within subsecond intervals, affected by factors, suchas the movement of satellites, thereby leading to the
+ineffectiveness of blocking rules.
+B. Design Choices
+The straw-man solution, however, is inadequate for effec-
+tively countering LFA attacks in satellite networks due to its
+limitations: high resource consumption, potential impact onbenign trafﬁc, and latency in defense strategy updates. To
+address the above limitations, we make the following criticaldesign choices.
+First, inspired by Hashpipe [60] and its variant [61], and
+in alignment with limitations 1) and 2), we opt to track onlythe top- kheavy ﬂows instead of all ﬂow rates. Alongside
+each ﬂow record, we monitor both the ﬂow rate and the
+key, which includes the source/destination addresses. Thischoice signiﬁcantly reduces the memory requirements for
+tracking and ﬁltering heavy ﬂows, overcoming the irreversible
+constraints of the sketch. It is important to note that theHashpipe strategy of “always inserting ﬂow records in the
+ﬁrst stage” can potentially lead to the fragmentation of ﬂow
+records, resulting in their incorrect eviction from the hash
+table. To signiﬁcantly enhance the detection precision, we
+introduce auxiliary data structures and recirculation logic,which will be elaborated on in subsequent chapters for a
+comprehensive understanding.
+To address limitation 3), we employ a queue-based ﬂow
+scheduling approach instead of simply blocking ﬂows. The
+priority of ﬂows in the queues is determined based on their
+rate, with the top- kﬂows assigned lower priority in the egress
+queue. The design facilitates the forwarding of all trafﬁc under
+normal, uncongested conditions. However, during instances
+of link congestion, suspicious ﬂows are passively discarded,meaning they are automatically deprioritized and eventually
+dropped if congestion persists. This design enables the defense
+system to operate continuously, prioritizing the forwarding ofbenign trafﬁc regardless of whether an attack is ongoing.
+Another design choice we made is to implement an entirely
+localized detection and mitigation solution within the satellite,
+also known as in-network mitigation. To achieve this, we
+incorporated a simple queue conﬁguration agent within thesatellite, eliminating the need for external controllers and
+reducing the response latency of the control loop. By directly
+ﬁltering the top- kheavy ﬂows in the data plane, there is no
+need for complex calculation processes like sketch schemes.
+This approach also allows for easy updates to defense rules
+by mapping the top- kheavy ﬂows to queue priorities, thereby
+eliminating reliance on central controllers.
+V. S
+ATSHIELD
+Following the guidelines in Section IV, we propose a
+novel in-network LFA mitigation solution called SatShield,
+speciﬁcally designed for LEO networks. Fig. 5illustrates the
+two main components of SatShield: 1) the ﬂow detector
+and 2) ﬂow scheduler. The ﬂow detector within SatShieldefﬁciently identiﬁes and ﬁlters the top- kheavy ﬂows directly
+on the data plane. Subsequently, the ﬂow scheduler employs a
+lightweight queue scheduling the algorithm to selectively andpassively discard packets of suspicious trafﬁc, thus mitigating
+LFA attacks.
+A. Flow Detector
+In this section, we delve into the intricate details of the
+ﬂow detector component within SatShield, elaborating on its
+data structures and the underlying algorithms. We demonstrate
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 7 =====
+27346 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+Fig. 5. SatShield architecture.
+the workﬂow of SatShield through detailed case studies.
+Additionally, an analysis of the utilization of the top- kﬁlter
+is performed.
+1) Data Structure of Flow Detector: As depicted in Fig. 5,
+the data structure of SatShield comprises a top- kﬁlter and its
+auxiliary sketch. The top- kﬁlter consists of dstages of hash
+tables, denoted as T1,T2,..., Td, where dis typically set to 8.
+Each table, i.e., T1,T2,..., Td,contains mbuckets for storing
+ﬂow records, with each record following the format (key,cnt).
+The keyﬁeld stores the ID of the ﬂow, speciﬁcally the source
+or destination address, while the cntﬁeld records the volume
+of bytes for the corresponding ﬂow. Additionally, each table
+is equipped with an independent hash function and multiple
+ALU units. The hash function is responsible for mapping theﬂow ID to a speciﬁc bucket within table T
+i, while the ALU
+units handle the required bucket updates, including ﬂow record
+insertion and replacement. Notably, during the bucket updates,the ALU units also update the ﬁelds in the corresponding
+PHV containers. The details of this process will be further
+elaborated on through the algorithm presented later.
+Inspired by the MV-Sketch [62], the auxiliary table in
+SatShield is composed of wbuckets. Each bucket within the
+sketch comprises three ﬁelds: 1) M
+key, which stores the ID of
+the major ﬂow among all ﬂows mapped to the bucket; 2) Rcnt,a
+distinct counter that sums the byte volume of all ﬂows hashed
+to the bucket; and 3) Vcnt, an indicator counter that determines
+whether the major ﬂow should be retained or replaced, similar
+to the concept presented in MJRTY [63]. Similar to the top- k
+ﬁlter, the auxiliary table is associated with an independent hash
+function and multiple ALU units, facilitating the mapping of
+ﬂows to buckets and the subsequent updates of the buckets.
+In the ﬂow detector, we use a multihashing method to decide
+where to store a ﬂow record across the d+1 tables. This design
+enables the pipelining of memory accesses to the d+1 tables
+across d+1 independent stages, allowing different packets
+to access different stages simultaneously. Moreover, the spaceused in the ﬂow detector is ﬁxed and can be preallocated,
+ensuring each bucket is occupied by exactly one ﬂow record.
+If a collision occurs, the ﬂow detector employs a specially
+designed collision resolution scheme to determine which ﬂowrecord should be retained and which should be evicted to the
+auxiliary table or discarded.
+2) Algorithm of Flow Detector: When a packet pfrom ﬂow
+farrives, a new PHV container, also known as metadata, is
+added to the packet. The source/destination address and packet
+size from the packet header are used to initialize the keyand
+cntﬁelds within the PHV container, respectively. The W
+min
+ﬁeld is initialized to 0. To track the kmost heavy ﬂows, all
+buckets are initially empty, meaning keys and counters are set
+to zero. Subsequently, the top- kﬁlter and auxiliary table are
+updated according to the algorithm presented in Algorithm 1.
+Top-k Filter: First, in T1, we map the PHV container to a
+bucket at index idx=h1(key)(line 3). If T1[idx]i se m p t y ,
+we can simply initialize the bucket with keyandcnt(lines 4
+and 5). If the bucket already contains a record with the same
+keyas the PHV container, we increment the fcntﬁeld in the
+bucket by cnt(lines 7 and 8). In either case, the packet pis
+allocated a proper bucket, and we clear the PHV container to
+complete its processing in the ﬂow detector.
+In the case of a collision, we check if fcntis less than cnt
+(line 11). If fcntis smaller, we replace the existing ﬂow record
+in the bucket with the new keyand cnt(lines 12 and 13).
+The displaced record from the bucket is then stored in the
+PHV container. If fcntis greater than or equal to cnt, the PHV
+container is forwarded to the next stage. We repeat the same
+process sequentially in T2,..., Td.
+Auxiliary Table: A PHV container centers this table if a
+bucket to record the PHV container is not found in the top- k
+ﬁlter or if a ﬂow record from the top- kﬁlter is replaced and
+stored in the PHV container. Subsequently, PHV containercenters the auxiliary table for further processing. In this
+table, the keyfrom PHV container cis mapped to bucket
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 8 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27347
+Algorithm 1 Flow Detector
+Require: packet p
+1:C.key←p.srcaddr ,C.cnt←p.pktsize ,C.Wmin←0
+Top-kﬁlter:
+2:fori==1t o ddo
+3: idx←hi(C.key)
+4: ifTi[idx]== NULL then
+5: Ti[idx]←C
+6: return
+7: else if Ti[idx].key==C.keythen
+8: Ti[idx].cnt←Ti[idx].cnt+C.cnt
+9: return
+10: else
+11: ifTi[idx].cnt<C.Wminthen
+12: // Swap out the ﬂow record in Ti[idx]
+13: tmp key←C.key,tmp cnt←C.cnt
+C.key←Ti[idx].key,C.cnt←Ti[idx].cnt
+C.Wmin←Ti[idx].cnt
+Ti[idx].key←tmp key,Ti[idx].cnt←tmp cnt
+14: end if
+15: end if
+16:end for
+Auxiliary table:
+17:idx←ha(C.key)
+18:ifTa[idx]== NULL then
+19: Ta[idx].Mkey←C.key,
+Ta[idx].Rcnt←C.cnt,
+Ta[idx].Vcnt←C.cnt
+20:else if Ta[idx].key==C.keythen
+21: Ta[idx].Rcnt←Ta[idx].Rcnt+C.cnt,
+Ta[idx].Vcnt←Ta[idx].Vcnt+C.cnt
+22: ifTa[idx].Rcnt>C.Wminthen
+23: //recirculated ﬂow record
+24: C.key←Ta[idx].key,
+C.cnt←Ta[idx].Rcnt,
+C.Wmin←0
+25: Goto Top- kﬁlter:
+26: end if
+27:else
+28: Ta[idx].Vcnt←Ta[idx].Vcnt−C.cnt
+29: ifTa[idx].Vcnt<0then
+30: Ta[idx].Mkey←C.key,
+Ta[idx].Rcnt←C.cnt,
+Ta[idx].Vcnt←C.cnt
+31: end if
+32:end if
+33:return
+TA[idx], where idx=hA(key). Similarly, if TA[idx]i se m p t y ,
+PHV container cis stored in this bucket (lines 18-19). When
+a collision occurs (i.e., the c.keydiffer from the bucket’s
+Mkey), we apply an MJRTY algorithm-inspired approach. We
+decrement Vcntbyc.cnt.I fVcntdrops below zero, we replace
+Mkeywith c.keyand reset VcntandRcnttoc.cnt(lines 28–30).
+Otherwise, the Mkeyis the same as c.key, so we update the
+bucket by adding c.cntto its Rcntand Vcnt(line 21). If the
+updated Rcntexceeds c.Wmin, tracked in the top- kﬁlter, the
+ﬂow record in the bucket is recirculated back to the top- kﬁlter
+(lines 22–25), enabling its promotion based on the larger Rcnt.Notably, recirculating ﬂow records from bucket TA[idx]t ot h e
+top-kﬁlter requires emptying the bucket TA[idx]. This enables
+the immediate insertion of another PHV container, with a
+different key, into the now-empty bucket TA[idx]. Additionally,
+this reduction in counting errors enhances the accuracy of theMJRTY process.
+Heavy Flow Detection: To detect heavy ﬂows, the agent in
+the satellite switch checks every bucket in tables T
+i(1≤i≤d)
+at the end of an epoch. For each bucket B(i,j)(1≤i≤d
+and 1 ≤j≤m),i fB(i,j).cnt≥τ, where τis preselected
+based on the ﬂow rate distribution, B(i,j).keyis reported as a
+heavy ﬂow. It is important to note that the SatShield requires
+no cooperation from a central controller for the ﬂow record
+collection. However, ﬂow records must be exported to the
+agent at the end of each epoch, enabling SatShield to refresh
+the top- kﬁlter and auxiliary table with the new ﬂow records.
+3) Example Illustration: Fig. 6illustrates an example of
+processing packets using SatShield‘s ﬂow detector. A packet
+P1w i t hak e y Kenters the switch pipeline (a). The packet is
+then hashed into a bucket containing a ﬂow record (C, 66).
+Given that the count of the ﬂow record (C, 66) in stage 1 islarger, it is retained, and as a consequence, the W
+minof packet
+P1is updated to 66, reﬂecting the minimum watched ﬂow
+record for P1(b). Since, the count for Kis larger than that
+forE,Kis written to the table in stage 2, and the packet is
+subsequently processed with E(c). In the subsequent stages,
+Eencounters the inability to locate an empty bucket or a
+bucket with a lower count. As a result, it proceeds to enter
+the auxiliary table, also known as stage d+1. However, upon
+encountering a collision in the auxiliary table (stage d+1),E
+competes with the ﬂow record (Q,8,8)through the MJRTY
+process. Emerging as the major ﬂow, Ethen replaces the
+existing record with (E,23,23)(d).
+When a packet with a key Rarrives, it fails to ﬁnd a suitable
+bucket across all tables in stages 1 to d. As a result, it is directed
+to the auxiliary table along with the updated value of Wmin
+(e). Then, the cntﬁeld is incremented by 6, because the key
+ﬁeld of the bucket matches R, the same as the arriving packet
+p2.N o w ,t h e cntvalue (i.e., 119) is larger than that of Wmin
+(i.e., 25). Therefore, Ris recirculated to the top- kﬁlter (f).
+4) Analysis of Flow Record Utilization in Top-k Filter: We
+propose a probabilistic framework that models the utilization
+of the ﬂow record in the top- kﬁlter. Our analysis assumes that
+Fdistinct ﬂows are fed into the ﬂow detector, which has d∗m
+buckets and uses dpipeline stages.
+First, consider stage 1, after inserting f1=Fﬂows randomly
+intombuckets, the probability that a given bucket is empty is
+p1=/parenleftbigg
+1−1
+m/parenrightbiggf1
+≈e−f1
+m.
+The utilization of stage 1 is u1=1−p1. According to
+Algorithm 1, since each bucket can contain only one ﬂow
+record, the number of ﬂows not accommodated in stage 1 is
+F−m×(1−p1).
+Now, extending the analysis to stage iwhere 2 ≤i≤d,w e
+assume fiﬂows are fed into stage iwith mbuckets, yielding
+pi=/parenleftbigg
+1−1
+m/parenrightbiggfi
+≈e−fi
+m.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 9 =====
+27348 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+Fig. 6. Illustration of ﬂow detector. (a) Initial state of ﬂow detector. (b) Cin stage 1 being larger is retained in table. (c) Kbeing larger evicts Ein stage 2.
+(d)Eis major ﬂow evicts Qin auxiliary table. (e) Rpass through top kﬁlter with watch min value 25. (f) Rrecirculated to top kﬁlter.
+The number of ﬂows left for the next stage is
+fi+1=fi−m×(1−pi).
+Given any d,m, and G, we can recursively compute the
+utilization of the top- kﬁlter as follows:
+U=/summationtextd
+i=1(m×(1−pi))
+/summationtextd
+i=1m.
+B. Mitigation With Flow Scheduler
+Building upon the discussion of the ﬂow detector, this
+section introduces the ﬂow scheduler within SatShield. It pas-
+sively discards anomalous ﬂows identiﬁed by the ﬂow detector
+through the programmable ﬂow scheduling. Programming ascheduler involves deﬁning a speciﬁc order for packet drainage
+from a given queue [47]. To achieve this, each packet is
+assigned a rank that signiﬁes its priority in the drainageprocess. The programmable scheduler then processes these
+ranks, dequeuing packets to adhere to the speciﬁed order.
+As described in Section III, an algorithm designed to
+mitigate LFA attacks should assign a lower priority to higher
+ﬂow rates. With this criterion in mind, a simple yet efﬁ-
+cient algorithm can be proposed: rank(p)=ﬂowrate (f
+i).
+The implementation of this ranking algorithm’s input–output
+functionality can be easily achieved using readily available
+data-plane resources. Indeed, ﬂow rates can be derived fromthe top- kﬁlter, and ranks can be conveniently attached to the
+packets using the PHV containers [64].
+A crucial consideration is how to implement the ranking
+algorithm on limited resources in the onboard programmable
+switches. Despite the simplicity of the ranking algorithm itself,
+directly implementing it on the data plane poses challenges
+for several reasons. First, the resources required by the
+algorithm need to be shared with the ﬂow detector, whichdemands substantial resources (e.g., nine stages and approxi-
+mately 50k SRAM per stage). Second, the ﬂow detector and
+ﬂow scheduler require sequential packet operations since theﬂow scheduler relies on the results from the ﬂow detector.
+Consequently, parallel resource optimization techniques arenot viable in this context. Third, the existing data plane
+programming languages lack abstractions for programmable
+schedulers [64]. Implementing the scheduling logic necessi-
+tates a signiﬁcant amount of SRAM and stage resources.
+Thus, we opt to utilize the existing priority queue in the
+data plane and delegate the ranking computation of ﬂowsto the onboard control plane. Speciﬁcally, the control plane
+periodically, known as an epoch, retrieves the key of heavy
+ﬂows from the data plane’s top- kﬁlter. After determining if a
+ﬂow is suspicious, it maps these ﬂows to the priority queue in
+the data plane. Subsequent packets are then scheduled based
+on this priority mapping. This design ensures the line-rate
+processing of data packets while also providing the conve-
+nience of implementing more advanced ranking algorithms inthe control plane without impacting the data plane.
+C. SatShield Implementation
+We implement SatShield in P4
+16on Intel Toﬁno Wedge
+100BF32X [65], with P4 Studio SDE 9.5. Our prototype
+utilizes 11 stages and supports recording up to 10k heavy ﬂow.At a high level, SatShield uses a match-action stage in the
+switch pipeline for each hash table. Every stage uses its own
+SRAM, hash algorithm, and ALUs for the hash table. TheSRAM maintains the ﬂow record, with the ﬂow key utilized
+by the hash unit for indexing ﬂow records within the SRAM.
+Additionally, the ALU is responsible for the update logic. Foreach incoming packet, SatShield updates its ﬂow record and
+enqueues the packet with the queue priority conﬁgured by
+the control plane agent. The following paragraphs present theimplementation of several key modules in the system.
+SRAM for Flow Record: In the Toﬁno chip’s TNA pro-
+gramming model [66], SRAM in each stage is abstracted as
+registers. The top- kﬁlter utilizes two registers to track the
+ﬂow key and ﬂow rate individually, while the auxiliary tableadds registers to track the vote count of the major ﬂow during
+the MJRTY process. Registers are accessed via stateful ALU,
+which can read a speciﬁed element of the SRAM, execute theRegisterAction code, and write back the modiﬁed value to the
+same element.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 10 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27349
+Hash for Index: We employ the user-deﬁned hash algo-
+rithms in the TNA model to hash the ﬂow key to the bucketindex. The hash functions we utilized follow the format
+(base+(h/max)), where the base represents the minimum
+returned hash value, and max is the divisor in the modulooperation. In addition, we individually select the initandcoeff
+values for the hash algorithm in each stage to ensure the
+independence of the hash functions.
+PHV Container for Flow Record Conveying: Due to the
+inability to directly transmit values between the stages, the
+packet key, byte size, and register values are stored in the PHVcontainer. This approach facilitates the data transfer across
+stages. Flow records are transferred between the stages of the
+top-kﬁlter and to the auxiliary table using the PHV containers.
+Additionally, the PHV container tracks the minimum ﬂow rate
+count observed by each packet.
+Recirculation for Flow Record Promoting: Promoting ﬂow
+records from the auxiliary table to the top- kﬁlter necessitates
+reaccessing the top- kﬁlter. However, as backtracking is not
+permitted in the pipeline, the PHV container with ﬂow records
+cannot reaccess the top- kﬁlter. To address this challenge, we
+leverage the recirculate() primitive in the TNA model. Thisinvolves encapsulating the ﬂow records into the packet and
+routing it back to the ingress of the pipeline. The recirculated
+packet then undergoes standard packet processing to update thetop-kﬁlter. It is important to note that enabling the recirculate()
+operation requires conﬁguring a switch port in the loopback
+mode, consuming switch backplane bandwidth. In Section VI,
+we demonstrate that the recirculate() operation affects only a
+negligible portion of ﬂows, thus ensuring the system’s line rate
+operation.
+VI. P
+ERFORMANCE EVA L UAT I O N
+We have evaluated SatShield to answer three research
+questions as follows.
+1) How much overhead does SatShield incur?2) How accurate is the ﬂow detector?
+3) How effectively can SatShield defend against LFA
+attacks?
+A. Testbed Setup
+Unlike most link ﬂood defense research [9],[14] that uses
+behavioral simulation [67] for proof-of-concept, this study
+uses a real testbed to conduct experiments and evaluations of
+SatShield. The testbed includes a 3.2 Tbps Barefoot Toﬁno
+switch, a Dell server equipped with an Intel Xeon E2620 v4,64 GB RAM, and a 10 Gb/s Intel network interface card,
+and an Ixia XGS2 [68] trafﬁc generator equipped with a
+100 GE load module. The switch and the trafﬁc generator are
+connected through a 100 G optical ﬁber link, and the switch
+and the server are connected through a four-point splitter (theswitch port is conﬁgured for 40 Gb/s). In this testbed, the
+Toﬁno switch serves as the device under test (DUT). Both
+SatShield and the reference P4 program are deployed. Utilizingthe trafﬁc generator’s 100 Gb/s load module, we generated
+and recycled trafﬁc to evaluate throughput and latency. At theTABLE III
+RESOURCE UTILIZATION ON WEDGE 100BF32X S WITCH
+Fig. 7. SatShield incurs extra latency over a hundred nanoseconds, and itachieves line-rate processing. (a) Latency. (b) Throughput.
+same time, the detection accuracy of the trafﬁc detector was
+evaluated by replaying the CAIDA trafﬁc trace data.
+To evaluate the defense effectiveness of SatShield against
+LFA in the satellite networks, this study adopts bot distribu-tion, trafﬁc rate, and attack target/connection data with both
+the empty network and Pop trafﬁc distribution model, based
+on the results presented in Section III. The distribution of bots
+is emulated using multiple Docker containers with distinct IP
+addresses, while the emulation of attack trafﬁc is achieved
+by generating TCP/UDP ﬂows at a speciﬁed rate betweenthe source bots and target bots by iperf3. Benign trafﬁc is
+generated by replaying trafﬁc traces from the CAIDA data set.
+B. Dataplane Overhead and Performance
+In our initial set of experiments, we assessed the overhead
+of SatShield. All measurements were performed on a Barefoot
+Toﬁno switch using the P4 implementation of SatShield.
+Resource Utilization: Table IIIdisplays the utilization of
+hardware resources for each component of the P4 program.
+Notably, the ﬂow detector exhibits the highest resource uti-lization due to its complexity. Overall, the P4 program utilizes
+6.11% SRAM, 3.50% very long instruction words (VLIWs),
+5.82% ALUs for ﬂow records update, and 12.5% of thehash units. These resources are distributed across 12 hardware
+stages. It is worth mentioning that newer switch ASICs, such
+as Toﬁno 3, offer increased resource provisions for all resourcetypes. Importantly, tracking the top 10K heavy ﬂows only
+consumed 6.11% of resources, which indicates that tracking
+even more heavy ﬂows, such as the top 20k or 50k, is feasibleon programmable switches.
+Latency: We evaluated the additional latency incurred by
+SatShield by comparing it to a baseline switch program called
+“P4Hello” [68], which only forwards packets without extra
+processing. As Fig. 7(a) shows, the SatShield data plane expe-
+riences an additional latency of 1.45 microseconds compared
+to the baseline. Interestingly, our observations indicate that
+the scheduler component contributes only a small fraction ofthe overall overhead. This is because the scheduler module
+only requires PHV container manipulation to assign ranks,
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 11 =====
+27350 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+Fig. 8. Recirculate ratio versus trafﬁc skewness.
+whereas the detector module performs serial operations on
+SRAM across multiple stages. It is important to note that our
+tests were conducted without any background trafﬁc, meaning
+that the latency of the scheduler module does not include
+potential queueing delays. Queueing delays are inﬂuenced bybackground trafﬁc and the relative priority of packets com-
+pared to the background ﬂow. Therefore, in this discussion, we
+focus solely on the latency caused by the pipeline processing.
+Throughput: In this evaluation, we continued to use the
+P4Hello program as our baseline. As depicted in Fig. 7(b),
+both SatShield and the baseline achieved similar throughputs,approximately 99.48 Gb/s. This similarity can be attributed
+to the inherent pipelined nature of switch hardware, which
+effectively absorbs small increases in latency through extensiveparallelism.
+Recirculate Ratio: To assess the recirculate ratio of
+SatShield, we compared it with the Hashﬂow [20]. Notably,
+Hashﬂow also utilizes the “recirculate()” primitive for the
+ﬂow statistics. We generated 100K ﬂows using the Ixia
+XGS2, with the ﬂow rate following a Zipf distribution. As
+depicted in Fig. 8, the recirculation ratio in this experiment
+is approximately 1 ×10
+−3, slightly higher than that of
+Hashﬂow. This can be attributed to the utilization of the
+MJRTY process in our approach, which enhances the accuracy
+of ﬂow record estimation in the auxiliary table. In contrast,Hashﬂow’s approach of replacing ﬂow records upon hash
+collisions leads to an underestimation of ﬂow counts, resulting
+in a comparatively lower recirculation ratio.
+C. Flow Detector Accuracy
+Methodology: We replay CAIDA’s anonymized Internet
+traces [51] using the Ixia XGS2, encompassing traces from
+2008, 2012, 2016, and 2019. The 2008, 2012, and 2016
+traces were collected in Chicago, whereas the 2019 trace was
+collected in New York. Signiﬁcantly varying trafﬁc patterns
+were observed across these distinct traces. The paper [49]
+provides a comprehensive analysis of various dimensions, suchas ﬂow rates, ﬂow sizes, and ﬂow durations characterizing
+these traces.
+We utilize the source address as the ﬂow key (32-bit) and
+evaluate SatShield‘s performance in detecting the top- kheavy
+ﬂows. This evaluation includes a comparative analysis againstthe state-of-the-art solutions, such as HashPipe [60], HashFlow
+[20], and Precision [69].
+Metrics: Given a packet sequence, a target set Fis deﬁned
+as the top- kheavy ﬂows. The evaluated algorithm produces an
+estimated set ˆF. For a speciﬁc ﬂow f,R[f] and ˆR[f] denote its
+rates in sets FandˆF, respectively. Additionally, |F|represents
+the number of ﬂows within the set F. ARE and F1 score to
+evaluate the performance of the algorithms.
+The ARE is deﬁned as follows:
+ARE=1
+|F|/summationdisplay
+f∈F/vextendsingle/vextendsingle/vextendsingle/vextendsingle/vextendsingleR[f]−ˆR[f]
+R[f]/vextendsingle/vextendsingle/vextendsingle/vextendsingle/vextendsingle.
+The F1 score is deﬁned as
+F1 Score =2·Precision ·Recall
+Precision +Recall.
+Here, Precision represents the ratio of correctly identiﬁed top-
+kﬂows to all reported ﬂows, while recall represents the ratio
+of correctly identiﬁed top- kﬂows to all actual top- kﬂows
+Precision =|F&ˆF|
+|ˆF|,Recall =|F&ˆF|
+|F|.
+Results: In this experiment, we conducted packet replays
+from each of the traces to evaluate the performance of
+SatShield, HashFlow, HashPipe, and Precision in capturing the
+top 104heavy ﬂows. The volume of replayed packets ranged
+from 5 ×105to 5×106. As depicted in Fig. 9, SatShield
+exhibits an approximately 84% smaller ARE compared to
+its closest competitor HashFlow, alongside a roughly 4%higher F1 score. This discrepancy is attributed to SatShield‘s
+utilization of the MJRTY process, enabling more precise
+ﬂow rate estimation compared to HashFlow, which directly
+erases information from buckets upon conﬂicts. Notably, as
+the number of replayed packets increases, the performanceof SatShield and HashFlow remains relatively stable, while
+that of other algorithms consistently degrades. This trend
+arises from the behavior of Precision and HashPipe, whereinformation from past packets of ﬂows without a hash table
+record fails to accumulate during packet processing. This
+omission leads to underestimated ﬂow rates, potentially caus-ing heavy ﬂows to be erroneously replaced by lighter ones.
+Furthermore, we observed variations in SatShield‘s
+performance across different traces, attributable to discrepan-cies in their trafﬁc patterns. We noticed an increasing skewness
+in the ﬂow rate distribution within these traces over the year
+[49]. This escalating skewness in ﬂow distribution contributes
+positively to the likelihood of heavy ﬂows transitioning into
+major ﬂows within the MJRTY process, thereby augmenting
+the algorithm’s overall performance.
+D. Defense Effectiveness
+We compare SatShield to ACC-Turbo [47] and Jaqen
+[46], the state-of-the-art programmable dataplane-based DDoS
+defense. ACC-Turbo employs the online clustering techniques
+to identify potentially unknown attack pulses and prioritizestrafﬁc based on its level of maliciousness. On the other hand,
+Jaqen utilizes sketch-based signatures for attack detection and
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 12 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27351
+Fig. 9. ARE and F1. (a) ARE CAIDA08. (b) ARE CAIDA12. (c) ARE CAIDA16. (d) ARE CAIDA19. (e) F1 CAIDA08. (f) F1 CAIDA12. (g) F1 CAIDA16.
+(h) F1 CAIDA19.
+Fig. 10. Reaction time and throughput measured with stable attack trafﬁc. (a) No defense. (b) Jaqen. (c) ACC-Turbo. (d) SatShield.
+Fig. 11. Reaction time and throughput measured with dynamically changing attack trafﬁc. (a) No defense. (b) Jaqen. (c) ACC-Turbo. (d) SatShield.
+implements rate-limiting or dropping mechanisms to mitigate
+identiﬁed threats. We use the same setup as in the previous
+experiments, with only one modiﬁcation: adopt the destination
+address as the ﬂow key, a choice informed by observationsdiscussed in Section III.
+Reaction Time and Throughput: We evaluate the reaction
+time and throughput drops of SatShield, ACC-Turbo, andJaqen. Reaction time is deﬁned as the duration from the
+moment these systems receive the ﬁrst attack packet to when
+they commence mitigation. Throughput drops are deﬁned asthe extent of decrease in benign trafﬁc throughput, comparing
+the throughput before and after the attack initiation. Weutilized Ixia to replay the CAIDA 19 trace for background
+trafﬁc at 15 Gb/s.
+1We generated UDP attack trafﬁc at 20 Gb/s
+among an emulated set of 104bots.
+In Fig. 10, the reaction times of both SatShield and ACC-
+Turbo are approximately 1 s. Both the systems utilize the data
+plane to identify highly suspicious ﬂows, while the control
+plane manages the updating of ﬂow priorities. The data planeprocessing delay remains minimal, with the predominant time
+1The CAIDA trace throughput being approximately 5 Gb/s, we concur-
+rently replayed traces from three time periods—March 15th, June 21st, andSeptember 21st—at a rate of 5 Gb/s each, resulting in a combined benign
+background trafﬁc of 15 Gb/s.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 13 =====
+27352 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+attributed to the control plane’s periodic retrieval of data plane
+statistics and the conﬁguration of data plane queue priorities.Conversely, as depicted in Fig. 10(b), Jaqen’s reaction time
+is about 10 s. This represents a tenfold increase in reaction
+time compared to SatShield. This delay primarily results fromJaqen’s requirement for detecting attack trafﬁc features that
+surpass a threshold in two consecutive time windows before
+conﬁrming an attack and implementing the correspondingpacket-dropping strategy.
+Regarding throughput drop, Jaqen exhibits the best
+performance, whereas FIFO, without employing any defensemechanism, performs the worst. SatShield outperforms ACC-
+Turbo due to the top- kﬁlter, providing more precise
+identiﬁcation of suspicious ﬂows compared to online clus-
+tering. Meanwhile, Jaqen employs sketches to achieve more
+comprehensive and accurate estimations of ﬂow rates at theexpense of longer reaction times and increased resource
+consumption.
+Our experiments did not account for the latency associated
+with the satellite control channel. However, accounting for
+this latency would highlight the onboard control plane design
+advantages of SatShield. In summary, SatShield strikes a betterbalance between the reaction speed and throughput drop than
+the existing solutions.
+Mitigating Adaptive Attacks: The subsequent experiments
+evaluate how effectively our design can handle adaptive attack
+ﬂows within an LEO network. To emulate satellite network
+trafﬁc as realistically as possible, we constructed attack trafﬁcusing the data (bot distribution and attack ﬂow rates) from
+the target links between Bangkok and Mexico City in an
+empty network, as discussed in Section III. Unlike the previous
+experiment, where benign trafﬁc was generated using a trafﬁc
+generator, we employed iperf3 and Docker to emulate thebenign users, generating benign TCP ﬂows closely resembling
+the ﬂow rates and durations found in the CAIDA data set.
+We dynamically maintained the benign trafﬁc at approximately15 Gb/s.
+Fig. 11displays the benign trafﬁc throughput during the
+attack scenario. SatShield consistently detects the evolvingattack trafﬁc swiftly, enabling rapid recovery of benign trafﬁc
+throughput after updating the top- kﬁlter. Although ACC-
+Turbo demonstrates a similar reaction time to SatShield, itslower estimation accuracy due to online clustering algorithms
+leads to decreased throughput of benign trafﬁc compared
+to SatShield. Conversely, FIFO exhibits continuous degrada-tion in throughput during the attack. These results highlight
+SatShield‘s effectiveness in mitigating dynamic LFA attacks
+within the satellite networks.
+Various Attack Scenarios: Fig. 12depicts the effectiveness
+of SatShield in ﬁltering attack trafﬁc under various benign
+trafﬁc loads (3, 5, 10, 15, and 19.5 Gb/s) using CAIDA19
+as background trafﬁc and in a scenario with 10
+4bots. It
+was observed that the attack trafﬁc could pass through thelink almost unimpeded until reaching the link capacity limit.
+However, once the total trafﬁc approached the link’s capacity,
+the attack trafﬁc was suppressed, and SatShield ensured thebandwidth for benign trafﬁc. Furthermore, it was noted that
+as the attack bandwidth per bot increased, the bandwidth
+Fig. 12. Attack trafﬁc with different benign trafﬁc.
+Fig. 13. Bandwidth occupation of benign trafﬁc in ISLs.
+of attack trafﬁc successfully passing through the SatShield
+exhibited more signiﬁcant ﬂuctuations, believed to be caused
+by the top-k ﬁlter updates. More pronounced ﬂuctuations were
+observed in scenarios with 103and 102bots, which are not
+shown here due to space limitations.
+Moreover, to validate SatShield‘s effectiveness on benign
+trafﬁc protection at the satellite network level, Fig. 13shows
+the bandwidth occupation of benign trafﬁc in 80 attackable
+ISLs within the Starlink Shell 1 topology (refer to Section III)
+with the Pop trafﬁc model, both before and after beingattacked. It can be seen that the benign trafﬁc was almost
+unaffected by the attack trafﬁc when SatShield was deployed.
+VII. F
+URTHER DISCUSSION
+SatShield achieves a line-rate, cost-effective solution for
+LFA attack mitigation within the existing satellite network
+conditions. However, scalability and deployment issues still
+need to be discussed.
+Can SatShield work with larger bot scales? While SatShield
+has been designed to address LFA attacks involving a limited
+number of bots, it has the capability to mitigate larger-scaleLFA attacks, assuming there is a noticeable distinction in the
+ﬂow rates between the benign and attack trafﬁc. An example
+arises with the deployment of 5G Nonterrestrial Networks
+[70], ushering in a signiﬁcant inﬂux of the IoT devices
+into the satellite networks. This expansion offers adversariesincreased bot resources. However, IoT device trafﬁc rates
+are considerably lower than the typical Internet trafﬁc. Given
+the goal of congesting ISL at several Gb/s capacities, attackﬂows are anticipated to exceed the rates of regular IoT trafﬁc
+inevitably.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 14 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27353
+What is the impact of leaving SatShield always on?
+When the link is congested, packets experience unpredictabledelays and losses. In such congested situations, the delays
+and packet reordering introduced by SatShield for regular
+trafﬁc can be considered negligible. During noncongestedperiods, the dynamic rerouting of ﬂows inherent to satellite
+networks can also lead to packet reordering. Comparatively,
+the packet reordering induced by SatShield‘s adjustments toﬂow priorities is insigniﬁcant. Therefore, we believe that
+having SatShield always on will not signiﬁcantly impact the
+performance of benign trafﬁc in satellite networks.
+Which future research directions do we envision? We expect
+future work to tackle two main research directions. First,
+integrating additional signatures, such as new fan-in and
+fan-out patterns, offers a promising solution to overcome
+the limitations of ﬂow rate-based detection as bot scalesincrease. Second, optimizing the deployment of SatShield-
+for example, dynamically adjusting its activation or dormancy
+based on global trafﬁc patterns can signiﬁcantly reduce powerconsumption in satellite switches.
+VIII. C
+ONCLUSION
+This article highlights the need for implementing the in-
+network LFA defenses in the LEO constellation network,demonstrating the potential of integrating heavy ﬂow ﬁlters
+and programmable ﬂow scheduling to achieve this objective.
+We introduce SatShield, which to our best knowledge, is the
+ﬁrst in-network ﬂow ﬁltering mechanism designed to mitigate
+LFA attacks in the LEO constellation network. SatShield
+effectively leverages two key insights.
+1) Heavy ﬂow identiﬁcation—despite the inherent com-
+plexity of LFA attacks in the satellite networks, the
+actual attack trafﬁc tends to aggregate, facilitating theidentiﬁcation of attack trafﬁc.
+2) Programmable scheduling—enabling the prioritization
+of ﬂows in the queue based on their maliciousness,
+thereby minimizing the impact on benign trafﬁc.
+We implemented SatShield using the P4 programming lan-guage and deployed it on a programmable switch. Through our
+evaluation, we demonstrate that SatShield effectively mitigates
+LFA attacks at line rate.
+A
+CKNOWLEDGMENT
+The authors thank the anonymous reviewers and Jintao Yang
+for their valuable comments.
+REFERENCES
+[1] I. del Portillo, B. G. Cameron, and E. F. Crawley, “A technical
+comparison of three low earth orbit satellite constellation systems to
+provide global broadband,” Acta Astronautica , vol. 159, pp. 123–135,
+Jun. 2019. [Online]. Available: https://www.sciencedirect.com/science/article/pii/S0094576518320368
+[2] “SpaceX opens Starlink satellite Internet to public beta testers: Report,”
+Nov. 2020. [Online]. Available: https://www.space.com/spacex-invites-
+starlink-internet-beta-testing
+[3] “SpaceX, USAID deliver 5,000 satellite Internet terminals to Ukraine.”
+Apr. 2022. [Online]. Available: https://www.reuters.com/technology/
+spacex-usaid-deliver-5000-satellite-internet-terminals-ukraine/[4] “Elon musk says SpaceX will support starlink in gaza for interna-
+tional aid groups.” 2024. [Online]. Available: https://www.wsj.com/livecoverage/israel-hamas-gaza-war-news/card/gaza-internet-access-sev
+[5] R. T. Ioannides, T. Pany, and G. Gibbons, “Known vulnerabilities
+of global navigation satellite systems, status, and potential miti-
+gation techniques,” Proc. IEEE , vol. 104, no. 6, pp. 1174–1194,
+Jun. 2016. [Online]. Available: https://ieeexplore.ieee.org/abstract/document/7442783
+[6] Q.-Y . Fu, Y .-H. Feng, H.-M. Wang, and P. Liu, “Initial satellite
+access authentication based on doppler frequency shift,” IEEE Wireless
+Commun. Lett. , vol. 10, no. 3, pp. 498–502, Mar. 2021. [Online].
+Available: https://ieeexplore.ieee.org/abstract/document/9248024
+[7] P. Yue et al., “Low earth orbit satellite security and reliability: Issues,
+solutions, and the road ahead,” Jul. 2023, arXiv:2201.03063 . [Online].
+Available: http://arxiv.org/abs/2201.03063
+[ 8 ] L .X u e ,X .M a ,X .L u o ,E .W .W .C h a n ,T .T .N .M i u ,a n dG .G u ,
+“LinkScope: Toward detecting target link ﬂooding attacks,” IEEE Trans.
+Inf. Forensics Security , vol. 13, pp. 2423–2438, 2018.
+[9] J. Wang, R. Wen, J. Li, F. Yan, B. Zhao, and F. Yu, “Detecting
+and mitigating target link-ﬂooding attacks using SDN,” IEEE Trans.
+Dependable Secure Comput. , vol. 16, no. 6, pp. 944–956, Nov. 2019.
+[10] M. Zhang et al., “Poseidon: Mitigating volumetric DDoS attacks with
+programmable switches,” in Proc. Netw. Distrib. Syst. Security Symp. ,
+San Diego, CA, USA, 2020, pp. 1–18. [Online]. Available: https://www.
+ndss-symposium.org/wp-content/uploads/2020/02/24007.pdf
+[11] R. U. Rasool, H. Wang, U. Ashraf, K. Ahmed, Z. Anwar, and
+W. Raﬁque, “A survey of link ﬂooding attacks in software deﬁnednetwork ecosystems,” J. Netw. Comput. Appl. , vol. 172, Dec. 2020,
+Art. no. 102803. [Online]. Available: https://www.sciencedirect.com/
+science/article/pii/S1084804520302757
+[12] D. Bhattacherjee and A. Singla, “Network topology design at
+27,000 km/hour,” in Proc. 15th Int. Conf. Emerg. Netw. Exp. And
+Technol. , Dec. 2019, pp. 341–354. [Online]. Available: https://doi.org/
+10.1145/3359989.3365407
+[13] J. Zheng, Q. Li, G. Gu, J. Cao, D. K. Y . Yau, and J. Wu, “Realtime DDoS
+defense using COTS SDN switches via adaptive correlation analysis,”IEEE Trans. Inf. Forensics Security , vol. 13, pp. 1838–1853, 2018.
+[14] J. Xing, W. Wu, and A. Chen, “Ripple: A programmable, decentralized
+link-ﬂooding defense against adaptive adversaries,” in Proc. USENIX
+Security , 2021, pp. 3865–3881.
+[15] H. Zhou, S. Hong, Y . Liu, X. Luo, W. Li, and G. Gu, “Mew:
+Enabling large-scale and dynamic link-ﬂooding defenses on pro-
+grammable switches,” in Proc. IEEE Symp. Security Privacy , Dec. 2022,
+pp. 3178–3192. [Online]. Available: https://www.computer.org/csdl/proceedings-article/sp/2023/933600b625/1Js0EbpFziM
+[16] Z. Tang, B. Zhao, W. Yu, Z. Feng, and C. Wu, “Software deﬁned satellite
+networks: Beneﬁts and challenges,” in Proc. IEEE Comput., Commun.
+IT Appl. Conf. , Oct. 2014, pp. 127–132.
+[17] B. J. Barritt and W. Eddy, “SDN enhancements for LEO satellite
+networks,” in Proc. 34th AIAA Int. Commun. Satell. Syst. Conf. , 2016,
+p. 5755.
+[18] A. Papa, T. de Cola, P. Vizarreta, M. He, C. Mas-Machuca, and
+W. Kellerer, “Design and evaluation of reconﬁgurable SDN LEO
+constellations,” IEEE Trans. Netw. Service Manag. , vol. 17, no. 3,
+pp. 1432–1445, Sep. 2020.
+[19] C. Sacchi, F. Granelli, R. Bassoli, F. H. P. Fitzek, and M. Ruggieri, A
+Roadmap to Future Space Connectivity: Satellite and Interplanetary
+Networks (Signals and Communication Technology). Cham,
+Switzerland: Springer Int., 2023, doi: 10.1007/978-3-031-30762-1 .
+[20] Z. Zhao, X. Shi, Z. Wang, Q. Li, H. Zhang, and X. Yin, “Efﬁcient and
+accurate ﬂow record collection with HashFlow,” IEEE Trans. Parallel
+Distrib. Syst. , vol. 33, no. 5, pp. 1069–1083, May 2022. [Online].
+Available: https://ieeexplore.ieee.org/abstract/document/9495221
+[21] F. Wang, W. Cui, and J. Tian, “A superresolution multipath estimation
+algorithm for DSSS systems,” IEEE Trans. Aerosp. Electron. Syst. ,
+vol. 59, no. 1, pp. 109–124, Feb. 2023.
+[22] J. Pavur, D. Moser, V . Lenders, and I. Martinovic, “Secrets in the sky:
+On privacy and infrastructure security in DVB-S satellite broadband,”inProc. 12th Conf. Security Privacy Wireless Mobile Netw. , 2019,
+pp. 277–284.
+[23] H. Pirayesh and H. Zeng, “Jamming attacks and anti-jamming strategies
+in wireless networks: A comprehensive survey,” IEEE Commun. Surveys
+Tuts. , vol. 24, no. 2, pp. 767–809, 2nd Quart., 2022.
+[24] D. He, S. Chan, and M. Guizani, “Communication security of unmanned
+aerial vehicles,” IEEE Wireless Commun. , vol. 24, no. 4, pp. 134–139,
+Aug. 2017.
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 15 =====
+27354 IEEE INTERNET OF THINGS JOURNAL, VOL. 11, NO. 16, 15 AUGUST 2024
+[25] H. Guo, J. Li, J. Liu, N. Tian, and N. Kato, “A survey on space-air-
+ground-sea integrated network security in 6G,” IEEE Commun. Surveys
+Tuts. , vol. 24, no. 1, pp. 53–87, 1st Quart., 2021.
+[26] S. A. Chaudhry et al., “A lightweight authentication scheme for 6G-IoT
+enabled maritime transport system,” IEEE Trans. Intell. Transp. Syst. ,
+vol. 24, no. 2, pp. 2401–2410, Feb. 2023.
+[27] K. Mayyas, “Performance analysis of the deﬁcient length LMS adaptive
+algorithm,” IEEE Trans. Signal Process. , vol. 53, no. 8, pp. 2727–2734,
+Aug. 2005.
+[28] R. Merched and A. H. Sayed, “An embedding approach to frequency-
+domain and subband adaptive ﬁltering,” IEEE Trans. Signal Process. ,
+vol. 48, no. 9, pp. 2607–2619, Sep. 2000.
+[29] J. Bao, B. Zhao, W. Yu, Z. Feng, C. Wu, and Z. Gong, “OpenSAN:
+A software-deﬁned satellite network architecture,” ACM SIGCOMM
+Comput. Commun. Rev. , vol. 44, no. 4, pp. 347–348, Aug. 2014.
+[Online]. Available: https://doi.org/10.1145/2740070.2631454
+[30] A. U. Chaudhry and H. Yanikomeroglu, “Laser inter-satellite links in a
+Starlink constellation,” Feb. 2021, arXiv:2103.00056 .
+[31] G. Giuliari, T. Ciussani, A. Perrig, and A. Singla, “ICARUS: Attacking
+low earth orbit satellite networks,” in Proc. USENIX Annu. Tech.
+Conf. , 2021, pp. 317–331. [Online]. Available: https://www.usenix.org/
+conference/atc21/presentation/giuliari
+[32] “CelesTrak: Current GP element sets,” May 2024. [Online]. Available:
+https://celestrak.org/NORAD/elements/
+[33] “Satellite database |union of concerned scientists,” May 2023. [Online].
+Available: https://www.ucsusa.org/resources/satellite-database
+[34] “WMO OSCAR—List of all satellites,” 2024. [Online]. Available:
+https://space.oscar.wmo.int/satellites
+[35] M. Handley, “Delay is not an option: Low latency routing in space,” in
+Proc. 17th ACM Workshop Hot Topics Netw. , 2018, pp. 85–91.
+[36] A. Studer and A. Perrig, “The coremelt attack,” in Proc. Eur. Symp. Res.
+Comput. Security , 2009, pp. 37–52.
+[37] M. S. Kang, S. B. Lee, and V . D. Gligor, “The crossﬁre attack,” in Proc.
+IEEE Symp. Security Privacy , 2013, pp. 127–141.
+[38] G. Shang, P. Zhe, X. Bin, H. Aiqun, and R. Kui, “FloodDefender:
+Protecting data and control plane resources under SDN-aimed DoSattacks,” in Proc. IEEE INFOCOM Conf. Comput. Commun. , 2017,
+pp. 1–9.
+[39] M. Ambrosin, M. Conti, F. De Gaspari, and R. Poovendran,
+“LineSwitch: Tackling control plane saturation attacks in software-deﬁned networking,” IEEE/ACM Trans. Netw. , vol. 25, no. 2,
+pp. 1206–1219, Apr. 2017.
+[40] C. Röpke and T. Holz, “Sdn rootkits: Subverting network operating
+systems of software-deﬁned networks,” in Proc. 18th Int. Symp. Res.
+Attacks, Intrusions, Defenses , 2015, pp. 339–356.
+[41] D. Tang, Y . Yan, C. Gao, W. Liang, and W. Jin, “LtRFT: Mitigate
+the low-rate data plane DDoS attack with learning-to-rank enabled ﬂowtables,” IEEE Trans. Inf. Forensics Security , vol. 18, pp. 3143–3157,
+2023.
+[42] A. Rezapour and W.-G. Tzeng, “RL-shield: Mitigating target link-
+ﬂooding attacks using SDN and deep reinforcement learning routing
+algorithm,” IEEE Trans. Dependable Secure Comput. , vol. 19, no. 6,
+pp. 4052–4067, Nov. 2022.
+[43] L. Wang, Q. Li, Y . Jiang, X. Jia, and J. Wu, “Woodpecker: Detecting
+and mitigating link-ﬂooding attacks via SDN,” Comput. Netw. , vol. 147,
+pp. 1–13, Dec. 2018. [Online]. Available: https://www.sciencedirect.
+com/science/article/pii/S1389128618309721
+[44] R. U. Rasool, U. Ashraf, K. Ahmed, H. Wang, W. Raﬁque, and
+Z. Anwar, “Cyberpulse: A machine learning based link ﬂooding attack
+mitigation system for software deﬁned networks,” IEEE Access ,v o l .7 ,
+pp. 34885–34899, 2019.
+[45] K.-Y . Chen et al., “SDNShield: NFV-based defense framework against
+DDoS attacks on SDN control plane,” IEEE/ACM Trans. Netw. , vol. 30,
+no. 1, pp. 1–17, Feb. 2022. [Online]. Available: https://ieeexplore.ieee.org/abstract/document/9524458
+[46] Z. Liu et al., “Jaqen: A high-performance switch-native approach
+for detecting and mitigating volumetric DDoS attacks with pro-grammable switches,” in Proc. 30th USENIX Security Symp. , 2021,
+pp. 3829–3846. [Online]. Available: https://www.usenix.org/conference/
+usenixsecurity21/presentation/liu-zaoxing[47] A. G. Alcoz, M. Strohmeier, V . Lenders, and L. Vanbever, “Aggregate-
+based congestion control for pulse-wave DDoS defense,” in Proc. ACM
+SIGCOMM Conf. , Aug. 2022, pp. 693–706. [Online]. Available: https://
+doi.org/10.1145/3544216.3544263
+[48] “Starlink: Application for ﬁxed satellite service by space exploration
+holdings, LLC,” Federal Commun. Comm., Washington, DC, USA, Rep.
+SAT-LOA-20161115-00118, Mar. 2018. [Online]. Available: https://fcc.
+report/IBFS/SAT-LOA-20161115-00118
+[49] S. Bauer, B. Jaeger, F. Helfert, P. Barias, and G. Carle, “On the
+evolution of Internet ﬂow characteristics,” in Proc. Appl. Netw. Res.
+Workshop , Jul. 2021, pp. 29–35. [Online]. Available: https://dl.acm.org/
+doi/10.1145/3472305.3472321
+[50] L. Tang, Y . Xiao, Q. Huang, and P. P. C. Lee, “A high-performance
+invertible sketch for network-wide superspreader detection,” IEEE/ACM
+Trans. Netw. , vol. 31, no. 2, pp. 724–737, Apr. 2023.
+[51] “CAIDA resource catalog,” 2004. [Online]. Available: https://catalog.
+caida.org/search?query=internet
+[52] F. Michel, M. Trevisan, D. Giordano, and O. Bonaventure, “A ﬁrst look
+at starlink performance,” in Proc. 22nd ACM Internet Meas. Conf. , 2022,
+pp. 130–136.
+[53] “The bandwidth of the StarLink constellation ···and the assessment of
+its potential subscriber base in the USA.” Nov. 2021. [Online]. Available:http://www.satmagazine.com/story.php?number=1026762698
+[54] N. Pachler, I. del Portillo, E. F. Crawley, and B. G. Cameron, “An
+updated comparison of four low earth orbit satellite constellation systemsto provide global broadband,” in Proc. IEEE Int. Conf. Commun.
+Workshops (ICC Workshops) , 2021, pp. 1–7. [Online]. Available: https://
+ieeexplore.ieee.org/abstract/document/9473799/
+[55] “World Urbanization prospects—Population division—United Nations,”
+2018. [Online]. Available: https://population.un.org/wup/download/
+[56] H. Namkung et al., “SketchLib: Enabling efﬁcient sketch-based moni-
+toring on programmable switches,” in Proc. 19th USENIX Symp. Netw.
+Syst. Design Implement. (NSDI) , 2022, pp. 743–759.
+[57] S. Sheng, Q. Huang, S. Wang, and Y . Bao, “PR-sketch: Monitoring
+per-key aggregation of streaming data with nearly full accuracy,” Proc.
+VLDB Endow. , vol. 14, no. 10, pp. 1783–1796, Jun. 2021. [Online].
+Available: https://dl.acm.org/doi/10.14778/3467861.3467868
+[58] C. H. Song, P. G. Kannan, B. K. H. Low, and M. C. Chan, “FCM-Sketch:
+Generic network measurements with data plane support,” in Proc. 16th
+Int. Conf. Emerg. Netw. Exp. Technol. , Nov. 2020, pp. 78–92. [Online].
+Available: https://doi.org/10.1145/3386367.3432729
+[59] G. Cormode and S. Muthukrishnan, “An improved data stream
+summary: The count-min sketch and its applications,” J.
+Algorithms , vol. 55, no. 1, pp. 58–75, 2005. [Online]. Available:
+https://www.sciencedirect.com/science/article/pii/S0196677403001913
+[60] V . Sivaraman, S. Narayana, O. Rottenstreich, S. Muthukrishnan, and
+J. Rexford, “Heavy-hitter detection entirely in the data plane,” in Proc.
+SOSR , 2017, pp. 164–176.
+[61] Y . Guo, F. Liu, A. Wang, and H. Liu, “AccuPIPE: Accurate heavy
+ﬂow detection in the data plane using programmable switches,” in Proc.
+IEEE/IFIP Netw. Oper. Manage. Symp. , Apr. 2020, pp. 1–5. [Online].
+Available: https://ieeexplore.ieee.org/abstract/document/9110463
+[62] L. Tang, Q. Huang, and P. P. C. Lee, “MV-sketch: A fast and
+compact invertible sketch for heavy ﬂow detection in network data
+streams,” in Proc. IEEE INFOCOM Conf. Comput. Commun. , Apr. 2019,
+pp. 2026–2034.
+[63] R. S. Boyer and J. S. Moore, “MJRTY—A fast majority vote algorithm,”
+inAutomated Reasoning (Automated Reasoning Series), vol. 1, W. Pase
+and R. S. Boyer, Eds. Dordrecht, The Netherlands: Springer, 1991,pp. 105–117, doi: 10.1007/978-94-011-3488-0_5 .
+[64] M. Budiu and C. Dodd, “The p416 programming language,” ACM
+SIGOPS Oper. Syst. Rev. , vol. 51, no. 1, pp. 5–14, 2017.
+[65] “Edgecore networks.” 2024. [Online]. Available: https://www.edge-
+core.com/productsInfo.php?cls=1&cls2=180&cls3=181&id=334
+[66] “Open-Toﬁno/PUBLIC_Toﬁno-native-arch.pdf.” 2024. [Online].
+Available: https://github.com/barefootnetworks/Open-Toﬁno/blob/master/PUBLIC_Toﬁno-Native-Arch.pdf
+[67] K. Kaur, J. Singh, and N. S. Ghumman, “Mininet as software deﬁned
+networking testing platform,” in Proc. Int. Conf. Commun., Comput.
+Syst. (ICCCS) , 2014, pp. 139–142.
+[68] “p4-spec/p4-16/psa/examples/psa-example-hello-world.p4 at main ·
+p4lang/p4-spec,” Jul. 2021. [Online]. Available: https://github.com/p4lang/p4-spec/blob/main/p4-16/psa/examples/psa-example-hello-
+world.p4
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 16 =====
+JIANG et al.: SatShield: IN-NETWORK MITIGATION OF LINK FLOODING ATTACKS 27355
+[69] R. B. Basat, X. Chen, G. Einziger, and O. Rottenstreich, “Efﬁcient
+measurement on programmable switches using probabilistic recircula-tion,” in Proc. IEEE 26th Int. Conf. Netw. Protocols (ICNP) , Sep. 2018,
+pp. 313–323.
+[70] “5G non-terrestrial networks,” Jul. 19, 2023. [Online]. Available:
+https://www.3gpp.org/news-events/partner-news/5ga-paper-ntn
+Wei Jiang received the B.Eng. degree from the
+School of Electrical and Electronic Engineering,Hubei University of Technology, Wuhan, China, in
+2014, and the M.Eng. degree from the Electronic
+Information School, Wuhan University, Wuhan, in2017, where he is currently pursuing the Ph.D.degree.
+His current research interests include software-
+deﬁned networking and LEO networks.
+Hao Jiang (Member, IEEE) received the B.Eng.
+degree in communication engineering, and theM.Eng. and Ph.D. degrees in communicationand information systems from Wuhan University,
+Wuhan, China, in 1999, 2001, and 2004,
+respectively.
+He was a Postdoctoral Research Fellow with
+LIMOS, Clermont-Ferrand, France, from 2004
+to 2005, and was a Visiting Professor with the
+University of Calgary, Calgary, AB, Canada, andISIMA, Blaise Pascal University, Clermont-Ferrand.
+He is currently a Professor with Wuhan University. He has authored over 60
+papers in different journals and conferences. His research interest includes
+mobile ad hoc network and mobile big data.
+Yulai Xie (Member, IEEE) received the B.E. and
+Ph.D. degrees in computer science from HuazhongUniversity of Science and Technology (HUST),Wuhan, China, in 2007 and 2013, respectively.
+He was a Visiting Scholar with the University of
+California at Santa Cruz, Santa Cruz, SA, USA, in2010, and the Chinese University of Hong Kong,Hong Kong, in 2015. He is currently a Professor
+with the School of Cyber Science and Engineering,
+HUST. His research interests mainly include cloudstorage and virtualization, digital provenance, intru-
+sion detection, machine learning, and computer architecture.
+Jing Wu (Member, IEEE) received the B.Eng.
+degree in communication engineering and the Ph.D.
+degree in communication and information systems
+from Wuhan University, Wuhan, China, in 2002 and2007, respectively.
+From 2004 to 2005, she was a Postdoctoral
+Research Fellow with LIMOS, Clermont-Ferrand,
+France. She is currently an Associate Professor withWuhan University. Her research interests includewireless communication networks, network simula-
+tion, and intelligence data processing.
+Xiaofan He (Senior Member, IEEE) received the
+B.S. degree in electronics and information engi-neering from Huazhong University of Science andTechnology, Wuhan, China, in 2008, the M.S.
+degree in electrical and computer engineering from
+McMaster University, Hamilton, ON, Canada, in2011, and the Ph.D. degree in electrical andcomputer engineering from North Carolina State
+University, Raleigh, NC, USA, in 2015.
+He was a Tenure-Track Assistant Professor
+of Electrical Engineering with Lamar University,
+Beaumont, TX, USA, from 2016 to 2018. He moved back to his hometown
+Wuhan in 2019 and is currently a Faculty Member with the School ofElectronic Information, Wuhan University, Wuhan. His research interests arein the general areas of wireless communications, networking, and computing.
+His current research mainly focuses on (distributed) edge computing and the
+associated optimization, scheduling, learning, and statistical analysis.
+Dr. He received the Exemplary Reviewer Award of IEEE T
+RANSACTIONS
+ONCOMMUNICATIONS in 2014 and 2015, and a Distinguished Member of
+the Technical Program Committee Award of IEEE INFOCOM in 2018. He is
+currently serving as an Associate Editor for IEEE A CCESS .
+Hao Li received the B.Eng. degree in electronic
+information engineering from Wuhan University of
+Science and Technology, Wuhan, China, in 2021.He is currently pursuing the master’s degree withWuhan University, Wuhan.
+During this time, he won three university-level
+scholarships. He will continue his doctoral studies onsoftware designed networks. His research interests
+include network simulation and technology of future
+networks.
+Pan Zhou (Senior Member, IEEE) received the B.S.
+degree (Advanced Class) from Huazhong Universityof Science and Technology (HUST), Wuhan, China,in 2006, the M.S. degree from the Department
+of Electronics and Information Engineering, HUST,
+in 2008, and the Ph.D. degree from the Schoolof Electrical and Computer Engineering, GeorgiaInstitute of Technology, Atlanta, GA, USA, in 2011.
+He is currently a Full Professor and a Ph.D.
+Advisor with Hubei Engineering Research Centeron Big Data Security, School of Cyber Science and
+Engineering, HUST. He was a Senior Technical Member with Oracle Inc.,
+Austin, TX, USA, from 2011 to 2013, and worked on Hadoop and distributedstorage system for big data analytics with Oracle Cloud Platform. His currentresearch interests include security and privacy, big data analytics, machine
+learning, and information networks.
+Prof. Zhou received the “Rising Star in Science and Technology of HUST”
+in 2017. He held honorary degree in his bachelor and Merit Research Awardof HUST in his master study. He is currently an Associate Editor of IEEE
+T
+RANSACTIONS ON NETWORK SCIENCE AND ENGINEERING .
+Authorized licensed use limited to: University of Electronic Science and Tech of China. Downloaded on January 13,2026 at 06:00:35 UTC from IEEE Xplore.  Restrictions apply. 
