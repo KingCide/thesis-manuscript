@@ -79,8 +79,8 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=0.96\linewidth]{figs/ch3/fig3-5_architecture.pdf}
-  \caption{MS-SatShield 总体架构。数据平面以线速维护基于 CMS 与候选缓存的一级候选生成摘要，并仅对活动候选 key 更新 FO/FI 位图；星上代理在每个 epoch 末读取候选统计，计算多签名可疑度并生成队列优先级映射表，写回交换机后由流量管理模块执行高/低优先级两队列调度。}
+  \includegraphics[width=0.96\linewidth]{figs/ch3/fig3-5_architecture.png}
+  \caption{MS-SatShield 总体架构。数据平面逐包完成报文解析、CMS 与候选缓存更新、活动候选判定、FO/FI 位图更新与队列映射；星上 Agent 在每个 epoch 末读取候选摘要、字节统计与活动候选位图，估计速率、结构特征与持续性，生成下一轮活动候选配置与队列优先级映射，并写回交换机后由流量管理模块执行高/低优先级两队列调度。}
   \label{fig:ch3_fig5_arch}
 \end{figure}
 

@@ -179,7 +179,7 @@ EG (n=10):  78 bytes    EG (n=50):  278 bytes    PT:  9 bytes
 
 ## 六、输出要求
 
-- 输出路径：`figs/ch4/fig4_header.{pdf,png}`
-- LaTeX 引用路径：`figs/ch4/fig4_header.pdf`（需更新 ch4_coop.tex L118）
+- 输出路径：`figs/ch4/fig4_header.png`
+- LaTeX 引用路径：`figs/ch4/fig4_header.png`
 - figsize 建议 (12, 7)
 - 分辨率：300 DPI
