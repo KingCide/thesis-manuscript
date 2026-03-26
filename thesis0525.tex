@@ -1,6 +1,20 @@
 % !TEX Program = xelatex
 \documentclass[print, master, vlined]{DissertUESTC}
 
+% Keep bibliography fully justified while improving line breaks for URLs and English titles.
+\usepackage{xurl}
+\makeatletter
+\renewcommand{\bibfont}{%
+	\zihao{5}\setlength{\baselineskip}{20bp}\selectfont%
+	\tolerance=2000%
+	\emergencystretch=2em%
+	\hyphenpenalty=200%
+	\exhyphenpenalty=100%
+}
+\g@addto@macro\UrlBreaks{\do\/\do-\do\_\do\.\do\?\do\&\do\=\do\#}
+\Urlmuskip=0mu plus 1mu minus 1mu\relax
+\makeatother
+
 \begin{document}
 	
 	% 以下两条命令为高亮示例文档中的关键内容而设，正式撰写时切不可使用
