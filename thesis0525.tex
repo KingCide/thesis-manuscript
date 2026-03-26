@@ -14,6 +14,30 @@
 	%	\uestccover[<学院名称排版风格>]{<论文题目>}{<学科专业>}{<学号>}{<作者姓名>}{<指导教师>}{<教师职称>}{<学院>} % 单学位学士、研究生通用
 	\uestccover{面向大规模低轨卫星的在网计算研究}{信息与通信工程}{202321011337}{龚科成}{孙罡}{教\hspace{1em}授}{信息与通信工程学院}  % 空封面
 				
+	% 中文扉页
+	\ClsNum{}
+	\ClsLv{公开}
+	\UDC{}
+	\DissertationTitle{面向大规模低轨卫星的在网计算研究}
+	\Author{龚科成}
+	\Supervisor{孙罡}{教授}{电子科技大学}{成都}
+	\Major{信息与通信工程}
+	\Date{}{}
+	\Grant{电子科技大学}{}
+	\Reviewer{}{}
+	\uestczhtitlepage
+
+	% 英文扉页
+	\uestcentitlepage{Research on In-Network Computing for Large-Scale Low Earth Orbit Satellites}
+					{Information and Communication Engineering}
+					{202321011337}
+					{Gong Kecheng}
+					{Prof. Sun Gang}
+					{}
+					{School of Information and Communication Engineering}
+
+	% 独创性声明与论文使用授权页
+	\declaration{}{}{}
 
 	
 	
@@ -69,6 +93,8 @@
 
 \input{chapters/ch5_conclusion}
 
+	\acknowledgement
+	\input{chapters/acknowledgement}
 
 	
 	%% 参考文献部分
@@ -77,7 +103,10 @@
 	\bibliography{ref}
 	
 	% 附录起始位置
-	\appendix
-	\chapter{建模证明}
+%	\appendix
+%	\chapter{建模证明}
+
+	\achievement
+	\input{chapters/achievement}
 	
 \end{document}
