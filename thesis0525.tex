@@ -67,7 +67,7 @@
 	针对单星本地丢弃难以降低上游链路带宽浪费的问题，本文进一步提出多星协同在网计算与推回缓解方法 CoopSatShield。该方法通过抑制型邻居扩散协议在局部区域内聚合多星攻击证据，并结合逐跳推回机制将缓解位置从受害链路前移至上游入口，从而减少攻击流在网络中的无效占用。实验结果表明，在 $M=100$ 退化场景下，CoopSatShield 可将无效带宽占用降至无防御方案的 11.0\%，使攻击期间良性吞吐稳态维持在 0.959，控制带宽仅占 ISL 容量的 0.004\%。本文工作为大规模低轨卫星网络提供了一种兼顾低时延、低资源开销与抗退化能力的在网安全防御思路。
 
 	% 中文关键字
-	\zhkeywords{大规模低轨卫星网络；链路洪泛攻击；在网计算；P4 可编程数据面；多签名检测；协同推回缓解}
+	\zhkeywords{低轨卫星网络；链路洪泛攻击；在网计算；可编程数据平面}
 	
 	
 
@@ -85,7 +85,7 @@
 	To address the limitation that local dropping at a single satellite cannot reduce wasted bandwidth on upstream links, this thesis further proposes CoopSatShield, a multi-satellite cooperative in-network computing and pushback mitigation method. CoopSatShield aggregates attack evidence within a local region through a suppressed neighbor-gossip protocol and combines it with a hop-by-hop pushback mechanism that moves the mitigation point from the victim link toward upstream ingress points, thereby reducing wasted bandwidth occupancy of attack traffic in the network. Experimental results show that under the degraded setting of $M=100$, CoopSatShield reduces wasted bandwidth to 11.0\% of the no-defense baseline, maintains benign throughput at a steady state of 0.959 during attacks, and consumes only 0.004\% of ISL capacity for control signaling. Overall, this work provides an in-network security defense approach for large-scale LEO satellite networks that jointly achieves low latency, low resource overhead, and robustness against attack degradation.
 
 	% 英文关键字
-	\enkeywords{Large-scale LEO Satellite Network; Link Flooding Attack; In-Network Computing; P4 Programmable Data Plane; Multi-Signature Detection; Cooperative Pushback Mitigation}
+	\enkeywords{LEO Satellite Networks; Link Flooding Attack; In-Network Computing; Programmable Data Plane}
 
 	
 	\tableofcontents  % 主目录，必要
