@@ -207,29 +207,35 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \begin{algorithm}[t]
 \caption{\textsc{MS-SatShield} 多签名在网检测与队列调度流程}
 \label{alg:ms_satshield}
-\DontPrintSemicolon
+\Input{(1) 当前到达数据包 $p=\langle a,x,len\rangle$；\newline
+(2) 当前窗口数据面状态：CMS 计数矩阵 $\mathbf{S}_t$、候选缓存 $\mathcal{C}_t$、候选级字节计数 $\text{bytes}_t(\cdot)$、活动候选集 $\mathcal{H}_t^{\mathrm{act}}$、位图 $\text{bitmap}_t(\cdot)$；\newline
+(3) 控制面状态与参数：持续性 $P_t(\cdot)$、epoch 长度 $\Delta$、位图长度 $m$、评分权重 $\alpha,\beta,\gamma$。}
+\Output{当前包的队列优先级决策，以及下一轮活动候选配置 $(\mathcal{H}_{t+1}^{\mathrm{act}}, \text{rank}_{t+1}^{\mathrm{act}}(\cdot))$。}
 
-\textbf{数据平面（逐包处理）：}\;
+\tcc{步骤 1：数据平面逐包更新一级候选与候选级统计}
 解析得到地址 key $a$（源地址或目的地址）、对端地址 $x$（目的地址或源地址）以及包长 $len$\;
 更新 CMS 计数矩阵（以 $(a,len)$ 更新 $d$ 个 counter）并按当前估计值刷新候选缓存 $\mathcal{C}_t$\;
 \If{$a \in \mathcal{C}_t$}{
     累加候选级字节计数 $\text{bytes}_t(a)\leftarrow \text{bytes}_t(a)+len$\;
 }
+\BlankLine
+\tcc{步骤 2：对活动候选更新 FO/FI 位图并完成当前包入队}
 \If{$a \in \mathcal{H}_t^{\mathrm{act}}$}{
     计算 $i=h(x)\bmod m$，并置位 $\text{bitmap}_t(a)[i]\leftarrow 1$\;
 }
 根据当前映射表 $\text{rank}_t^{\mathrm{act}}(\cdot)$ 确定队列优先级并入队\;
 
 \BlankLine
-\textbf{星上代理/控制平面（每个 epoch）：}\;
+\tcc{步骤 3：星上代理在 epoch 末生成下一轮活动配置}
 从数据平面读出当前窗口的 CMS/候选缓存摘要与 $\text{bytes}_t(\cdot)$，形成观测候选集合 $\mathcal{H}_{t}$\;
 \If{$\gamma>0$}{
   将 $\{a \mid P_t(a)\geq 2,\; a\notin\mathcal{H}_{t}\}$ 合并到评分候选集 $\mathcal{H}_{t}$（持续性扩展）\;
 }
 读取 $\mathcal{H}_t^{\mathrm{act}}$ 的位图并由式~(\ref{eq:linear_count}) 估计 $\widehat{F}_t(\cdot)$，更新持续性 $P_{t+1}(\cdot)$\;
 由式~(\ref{eq:rate_def})--(\ref{eq:score_def}) 计算多签名可疑度 $S_t(\cdot)$ 并由式~(\ref{eq:g_def}) 映射为下一轮活动优先级 $\text{rank}_{t+1}^{\mathrm{act}}(\cdot)$\;
-将 $\mathcal{H}_{t}$ 与 $\text{rank}_{t+1}^{\mathrm{act}}(\cdot)$ 写回交换机表项，使其在 epoch $t+1$ 生效\;
+令 $\mathcal{H}_{t+1}^{\mathrm{act}}\leftarrow\mathcal{H}_{t}$，并将 $\mathcal{H}_{t+1}^{\mathrm{act}}$ 与 $\text{rank}_{t+1}^{\mathrm{act}}(\cdot)$ 写回交换机表项，使其在 epoch $t+1$ 生效\;
 切换/清理位图缓冲区以开始下一 epoch\;
+\textbf{return} 当前包的队列优先级决策，以及下一轮活动候选配置 $(\mathcal{H}_{t+1}^{\mathrm{act}}, \text{rank}_{t+1}^{\mathrm{act}}(\cdot))$\;
 \end{algorithm}
 
 
