@@ -255,16 +255,19 @@ M_{\text{state}} \approx \frac{dwb_{\text{ctr}}}{8} + K \times b\ \text{Bytes}.
 \caption{LEO 在网防御体系中不同执行层的职责划分}
 \label{tab:ch2_plane_roles}
 \small
-\begin{tabular}{|p{2.4cm}|p{2.2cm}|p{4.0cm}|p{4.0cm}|}
-\hline
+\begin{tabular}{@{}
+>{\raggedright\arraybackslash}p{2.4cm}
+>{\raggedright\arraybackslash}p{2.2cm}
+>{\raggedright\arraybackslash}p{4.0cm}
+>{\raggedright\arraybackslash}p{4.0cm}
+@{}}
+\toprule
 执行层 & 时间尺度 & 典型任务 & 在本文中的对应功能 \\
-\hline
-数据面（P4/PISA） & ns--$\mu$s / 每包 & 报文解析、哈希、寄存器更新、位图置位、队列标记、TTL 递减 & 第三章中的 CMS 更新、候选缓存刷新、FI/FO 位图置位，以及第四章中的本地轻量消息处理 \\
-\hline
-星上 agent & ms--s / 每 epoch & 快照切换、阈值装载、位图读取、聚合评分、协同消息合并、推回软状态维护 & 第三章中的分数计算和 rank 映射更新，第四章中的 EG/PT 处理、抑制判定与推回安装 \\
-\hline
-地面控制 / 离线管理 & min--hour & 轨道/路由规划、FIB 预计算、长期参数调优、软件升级、策略审计 & 快照路由生成、长期统计分析、参数基线生成与离线评估 \\
-\hline
+\midrule
+数据面（P4/PISA） & ns--$\mu$s / 每包 & 报文解析、哈希、寄存器更新、位图置位、队列标记、TTL 递减 & 第三章中的 CMS 更新、候选缓存刷新、FI/FO 位图置位，以及第四章中的本地轻量消息处理。 \\
+星上 agent & ms--s / 每 epoch & 快照切换、阈值装载、位图读取、聚合评分、协同消息合并、推回软状态维护 & 第三章中的分数计算和 rank 映射更新，第四章中的 EG/PT 处理、抑制判定与推回安装。 \\
+地面控制 / 离线管理 & min--hour & 轨道/路由规划、FIB 预计算、长期参数调优、软件升级、策略审计 & 快照路由生成、长期统计分析、参数基线生成与离线评估。 \\
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -308,18 +311,21 @@ M_{\text{state}} \approx \frac{dwb_{\text{ctr}}}{8} + K \times b\ \text{Bytes}.
 \caption{本文所用近似数据结构的功能定位与实现代价对比}
 \label{tab:ch2_ds_compare}
 \small
-\begin{tabular}{|p{2.6cm}|p{2.5cm}|p{2.3cm}|p{2.6cm}|p{3.5cm}|}
-\hline
+\begin{tabular}{@{}
+>{\raggedright\arraybackslash}p{2.4cm}
+>{\raggedright\arraybackslash}p{2.3cm}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{2.4cm}
+>{\raggedright\arraybackslash}p{3.3cm}
+@{}}
+\toprule
 结构 & 主要操作 & 误差特性 & 状态/更新代价 & 在本文中的定位 \\
-\hline
-Bloom Filter & 插入、存在性查询 & 无假阴性，存在假阳性 & 位数组 + 常数次哈希 & 第四章协同消息去重、seen-set 维护 \\
-\hline
-Count-Min Sketch & 频次更新、点查询 & 单边高估 & $d$ 次计数器更新 & 第三章全量流空间中的一级频率估计 \\
-\hline
-Candidate Cache & 命中、刷新、替换 & 近似恢复 Top-$K$ 候选 & 固定容量显式状态 & 恢复 key 身份并承接二级特征统计 \\
-\hline
-Bitmap / Linear Counting & 置位、空位计数、基数估计 & 接近饱和时误差增大 & 一次置位 + 窗口末估计 & 第三章 FI/FO 的 distinct 近似统计 \\
-\hline
+\midrule
+Bloom Filter & 插入、存在性查询 & 无假阴性，存在假阳性。 & 位数组 + 常数次哈希。 & 第四章协同消息去重、seen-set 维护。 \\
+Count-Min Sketch & 频次更新、点查询 & 单边高估。 & $d$ 次计数器更新。 & 第三章全量流空间中的一级频率估计。 \\
+Candidate Cache & 命中、刷新、替换 & 近似恢复 Top-$K$ 候选。 & 固定容量显式状态。 & 恢复 key 身份并承接二级特征统计。 \\
+Bitmap / Linear Counting & 置位、空位计数、基数估计 & 接近饱和时误差增大。 & 一次置位 + 窗口末估计。 & 第三章 FI/FO 的 distinct 近似统计。 \\
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -369,18 +375,21 @@ Gossip 协议的主要优势在于：（1）\textbf{去中心化}——无需指
 \caption{LEO 多星协同候选机制的对比}
 \label{tab:ch2_collaboration_compare}
 \small
-\begin{tabular}{|p{2.2cm}|p{2.3cm}|p{2.1cm}|p{2.1cm}|p{3.2cm}|}
-\hline
+\begin{tabular}{@{}
+>{\raggedright\arraybackslash}p{2.2cm}
+>{\raggedright\arraybackslash}p{2.3cm}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{2.1cm}
+>{\raggedright\arraybackslash}p{3.2cm}
+@{}}
+\toprule
 机制 & 组织方式 & 典型时延 & 信令开销 & 对 LEO 的适配性 \\
-\hline
-中心化汇聚 & 单中心或少量中心节点收集证据 & 中到高 & 中等 & 易受长路径时延、单点故障与中心链路拥塞影响 \\
-\hline
-强一致性共识 & 多节点多数派确认后再决策 & 高 & 高 & 一致性强，但在高动态和拥塞环境下代价偏大 \\
-\hline
-全网广播泛洪 & 所有节点无差别扩散消息 & 低到中 & 极高 & 实现简单，但极易引发广播风暴 \\
-\hline
-抑制型 Gossip & 局部随机扩散 + 冗余抑制 + TTL 裁剪 & 中低 & 低到中 & 去中心化、容错性好，适合 LEO 局部协同 \\
-\hline
+\midrule
+中心化汇聚 & 单中心或少量中心节点收集证据 & 中到高 & 中等 & 易受长路径时延、单点故障与中心链路拥塞影响。 \\
+强一致性共识 & 多节点多数派确认后再决策 & 高 & 高 & 一致性强，但在高动态和拥塞环境下代价偏大。 \\
+全网广播泛洪 & 所有节点无差别扩散消息 & 低到中 & 极高 & 实现简单，但极易引发广播风暴。 \\
+抑制型 Gossip & 局部随机扩散 + 冗余抑制 + TTL 裁剪 & 中低 & 低到中 & 去中心化、容错性好，适合 LEO 局部协同。 \\
+\bottomrule
 \end{tabular}
 \end{table}
 

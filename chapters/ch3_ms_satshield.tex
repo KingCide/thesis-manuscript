@@ -286,10 +286,14 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \centering
 \caption{实验主要参数设置（与 SatShield/ICARUS 对齐）}
 \label{tab:ch3_params}
-\begin{tabular}{l l}
-\hline
+\small
+\begin{tabular}{@{}
+>{\raggedright\arraybackslash}p{3.5cm}
+>{\raggedright\arraybackslash}p{8.0cm}
+@{}}
+\toprule
 参数 & 取值 \\
-\hline
+\midrule
 星座拓扑 & Starlink Shell 1（1584 颗卫星） \\
 ISL 容量 $C_e$ & 20 Gb/s \\
 单终端上行/下行峰值 & 64 Mb/s / 384 Mb/s \\
@@ -302,7 +306,7 @@ epoch 长度 $\Delta$ & 1.0~s \\
 可疑度阈值 $\tau$ & 0.5 \\
 活动队列数 $Q$ & 2（高/低优先级） \\
 高优先级带宽比 & 0.8（80\% 带宽保留给良性/低可疑流量）\\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 
@@ -312,15 +316,18 @@ epoch 长度 $\Delta$ & 1.0~s \\
 \centering
 \caption{退化设定：多 decoy 分摊（降低按目的聚合速率，放大 fan-in/fan-out）}
 \label{tab:ch3_deg_decoy}
-\begin{tabular}{c r r r r r}
-\hline
+\small
+\begin{tabular}{@{}
+lllll>{\raggedright\arraybackslash}p{3.3cm}
+@{}}
+\toprule
 组别 & $|\mathcal{B}|$ & $r$ (Mb/s) & $A$ (Gb/s) & $M$ & 约单 decoy 聚合速率 $A/M$ \\
-\hline
+\midrule
 B1 & 2000 & 5 & 10 & 1    & 10 Gb/s \\
 B2 & 2000 & 5 & 10 & 10   & 1 Gb/s \\
 B3 & 2000 & 5 & 10 & 100  & 100 Mb/s \\
 B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 
