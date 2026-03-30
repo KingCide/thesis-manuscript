@@ -285,7 +285,7 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
 
 \textbf{阶段2}（图中部）展示PT令牌的逐跳反向传播。受害节点$V$生成PT$=\langle a_1, \texttt{rank}=\text{High}, \tau, R_\uparrow=3, T_\text{life}=10\rangle$，选择贡献最大的前$r=2$个上游端口（$p_1$: $65\%\rightarrow U_1$，$p_2$: $20\%\rightarrow U_1'$），向对应邻居发送PT。各接收节点（$U_1, U_1'$）立即在本地数据面安装软状态缓解规则$\texttt{rank}(a_1)\leftarrow\text{High}$，并将$R_\uparrow$递减后继续向上游传播。经过3跳后$R_\uparrow=0$，传播终止于节点$U_3, U_3'$。图中金色shield图标标注了所有已安装缓解规则的节点，绿色渐变链路标注了推回释放的带宽。
 
-\textbf{阶段3}（图右下角）定量对比推回前后的效果：按本文统一采用的路径积分无效占用成本口径，推回前攻击流经历$h=5$跳到达$e^*$，$W_\text{waste}=\text{rate}\times5$；推回后攻击流在$U_3$处被限速/丢弃（$h=2$跳），$W_\text{waste}=\text{rate}\times2$，降低$60\%$。图右上角的时间线展示了软状态生命周期$T_\text{life}$：PT在epoch $\tau$安装后持续生效$T_\text{life}=10$个epoch，到期自动清除；若攻击仍在持续，新一轮PT将刷新规则，避免拓扑变化后产生"幽灵规则"。
+\textbf{阶段3}（图右下角）定量对比推回前后的效果：按本文统一采用的路径积分无效占用成本口径，推回前攻击流经历$h=5$跳到达$e^*$，$W_\text{waste}=\text{rate}\times5$；推回后攻击流在$U_3$处被限速/丢弃（$h=2$跳），$W_\text{waste}=\text{rate}\times2$，降低$60\%$。图右上角的时间线展示了软状态生命周期$T_\text{life}$：PT在epoch $\tau$安装后持续生效$T_\text{life}=10$个epoch，到期自动清除；若攻击仍在持续，新一轮PT将刷新规则，避免拓扑变化后产生“幽灵规则”。
 
 \begin{figure}[!htb]
 \centering
