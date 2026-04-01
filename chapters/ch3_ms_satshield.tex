@@ -10,16 +10,16 @@
 % [INS-2026-CH3-01]
 这一问题在 2025 年以来更加突出。随着 Starlink Direct to Cell 开始直接承载手机终端的接入业务，Amazon Leo 推出面向企业与政府场景的私网互连和千兆级终端，以及 IRIS$^2$ 等体系把关键基础设施连接纳入星座目标，LEO 网络上合法的大流、回传流和云互连流都在增多\citess{starlink_direct_to_cell_2026, amazon_leo_enterprise_2025, eu_iris2_2024}。继续把重流直接视为可疑对象，误判风险会更高，因此检测逻辑需要把速率与扇入度、扇出度和跨窗口持续性等结构特征合并考虑。本章提出 MS-SatShield，就是针对这种业务多样化背景下的可分性下降。
 
-尽管 SatShield 已证明聚合速率在现有卫星系统约束下具有较好的可分性，但只依赖速率特征仍会遇到两类难以回避的问题。真实网络中的正常业务本身就存在长尾与大流现象，例如热门服务和突发上行，仅用速率很难区分合法大流与攻击聚合。与此同时，攻击者还可以通过扩大 Bot 规模、降低单 Bot 速率，或将攻击流量分摊到更多 Decoy 目的，削弱单一聚合维度上的速率差异，使一级候选生成质量下降，进而诱发漏检或误检。SatShield 在讨论部分也指出，随着 Bot 规模和业务形态继续演进，引入 Fan-in/Fan-out 等结构性签名是提高鲁棒性的自然方向\citess{satshield}。地面网络中，Ripple\citess{ripple} 和 Mew\citess{mew} 已展示了基于可编程数据面的 LFA 防御潜力，但它们依赖于地面交换芯片更充裕的存储与计算资源，无法直接移植到 SWaP 受限的星载环境。
+尽管 SatShield 已证明聚合速率在现有卫星系统约束下具有较好的可分性，但只依赖速率特征仍会遇到两类难以回避的问题。真实网络中的正常业务本身就存在长尾与大流现象，例如热门服务和突发上行，仅用速率很难区分合法大流与攻击聚合。与此同时，攻击者还可以通过扩大 Bot 规模、降低单 Bot 速率，或将攻击流量分摊到更多诱饵目的节点（Decoy），削弱单一聚合维度上的速率差异，使一级候选生成质量下降，进而诱发漏检或误检。SatShield 在讨论部分也指出，随着 Bot 规模和业务形态继续演进，引入 Fan-in/Fan-out 等结构性签名是提高鲁棒性的自然方向\citess{satshield}。地面网络中，Ripple\citess{ripple} 和 Mew\citess{mew} 已展示了基于可编程数据面的 LFA 防御潜力，但它们依赖于地面交换芯片更充裕的存储与计算资源，无法直接移植到 SWaP 受限的星载环境。
 
-基于上述背景，本章在 SatShield 的一级候选生成与队列调度框架上，提出一种基于多签名在网检测与队列调度的 LFA 防御优化方法（Multi-Signature Satellite Shield, MS-SatShield）。该方法以计数最小草图（Count-Min Sketch, CMS）频率估计与固定容量候选缓存构成一级候选生成器，避免对全体活跃 key 的不同对端数量做精确统计带来的状态爆炸；同时在候选集合上引入扇入度（Fan-in）、扇出度（Fan-out）与持续性（Persistence）等结构性特征，以提升对多 Decoy 分摊、脉冲式 on-off 和速率下沉等退化策略的检测鲁棒性，并将多签名可疑度映射为队列优先级，实现快速、低误伤的防御优化。
+基于上述背景，本章在 SatShield 的一级候选生成与队列调度框架上，提出一种基于多签名在网检测与队列调度的 LFA 防御优化方法（Multi-Signature Satellite Shield, MS-SatShield）。该方法以计数最小草图（Count-Min Sketch, CMS）频率估计与固定容量候选缓存构成一级候选生成器，避免对全体活跃 key 的不同对端数量做精确统计带来的状态爆炸；同时在候选集合上引入扇入度（Fan-in）、扇出度（Fan-out）与持续性（Persistence）等结构性特征，以提升对多诱饵目的节点分摊、脉冲式 on-off 和速率下沉等退化策略的检测鲁棒性，并将多签名可疑度映射为队列优先级，实现快速、低误伤的防御优化。
 
 \section{问题定义与方法设计}
 \subsection{威胁模型与问题表述}
-将 LSN 在时刻 $t$ 表示为动态图 $G(t)=(V,E(t))$，其中 $V$ 为卫星节点集合，$E(t)$ 为随时间变化的星间链路集合。每条链路 $e\in E(t)$ 具有容量 $C_e$。在 LFA 场景中，攻击者控制一组分布式终端（Bot）集合 $\mathcal{B}$，并选择一组 Decoy 目的集合 $\mathcal{D}$，使得从 $\mathcal{B}$ 到 $\mathcal{D}$ 的攻击流量在转发路径上穿越目标链路 $e^\star$，从而使 $e^\star$ 的负载超过其容量并发生拥塞。与地面网络中常见的五元组拆分类似\citess{crossfire}，攻击者可通过多对多配对（一个 Bot 对多个目的、一个目的由多个 Bot 访问）将单条五元组流的速率降低到接近正常水平，但这会显著改变流量的结构性特征，例如源的 Fan-out、目的的 Fan-in 以及可疑 key 的持续出现模式\citess{satshield}。
+将 LSN 在时刻 $t$ 表示为动态图 $G(t)=(V,E(t))$，其中 $V$ 为卫星节点集合，$E(t)$ 为随时间变化的星间链路集合。每条链路 $e\in E(t)$ 具有容量 $C_e$。在 LFA 场景中，攻击者控制一组分布式终端（Bot）集合 $\mathcal{B}$，并选择一组诱饵目的节点（Decoy）集合 $\mathcal{D}$，使得从 $\mathcal{B}$ 到 $\mathcal{D}$ 的攻击流量在转发路径上穿越目标链路 $e^\star$，从而使 $e^\star$ 的负载超过其容量并发生拥塞。与地面网络中常见的五元组拆分类似\citess{crossfire}，攻击者可通过多对多配对（一个 Bot 对多个目的、一个目的由多个 Bot 访问）将单条五元组流的速率降低到接近正常水平，但这会显著改变流量的结构性特征，例如源的 Fan-out、目的的 Fan-in 以及可疑 key 的持续出现模式\citess{satshield}。
 
 % [INS-ICARUS-08]
-为与 ICARUS 的攻击评估语义保持一致，本章将攻击有效性分为两类目标：一类关注目标链路是否达到拥塞阈值，另一类关注达成这一目标需要付出多大的可见代价。前者由目标链路是否超容表征，后者分别由攻击成本（达到拥塞所需注入总带宽）与可检测性代理指标（上行侧最大增量，maximum uplink increment, maxUp）刻画。本文聚焦检测与缓解机制本身，不直接求解最优攻击流分配，但在指标解释上沿用这一语义，以便与 ICARUS/SatShield 的结果保持可对齐性\citess{icarus}。
+为与 ICARUS 的攻击评估语义保持一致，本章将攻击有效性分为两类目标：一类关注目标链路是否达到拥塞阈值，另一类关注达成这一目标需要付出多大的可见代价。前者由目标链路是否超容表征，后者分别由攻击成本（达到拥塞所需注入总带宽）与可检测性代理指标（上行侧最大增量）刻画。本文聚焦检测与缓解机制本身，不直接求解最优攻击流分配，但在指标解释上沿用这一语义，以便与 ICARUS/SatShield 的结果保持可对齐性\citess{icarus}。
 
 为了与可编程交换机的周期性统计与配置机制对齐，本章采用固定时间窗口 epoch建模。记第 $t$ 个 epoch 的时间长度为 $\Delta$，在该窗口内对某类地址 key（源地址或目的地址）进行聚合统计。对任意 key $a$，定义其在 epoch $t$ 内的聚合字节数与聚合速率分别为
 \begin{equation}
@@ -36,14 +36,14 @@ F_t(a)=\left|\{x \mid (a,x)\ \text{在 epoch}\ t\ \text{内出现}\}\right|,
 \end{equation}
 其中 $F_t(a)$ 在源 key 模式下对应 Fan-out（FO），在目的 key 模式下对应 Fan-in（FI）。
 
-此外，考虑 LSN 拓扑与流量均具有动态性，单一窗口内的一级候选结果可能出现抖动。为提升稳定性，引入持续性特征（Persistence），表示某 key 在最近 $k_p$ 个 epoch 中进入候选集合的次数：
+此外，考虑 LSN 拓扑与流量均具有动态性，单一窗口内的一级候选结果可能出现抖动。为提升稳定性，引入持续性特征，表示某 key 在最近 $k_p$ 个 epoch 中进入候选集合的次数：
 \begin{equation}
 P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 \label{eq:persist_def}
 \end{equation}
 其中 $\mathcal{H}_{t}$ 表示基于 epoch $t$ 窗口统计结果导出的一级候选 key 集合，$\mathbf{1}[\cdot]$ 为指示函数。
 
-需要指出的是，速率退化与结构性特征放大之间并非彼此独立。考虑 $|\mathcal{B}|$ 个 Bot 向 $M$ 个 Decoy 目的发起攻击，记每个 Bot 平均访问 $d$ 个 Decoy（$1\le d\le M$），并假设 Bot 的发送速率在其访问的 Decoy 上近似均分。令总攻击注入量为 $A=\sum_{b\in\mathcal{B}}r_b$，则单个 Decoy 的聚合速率仍约为 $R_{\text{atk}}\approx A/M$，而结构特征满足
+需要指出的是，速率退化与结构性特征放大之间并非彼此独立。考虑 $|\mathcal{B}|$ 个 Bot 向 $M$ 个诱饵目的节点发起攻击，记每个 Bot 平均访问 $d$ 个 Decoy（$1\le d\le M$），并假设 Bot 的发送速率在其访问的 Decoy 上近似均分。令总攻击注入量为 $A=\sum_{b\in\mathcal{B}}r_b$，则单个 Decoy 的聚合速率仍约为 $R_{\text{atk}}\approx A/M$，而结构特征满足
 \begin{equation}
 \mathrm{FO}_{\text{Bot}} = d,\qquad
 \mathbb{E}[\mathrm{FI}_{\text{Decoy}}] = \frac{|\mathcal{B}|\,d}{M}.
@@ -53,10 +53,10 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 
 在本章后续实验中，除非另行说明，均以目的地址作为 key，从而 $F_t(a)$ 对应 Fan-in（FI），衡量访问同一目的地的不同源地址数量。
 
-本章关注的问题是：在星载可编程交换机片上存储和流水线算力都受限的条件下，如何在每包线速处理的前提下，利用 \emph{sketch 频率估计 + 显式候选缓存} 在线恢复当前窗口内的重 key 候选集合，并在该候选集合上提取 $R_t(a)$、$F_t(a)$、$P_t(a)$ 等多维特征，进一步为可疑 key 分配不同的队列优先级，实现对 LFA 的快速缓解，同时尽量降低对良性业务的误伤。
+本章关注的问题是：在星载可编程交换机片上存储和流水线算力都受限的条件下，如何在每包线速处理的前提下，利用 sketch 频率估计 + 显式候选缓存 在线恢复当前窗口内的重 key 候选集合，并在该候选集合上提取 $R_t(a)$、$F_t(a)$、$P_t(a)$ 等多维特征，进一步为可疑 key 分配不同的队列优先级，实现对 LFA 的快速缓解，同时尽量降低对良性业务的误伤。
 
 \subsection{预实验：速率可分性退化与多签名动机}
-在给出正式系统设计之前，本文先用一个预实验说明单一速率特征在退化攻击下如何失效，并据此引出后续的多签名设计。SatShield 的一个重要观察是，在现有 LEO 系统约束下，攻击者若要使目标 ISL 达到拥塞，必须注入接近链路容量量级的总攻击流量；但受单终端上行能力、单星可服务用户数等约束，攻击流按源地址或目的地址聚合后，仍会呈现 Mb/s 量级的重尾分布，因此与绝大多数良性聚合速率之间存在可分性\citess{satshield}。基于这一观察，本章采用与 SatShield 一致的 LEO 仿真与流量构造思路：使用 Starlink Shell 1 星座拓扑（1584 颗卫星）和 ISL 容量 $20$~Gb/s 作为基本网络模型，良性背景流量由 CAIDA 匿名互联网 trace（CAIDA Anonymized Internet Traces 2018 数据集，采集自 Equinix-Chicago 监测点）经重放得到，并通过人口分布模型映射到城市对之间的通信需求（映射方法详见文献\citess{satshield} 第~IV-A~节）。该 trace 采集于 2018 年，与当前互联网流量分布可能存在差异，但本文关注的是攻击侧与正常侧的相对可分性，良性分布的绝对形状对结论影响有限。
+在给出正式系统设计之前，本文先用一个预实验说明单一速率特征在退化攻击下如何失效，并据此引出后续的多签名设计。SatShield 的一个重要观察是，在现有 LEO 系统约束下，攻击者若要使目标 ISL 达到拥塞，必须注入接近链路容量量级的总攻击流量；但受单终端上行能力、单星可服务用户数等约束，攻击流按源地址或目的地址聚合后，仍会呈现 Mb/s 量级的重尾分布，因此与绝大多数良性聚合速率之间存在可分性\citess{satshield}。基于这一观察，本章采用与 SatShield 一致的 LEO 仿真与流量构造思路：使用 Starlink Shell 1 星座拓扑（1584 颗卫星）和 ISL 容量 $20$~Gb/s 作为基本网络模型，良性背景流量由 CAIDA 匿名互联网流量轨迹数据（CAIDA Anonymized Internet Traces 2018 数据集，采集自 Equinix-Chicago 监测点）经重放得到，并通过人口分布模型映射到城市对之间的通信需求（映射方法详见文献\citess{satshield} 第~IV-A~节）。该流量轨迹数据采集于 2018 年，与当前互联网流量分布可能存在差异，但本文关注的是攻击侧与正常侧的相对可分性，良性分布的绝对形状对结论影响有限。
 
 图~\ref{fig:ch3_fig1_cdf} 以 $2\times2$ 子图展示了不同 Decoy 数 $M$ 下，良性与攻击流量在每个地址 key 聚合速率维度上的经验累积分布函数（Cumulative Distribution Function, CDF）。绘制过程如下：先在仿真中固定 epoch 长度 $\Delta$，对每个 epoch 统计所有 key 的 $\text{bytes}_t(a)$，由式~(\ref{eq:rate_def}) 得到 $R_t(a)$；再分别对良性与攻击 key 集合绘制 CDF 曲线。当 $M=1$ 时，良性 $p_{99}\approx485$~Mb/s 与攻击聚合速率 $10{,}024$~Mb/s 之间存在约 $21$ 倍间隙；$M=10$ 时这一间隙缩小到约 $2$ 倍；$M=100$ 时攻击 key 速率下降到 $100$~Mb/s，已经落入良性分布的长尾区间；$M=1000$ 时攻击 key 与良性 key 基本重叠。该图展示了可分性随 $M$ 增大而退化的过程，也为后续多签名检测（图~\ref{fig:ch3_fig2_f1}）提供了动机。
 
@@ -69,7 +69,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 
 图中蓝色实线表示良性 key 的经验 CDF，红色虚线或竖线表示攻击 key 的经验 CDF。绿色阴影对应仍存在可分性间隙的区间；出现 overlap 标注时，则表示攻击分布已经进入良性长尾并发生交叉。
 
-需要说明的是，图~\ref{fig:ch3_fig1_cdf} 中的可分性并非在任何条件下都成立。当攻击者采用更强的隐蔽策略时，速率特征可能退化并与良性长尾区间发生重叠。为明确方法的适用边界，并给出后续实验的退化路径，本章构造了三类典型设定：增大 Bot 规模并降低单 Bot 速率、将攻击流量分摊到更多 Decoy 目的，以及采用脉冲式 on-off 策略使攻击 key 在窗口边界附近间歇出现。它们都满足 LFA 的基本约束，即总攻击注入量需要与目标链路剩余容量处于同一量级\citess{crossfire}：
+需要说明的是，图~\ref{fig:ch3_fig1_cdf} 中的可分性并非在任何条件下都成立。当攻击者采用更强的隐蔽策略时，速率特征可能退化并与良性长尾区间发生重叠。为明确方法的适用边界，并给出后续实验的退化路径，本章构造了三类典型设定：增大 Bot 规模并降低单 Bot 速率、将攻击流量分摊到更多诱饵目的节点，以及采用脉冲式 on-off 策略使攻击 key 在窗口边界附近间歇出现。它们都满足 LFA 的基本约束，即总攻击注入量需要与目标链路剩余容量处于同一量级\citess{crossfire}：
 \begin{equation}
 \sum_{b\in\mathcal{B}} r_b \approx C_{e^\star}-U^{\text{benign}}_{e^\star},
 \label{eq:lfa_budget}
@@ -77,7 +77,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 其中 $r_b$ 为 Bot $b$ 的攻击发送速率，$U^{\text{benign}}_{e^\star}$ 为目标链路上良性占用带宽。式~(\ref{eq:lfa_budget}) 说明：如果希望将每个 key 的聚合速率压低到良性长尾附近，通常需要相应扩大可用 Bot 数量或增大 Decoy 分摊规模。如式~(\ref{eq:fi_lower}) 所示，这一过程中 Fan-in/Fan-out 至少一维往往会被放大，从而为多签名检测保留可利用的结构性痕迹。
 
 \subsection{系统总览与数据流解释}
-图~\ref{fig:ch3_fig5_arch} 展示了 MS-SatShield 的总体架构。系统由数据平面与星上 Agent（轻量控制平面）协同完成闭环：数据平面负责以线速维护基于 CMS 与候选缓存的一级候选生成摘要，并对活动候选执行轻量特征更新；星上 Agent 以 epoch 为粒度拉取候选统计并计算多签名可疑度，将结果映射为队列优先级配置，再写回交换机用于下一轮调度。
+图~\ref{fig:ch3_fig5_arch} 展示了 MS-SatShield 的总体架构。系统由数据平面与星上轻量控制平面（星上Agent）协同完成闭环：数据平面负责以线速维护基于 CMS 与候选缓存的一级候选生成摘要，并对活动候选执行轻量特征更新；星上 Agent 以 epoch 为粒度拉取候选统计并计算多签名可疑度，将结果映射为队列优先级配置，再写回交换机用于下一轮调度。
 
 \begin{figure}[!htb]
   \centering
@@ -98,7 +98,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 epoch 级控制流由星上 Agent 触发。Agent 按固定周期读取当前窗口的 CMS/候选缓存摘要与候选级字节计数，形成观测候选集合 $\mathcal{H}_t$；再读取活动候选 $\mathcal{H}_t^{\mathrm{act}}$ 对应的位图，用线性计数估计 $\widehat{F}_t(a)$，并更新持续性 $P_{t+1}(a)$；随后将 $R_t(a)$、$\widehat{F}_t(a)$、$P_t(a)$ 归一化并融合为可疑度 $S_t(a)$，再映射为下一轮活动优先级 $\text{rank}_{t+1}^{\mathrm{act}}(a)$ 并写回交换机。候选筛选、排序、归一化、对数或倒数等复杂运算都放在 Agent 侧完成，数据平面只承担寄存器读写与简单算术，符合 PISA 流水线的可实现约束\citess{bosshart2013rmt}。
 
 \subsection{基于 CMS 与候选缓存的一级候选生成}
-与精确逐流状态不同，Count-Min Sketch（CMS）用固定大小的计数矩阵维护全局频率摘要，每包只需执行固定次数的哈希与计数更新，适合映射到 P4/PISA 流水线；但 CMS 本身不显式保存 key 身份，因此不能直接输出当前 Top-$K$ key 列表。为同时兼顾\emph{全局频率估计}和\emph{显式 key 恢复}，MS-SatShield 在一级候选生成中采用 CMS 与固定容量候选缓存的组合：CMS 负责提供近似频率估计，候选缓存负责维护显式 key 集合及其候选级元数据。
+与精确逐流状态不同，Count-Min Sketch（CMS）用固定大小的计数矩阵维护全局频率摘要，每包只需执行固定次数的哈希与计数更新，适合映射到 P4/PISA 流水线；但 CMS 本身不显式保存 key 身份，因此不能直接输出当前 Top-$K$ key 列表。为同时兼顾全局频率估计和显式 key 恢复，MS-SatShield 在一级候选生成中采用 CMS 与固定容量候选缓存的组合：CMS 负责提供近似频率估计，候选缓存负责维护显式 key 集合及其候选级元数据。
 
 具体地，设 CMS 由 $d$ 行、每行宽度为 $w$ 的计数矩阵 $\mathbf{S}_t\in\mathbb{N}^{d\times w}$ 构成，第 $i$ 行对应哈希函数 $h_i(\cdot)$。当包 $p$（长度为 $len$）携带 key $a$ 到达时，数据平面执行
 \begin{equation}
@@ -137,7 +137,7 @@ M_{\mathrm{cache}}=\frac{K\left(b_{\mathrm{key}}+b_{\mathrm{bytes}}+b_{\mathrm{m
 
 这一设计把两个任务拆开处理。CMS 在海量 key 空间中给出频率线索，候选缓存把少量需要继续观察的 key 显式保留下来。若只使用 CMS，系统虽然能估计频率上界，却无法直接枚举后续需要维护 FI/FO 的对象；若直接维护全量显式表，状态与查找代价又会随活跃 key 数量线性增长，超出星载环境可承受范围。一级候选生成器的目标因此不是精确求解 Top-$K$，而是在固定状态预算下尽量恢复第二级判别所需的 key 身份。
 
-从工程实现看，这一设计还给第二级特征统计划定了访问边界。由于 FI/FO 位图只对活动候选集维护，第二级的 bitmap、Persistence 与 queue mapping 状态都被限制在 $K$ 个对象之内。$K$ 因而不只是检测参数，也决定了整个数据面的内存上界与读写次数上界：一旦 $K$ 固定，候选内不同对端数量统计、rank 表和辅助寄存器的规模也随之固定。这也是后续消融实验要专门讨论 $K$ 的原因。
+从工程实现看，这一设计还给第二级特征统计划定了访问边界。由于 FI/FO 位图只对活动候选集维护，第二级的 Bitmap、Persistence 与 queue mapping 状态都被限制在 $K$ 个对象之内。$K$ 因而不只是检测参数，也决定了整个数据面的内存上界与读写次数上界：一旦 $K$ 固定，候选内不同对端数量统计、rank 表和辅助寄存器的规模也随之固定。这也是后续消融实验要专门讨论 $K$ 的原因。
 
 \subsection{多签名可疑度建模与判决}
 \label{subsec:ch3_score}
@@ -146,7 +146,7 @@ MS-SatShield 将一级候选生成与可疑判决分开处理：CMS 与候选缓
 S_t(a)=\alpha \cdot \widetilde{R}_t(a) + \beta \cdot \widetilde{F}_t(a) + \gamma \cdot \widetilde{P}_t(a),
 \label{eq:score_def}
 \end{equation}
-其中 $\alpha,\beta,\gamma$ 为权重，$\widetilde{(\cdot)}$ 为归一化后的特征值。权重的设计遵循如下原则：$\alpha$ 与 $\beta$ 为基础检测权重，满足 $\alpha+\beta=1$，使得仅由 rate 与 FI/FO 组成的基础分数 $S_t^{\text{base}}(a)=\alpha\widetilde{R}_t(a)+\beta\widetilde{F}_t(a)\in[0,1]$；$\gamma$ 为持续性的加性奖励权重（additive bonus），独立于基础权重之外，其作用是为反复出现的可疑 key 提供额外加分。当 $\gamma=0$ 时退化为双签名方案 S1；当 $\gamma>0$ 时，$S_t(a)$ 的值域扩展为 $[0,1+\gamma]$，但由于 $\gamma$ 较小（本文取 $\gamma=0.2$），阈值 $\tau=0.5$ 的判决语义不受实质影响——$\tau$ 仍位于基础分数值域 $[0,1]$ 的中点，持续性仅为已超过 $\tau$ 的 key 提供额外置信度提升。本文默认取 $\alpha=\beta=0.5$, $\gamma=0.2$。
+其中 $\alpha,\beta,\gamma$ 为权重，$\widetilde{(\cdot)}$ 为归一化后的特征值。权重的设计遵循如下原则：$\alpha$ 与 $\beta$ 为基础检测权重，满足 $\alpha+\beta=1$，使得仅由 rate 与 FI/FO 组成的基础分数 $S_t^{\text{base}}(a)=\alpha\widetilde{R}_t(a)+\beta\widetilde{F}_t(a)\in[0,1]$；$\gamma$ 为持续性的加性奖励权重，独立于基础权重之外，其作用是为反复出现的可疑 key 提供额外加分。当 $\gamma=0$ 时退化为双签名方案 S1；当 $\gamma>0$ 时，$S_t(a)$ 的值域扩展为 $[0,1+\gamma]$，但由于 $\gamma$ 较小（本文取 $\gamma=0.2$），阈值 $\tau=0.5$ 的判决语义不受实质影响——$\tau$ 仍位于基础分数值域 $[0,1]$ 的中点，持续性仅为已超过 $\tau$ 的 key 提供额外置信度提升。本文默认取 $\alpha=\beta=0.5$, $\gamma=0.2$。
 
 归一化的目的在于使不同量纲、不同尺度的特征在同一分数空间可加。本文采用分位数归一化：以良性流量历史统计得到的分位点作为尺度基准，例如
 \begin{equation}
@@ -165,19 +165,19 @@ S_t(a)=\alpha \cdot \widetilde{R}_t(a) + \beta \cdot \widetilde{F}_t(a) + \gamma
 \begin{equation}
 g(S_t(a))=\begin{cases}
 0, & \text{if } S_t(a)<\tau,\\
-1, & \text{if } S_t(a)\geq\tau.
+1, & \text{if } S_t(a)\geq\tau,
 \end{cases}
 \label{eq:g_def}
 \end{equation}
 其中 $S_{\max}=1+\gamma$ 为可疑度的理论上界（$\gamma=0$ 时 $S_{\max}=1$），$\tau$ 为检测阈值。当 $S_t(a)<\tau$ 时，key 被分配到高优先级队列并保留高优先级带宽份额；当 $S_t(a)\geq\tau$ 时，key 被分配到低优先级队列，在拥塞时优先承受丢弃。若将来扩展到多级优先级队列，可在此基础上将 $g(\cdot)$ 泛化为多段映射；但本文实验不展开该扩展。
 
 \subsection{FI/FO 在网近似统计结构}
-在网环境中对每个 key 精确维护式~(\ref{eq:fan_def}) 的不同对端数量会导致状态空间与更新开销不可接受。为保持可实现性，MS-SatShield 仅对候选集合 $\mathcal{H}_t$ 维护 FI/FO 的近似统计结构。本章以位图（bitmap）作为主线实现\citess{whang1990linear}，原因在于其数据平面更新简单（置位操作）且内存预算可直接计算。
+在网环境中对每个 key 精确维护式~(\ref{eq:fan_def}) 的不同对端数量会导致状态空间与更新开销不可接受。为保持可实现性，MS-SatShield 仅对候选集合 $\mathcal{H}_t$ 维护 FI/FO 的近似统计结构。本章以位图（Bitmap）作为主线实现\citess{whang1990linear}，原因在于其数据平面更新简单（置位操作）且内存预算可直接计算。
 
-对每个候选 key $a$，分配一个长度为 $m$ 的位图 $\text{bitmap}_t(a)\in\{0,1\}^m$。每当观察到关系对 $(a,x)$，计算
+对每个候选 key $a$，分配一个长度为 $m$ 的位图 $\text{Bitmap}_t(a)\in\{0,1\}^m$。每当观察到关系对 $(a,x)$，计算
 \begin{equation}
-i=h(x)\bmod m,\qquad \text{bitmap}_t(a)[i]\leftarrow 1,
-\label{eq:bitmap_update}
+i=h(x)\bmod m,\qquad \text{Bitmap}_t(a)[i]\leftarrow 1,
+\label{eq:Bitmap_update}
 \end{equation}
 其中 $h(\cdot)$ 为哈希函数。epoch 末在星上 Agent 侧读取位图，令 $Z$ 为位图中 0 的个数，则可用线性计数\citess{whang1990linear}估计去重后的对端数量：
 \begin{equation}
@@ -188,15 +188,15 @@ i=h(x)\bmod m,\qquad \text{bitmap}_t(a)[i]\leftarrow 1,
 
 若按部署口径同时为 FI 与 FO 两个视角各维护一组双缓冲位图，则位图状态预算为
 \begin{equation}
-M_{\text{bitmap}}^{\text{deploy}} = \frac{4Km}{8}\ \text{Bytes},
-\label{eq:bitmap_budget}
+M_{\text{Bitmap}}^{\text{deploy}} = \frac{4Km}{8}\ \text{Bytes},
+\label{eq:Bitmap_budget}
 \end{equation}
 其中系数 $4$ 分别对应 FI/FO 两个视角与奇偶双缓冲两组实例。在此基础上，总数据面状态预算可近似写为
 \begin{equation}
-M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}} + M_{\text{bitmap}}^{\text{deploy}} + M_{\text{rank}} + M_{\text{aux}}.
+M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}} + M_{\text{Bitmap}}^{\text{deploy}} + M_{\text{rank}} + M_{\text{aux}}.
 \label{eq:total_budget}
 \end{equation}
-需要说明的是，位图结构的误差会随着真实基数接近或超过 $m$ 而快速增大，即出现饱和。但在本章场景中，FI/FO 主要用于区分正常情况下较小的 FI/FO 与攻击导致的显著放大，并不要求精确估计超大规模基数。因此，在有限内存下位图依然可以作为有效的判别签名。若需要覆盖更大的 FI/FO 范围，可采用 HLL-lite 结构提高抗饱和能力；本文聚焦 bitmap 主线实现，暂不展开对比实验。
+需要说明的是，位图结构的误差会随着真实基数接近或超过 $m$ 而快速增大，即出现饱和。但在本章场景中，FI/FO 主要用于区分正常情况下较小的 FI/FO 与攻击导致的显著放大，并不要求精确估计超大规模基数。因此，在有限内存下位图依然可以作为有效的判别签名。若需要覆盖更大的 FI/FO 范围，可采用 HLL-lite 结构提高抗饱和能力；本文聚焦 Bitmap 实现，暂不展开对比实验。
 
 
 选择位图加线性计数，是面向星载实现条件做出的取舍。对本文来说，FI/FO 只要能把正常情况下较小的扇入度/扇出度与攻击造成的明显放大区分开即可，无需在极大基数范围内追求最优无偏估计。这样一来，数据面只需完成哈希和置位，对数运算留给 Agent 侧处理，逐包快路径仍保持常数次寄存器访问。若直接在数据面实现 HLL 或更复杂的去重计数逻辑，寄存器读写与比较操作都会增加，也更难适配星载 PISA 的约束。
@@ -210,7 +210,7 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \caption{\textsc{MS-SatShield} 多签名在网检测与队列调度流程}
 \label{alg:ms_satshield}
 \Input{(1) 当前到达数据包 $p=\langle a,x,len\rangle$；\newline
-(2) 当前窗口数据面状态：CMS 计数矩阵 $\mathbf{S}_t$、候选缓存 $\mathcal{C}_t$、候选级字节计数 $\text{bytes}_t(\cdot)$、活动候选集 $\mathcal{H}_t^{\mathrm{act}}$、位图 $\text{bitmap}_t(\cdot)$；\newline
+(2) 当前窗口数据面状态：CMS 计数矩阵 $\mathbf{S}_t$、候选缓存 $\mathcal{C}_t$、候选级字节计数 $\text{bytes}_t(\cdot)$、活动候选集 $\mathcal{H}_t^{\mathrm{act}}$、位图 $\text{Bitmap}_t(\cdot)$；\newline
 (3) 控制面状态与参数：持续性 $P_t(\cdot)$、epoch 长度 $\Delta$、位图长度 $m$、评分权重 $\alpha,\beta,\gamma$。}
 \Output{当前包的队列优先级决策，以及下一轮活动候选配置 $(\mathcal{H}_{t+1}^{\mathrm{act}}, \text{rank}_{t+1}^{\mathrm{act}}(\cdot))$。}
 
@@ -223,7 +223,7 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \BlankLine
 \tcc{步骤 2：对活动候选更新 FI/FO 位图并完成当前包入队}
 \If{$a \in \mathcal{H}_t^{\mathrm{act}}$}{
-    计算 $i=h(x)\bmod m$，并置位 $\text{bitmap}_t(a)[i]\leftarrow 1$\;
+    计算 $i=h(x)\bmod m$，并置位 $\text{Bitmap}_t(a)[i]\leftarrow 1$\;
 }
 根据当前映射表 $\text{rank}_t^{\mathrm{act}}(\cdot)$ 确定队列优先级并入队\;
 
@@ -242,7 +242,7 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 
 
 \subsubsection*{单个 epoch 的运行示例}
-下面给出一个以目的地址为 key 的单窗口示例。设某 Decoy 目的地址 $a_d$ 在 epoch $t$ 内同时接收来自大量 Bot 的低速访问。对经过受害卫星的数据包，数据平面先将每个匹配 $a_d$ 的数据包写入 CMS，并不断抬升其在候选缓存中的近似频次；当 $a_d$ 稳定驻留在候选缓存后，候选级字节计数 $\text{bytes}_t(a_d)$ 持续累加。由于当前实验默认以目的地址为 key，数据平面对每个不同源地址 $x$ 仅做一次位图置位，因此窗口结束时会形成较大的 $\widehat{F}_t(a_d)$。如果 $a_d$ 在前若干窗口中也多次进入候选集，则其持续性 $P_t(a_d)$ 也会较高。epoch 结束后，Agent 读取这些统计量并计算 $S_t(a_d)$；当其超过阈值 $\tau$ 时，$a_d$ 会在 epoch $t+1$ 被映射到低优先级队列，后续所有发往 $a_d$ 的流量在拥塞时都会优先承受丢弃。相对地，正常热门目的地址虽然可能具有较高的 $R_t(a)$，但若其 FI 明显低于攻击类 Decoy，或者只在短时间内进入候选集，则综合得分仍可能低于阈值，从而保留在高优先级队列。这个例子表明，MS-SatShield 的效果来自频率筛选、结构判别、历史记忆和队列执行之间的配合，而不是某个单独特征。
+下面给出一个以目的地址为 key 的单窗口示例。设某诱饵目的地址 $a_d$ 在 epoch $t$ 内同时接收来自大量 Bot 的低速访问。对经过被攻击卫星的数据包，数据平面先将每个匹配 $a_d$ 的数据包写入 CMS，并不断抬升其在候选缓存中的近似频次；当 $a_d$ 稳定驻留在候选缓存后，候选级字节计数 $\text{bytes}_t(a_d)$ 持续累加。由于当前实验默认以目的地址为 key，数据平面对每个不同源地址 $x$ 仅做一次位图置位，因此窗口结束时会形成较大的 $\widehat{F}_t(a_d)$。如果 $a_d$ 在前若干窗口中也多次进入候选集，则其持续性 $P_t(a_d)$ 也会较高。epoch 结束后，Agent 读取这些统计量并计算 $S_t(a_d)$；当其超过阈值 $\tau$ 时，$a_d$ 会在 epoch $t+1$ 被映射到低优先级队列，后续所有发往 $a_d$ 的流量在拥塞时都会优先承受丢弃。相对地，正常热门目的地址虽然可能具有较高的 $R_t(a)$，但若其 FI 明显低于攻击类诱饵目的地址，或者只在短时间内进入候选集，则综合得分仍可能低于阈值，从而保留在高优先级队列。这个例子表明，MS-SatShield 的效果来自频率筛选、结构判别、历史记忆和队列执行之间的配合，而不是某个单独特征。
 
 \section{实验设置与结果分析}
 \subsection{实验平台与基线方案}
@@ -265,10 +265,10 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 三种方案均使用相同阈值 $\tau=0.5$。由于 S0 与 S1 的可疑度值域均为 $[0,1]$，$\tau=0.5$ 的判决语义一致；S2 的 $\gamma=0.2$ 是加性奖励（见 \S\ref{subsec:ch3_score}），不会改变基础判决逻辑，因此共用 $\tau$ 仍然公平。这样的对比也与后续消融实验的三个层级保持一致。
 
 % [INS-ICARUS-09]
-此外，ICARUS 在同一星座配置下采用了空载网络、GDP gravity 与人口 gravity 三类背景流量场景，并通过地理网格离散化评估区域级连通性影响。本文不复现其全量攻击优化流程，而是沿用 SatShield 的带标签流量回放与在网检测、缓解这一实验主线，用来回答单节点检测器在退化策略下的区分能力问题。两类实验关注的重点不同：ICARUS 更强调攻击可达性与代价-可检测性权衡，本文更强调在网检测与缓解精度。为避免混淆，结果对比仅在共享参数与共享指标语义下进行\citess{icarus,satshield}。
+此外，ICARUS 在同一星座配置下采用了空载网络、基于国内生产总值的引力模型与基于人口分布的引力模型的三类背景流量场景，并通过地理网格离散化评估区域级连通性影响。本文不复现其全量攻击优化流程，而是沿用 SatShield 的带标签流量回放与在网检测、缓解这一实验主线，用来回答单节点检测器在退化策略下的区分能力问题。两类实验关注的重点不同：ICARUS 更强调攻击可达性与代价-可检测性权衡，本文更强调在网检测与缓解精度，因此两者结果不作直接的数值优劣比较\citess{icarus,satshield}。
 
 \subsection{数据集、流量生成与参数设置}
-良性背景流量采用 CAIDA 匿名 trace 进行重放，并依据人口（Pop）分布模型映射为城市对之间的通信需求；同时保证背景流量不会使任意链路长期超过 $90\%$ 利用率，以避免“未攻击已拥塞”的非预期干扰\citess{satshield}。攻击流量由 LFA 生成器构造：在每个攻击实验中随机选取城市对作为受害通信对，选择目标链路 $e^\star$ 并生成满足式~(\ref{eq:lfa_budget}) 的攻击注入速率。表~\ref{tab:ch3_params} 总结了主要的网络与终端参数。
+良性背景流量采用 CAIDA 匿名 trace 进行重放，并依据人口分布模型映射为城市对之间的通信需求；同时保证背景流量不会使任意链路长期超过 $90\%$ 利用率，以避免“未攻击已拥塞”的非预期干扰\citess{satshield}。攻击流量由 LFA 生成器构造：在每个攻击实验中随机选取城市对作为被攻击通信对，选择目标链路 $e^\star$ 并生成满足式~(\ref{eq:lfa_budget}) 的攻击注入速率。表~\ref{tab:ch3_params} 总结了主要的网络与终端参数。
 
 % [INS-ICARUS-10]
 需要说明的是，ICARUS 为了分离攻击最低资源门槛与背景噪声干扰，常采用无良性流量的保守场景作为上界评估；本文则采用含良性背景的重放场景，更接近部署侧的观测条件。两种设定并不矛盾：前者用于估计最坏情况下的攻击可行性，后者用于检验检测器在真实流量长尾存在时的稳健性。本文报告的检测收益不直接外推为最低攻击成本结论，而是作为给定背景流量下的防御性能证据\citess{icarus,satshield}。
@@ -300,7 +300,7 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 ISL 容量 $C_e$ & 20 Gb/s \\
 单终端上行/下行峰值 & 64 Mb/s / 384 Mb/s \\
 单星最大服务终端数 & 2080 \\
-背景流量来源 & CAIDA trace 重放并按 Pop 模型映射 \\
+背景流量来源 & CAIDA trace 重放并按人口分布模型映射 \\
 epoch 长度 $\Delta$ & 1.0~s \\
 候选规模 $K$ & $\mathrm{clip}(0.3\cdot N_{\text{keys}},\;50,\;1000)$（自适应）\footnote{$N_{\text{keys}}$ 为上一 epoch 中一级候选生成器（CMS + 候选缓存）报告的活动 key 估计数量。} \\
 位图长度 $m$ & 256~bits \\
@@ -341,13 +341,13 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 \text{F1}=\frac{2\cdot \text{Precision}\cdot \text{Recall}}{\text{Precision}+\text{Recall}}.
 \label{eq:f1_def}
 \end{equation}
-其中 $F$ 的定义需与攻击生成器一致：若以源地址为 key，则 $F$ 定义为 Bot 源地址集合；若以目的地址为 key，则 $F$ 定义为 Decoy 目的地址集合。缓解侧采用反应时间（reaction time）与良性吞吐下降（throughput drop）等指标，与 SatShield 的定义保持一致：reaction time 表示从观测到首个攻击包到系统开始生效缓解的时间间隔；throughput drop 表示攻击发生前后良性吞吐的下降比例\citess{satshield}。
+其中 $F$ 的定义需与攻击生成器一致：若以源地址为 key，则 $F$ 定义为 Bot 源地址集合；若以目的地址为 key，则 $F$ 定义为诱饵目的地址集合。缓解侧采用反应时间（reaction time）与良性吞吐下降（throughput drop）等指标，与 SatShield 的定义保持一致：reaction time 表示从观测到首个攻击包到系统开始生效缓解的时间间隔；throughput drop 表示攻击发生前后良性吞吐的下降比例\citess{satshield}。
 
 
 \subsubsection*{指标统计口径与解释边界}
 本章同时报告 detector 级指标与最终识别级指标，因为 MS-SatShield 具有清晰的两级结构：第一级回答攻击相关 key 是否进入候选集，第二级回答进入候选后能否被正确赋予较低优先级。若只报告最终 F1，就无法区分性能下降究竟来自候选覆盖不足，还是来自候选内判别失败。将两者拆开后，便可以像图~\ref{fig:ch3_fig2_f1}(a) 那样，更准确地定位 Rate-only 方案的失效位置。
 
-除时域曲线外，本文对吞吐与反应时间的统计都采用攻击期口径，而不是全时段口径。具体来说，良性吞吐比例按攻击持续阶段的 epoch 级结果计算并求平均，以免 warmup 与攻击结束后的恢复段稀释缓解差异；reaction time 则以首个攻击包进入系统为起点，以首批低优先级缓解规则在数据面实际生效为终点，因此反映的是包含一个 epoch 观测与配置延迟在内的闭环响应时间，而不是单次表项写入延迟。对于 on-off 场景，文中另外给出时域曲线，用于展示切换边界处的抖动与恢复过程。
+除时域曲线外，本文对吞吐与反应时间的统计都采用攻击期口径，而不是全时段口径。具体来说，良性吞吐比例按攻击持续阶段的 epoch 级结果计算并求平均，以避免将预热阶段和攻击结束后的恢复阶段纳入统计后，削弱对攻击期间缓解效果差异的体现；reaction time 则以首个攻击包进入系统为起点，以首批低优先级缓解规则在数据面实际生效为终点，因此反映的是包含一个 epoch 观测与配置延迟在内的闭环响应时间，而不是单次表项写入延迟。对于 on-off 场景，文中另外给出时域曲线，用于展示切换边界处的抖动与恢复过程。
 
 图~\ref{fig:ch3_fig2_f1} 的绘制流程如下：对每组实验参数，先利用仿真器与流量重放器生成带标签的包序列；再将包序列输入在网处理程序，完成逐包处理与逐 epoch 统计；最后在离线评估脚本中按式~(\ref{eq:f1_def}) 计算 Precision、Recall 和 F1 并绘制曲线。为与 SatShield 的复现逻辑对齐，本文同时给出一级候选捕获准确性（对应 detector）与攻击相关 key 识别准确性（对应多签名判决）两类 F1 结果，从而将候选生成质量与候选内判别能力分开分析，避免混淆误差来源。
 
@@ -364,7 +364,7 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
   \label{fig:ch3_fig2_f1}
 \end{figure}
 
-图~\ref{fig:ch3_fig2_f1} 的真实标签统一按 Decoy 目的地址口径定义，因此子图(a)中的一级候选 Recall 与子图(b)中的 F1 都是在同一标签空间下统计得到的。
+图~\ref{fig:ch3_fig2_f1} 的真实标签统一按诱饵目的地址口径定义，因此子图(a)中的一级候选 Recall 与子图(b)中的 F1 都是在同一标签空间下统计得到的。
 
 \subsection{结果分析：退化证据链与多签名收益}
 
@@ -395,16 +395,16 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=0.94\linewidth]{figs/ch3/fig3_4_onoff.pdf}
+  \includegraphics[width=1.0\linewidth]{figs/ch3/fig3_4_onoff.pdf}
   \caption{脉冲式 on-off 攻击下的时域响应（$M=100$）。(a)目标链路利用率；(b)一级候选命中的攻击 key 数量；(c)不同方案的 Recall；(d)不同方案的良性吞吐比例}
   \label{fig:ch3_fig4_attackstate}
 \end{figure}
 
-图~\ref{fig:ch3_fig4_attackstate} 的结果较为清楚。图~\ref{fig:ch3_fig4_attackstate}(a) 表明，攻击 on-phase 到来时目标链路利用率迅速升至超载区间，off-phase 又回落至正常水平，说明该设定确实对应时域上的动态退化，而不是前文的静态退化场景。图~\ref{fig:ch3_fig4_attackstate}(b) 则表明，一级候选集在 on-off 切换附近存在明显抖动：on-phase 内命中数接近攻击 key 总数，但在切换边界处会短暂回落，这正是持续性特征要补偿的部分。进一步看检测结果，图~\ref{fig:ch3_fig4_attackstate}(c) 中 S0 在 $M=100$ 下几乎完全失效（on-phase 平均 Recall$\approx0.01$）；S1 借助 FI/FO 可以实现高召回检测（on-phase 平均 Recall$\approx0.990$），但在切换边缘仍会因候选抖动出现轻微波动；S2 则进一步将 on-phase 平均 Recall 提升到 $0.999$。这里还需说明，off-phase 不存在攻击 key，Recall 按空真值 convention 记为 $1.0$，仅用于保持时域曲线连续。
+图~\ref{fig:ch3_fig4_attackstate} 的结果较为清楚。图~\ref{fig:ch3_fig4_attackstate}(a) 表明，攻击 on-phase 到来时目标链路利用率迅速升至超载区间，off-phase 又回落至正常水平，说明该设定确实对应时域上的动态退化，而不是前文的静态退化场景。图~\ref{fig:ch3_fig4_attackstate}(b) 则表明，一级候选集在 on-off 切换附近存在明显抖动：on-phase 内命中数接近攻击 key 总数，但在切换边界处会短暂回落，这正是持续性特征要补偿的部分。进一步看检测结果，图~\ref{fig:ch3_fig4_attackstate}(c) 中 S0 在 $M=100$ 下几乎完全失效（on-phase 平均 Recall$\approx0.01$）；S1 借助 FI/FO 可以实现高召回检测（on-phase 平均 Recall$\approx0.990$），但在切换边缘仍会因候选抖动出现轻微波动；S2 则进一步将 on-phase 平均 Recall 提升到 $0.999$。需要说明的是，在攻击关闭阶段不存在真实攻击 key，此时 Recall 的分母为空。为保持时域曲线连续，本文约定该阶段的 Recall 记为 $1.0$。
 
 S2 的提升来自两个机制叠加。持续性采用加性奖励权重（$\alpha=\beta=0.5$, $\gamma=0.2$），即 $\gamma$ 作为额外加分而不从基础权重中借用，因此 S2 的基础检测能力与 S1 保持一致。与此同时，当 $\gamma>0$ 时，系统会将历史上 $P\geq2$ 但未进入当前一级候选集的 key 也纳入评分候选集（见算法~\ref{alg:ms_satshield} 中的持续性扩展步骤），从而为短暂跌出候选集的可疑 key 保留一段记忆。这个机制在缓解侧也有体现：图~\ref{fig:ch3_fig4_attackstate}(d) 显示 S0 的良性吞吐仅为 $0.572$，S1 恢复到 $0.881$，S2 进一步提升到 $0.885$。此外，由于本文取 $k_p=5$，在 off 持续 $10$ 个 epoch 后，所有攻击 key 的 $P_t(a)$ 都会衰减为 $0$，持续性分数随之归零，因此不会把历史攻击残留带入后续判决。
 
-从时域角度看，S2 的改进也主要集中在 on-off 边界，而不是稳态阶段。换句话说，Persistence 不会把原本不可分的静态样本变得可分，它做的是用跨 epoch 的弱记忆平滑短时抖动，减少候选短暂丢失带来的性能下降。这与图~\ref{fig:ch3_fig2_f1}(b) 中 S2 在静态场景下几乎没有额外收益的结果是一致的：Persistence 解决的是时间连续性问题，而不是静态结构可分性问题。这样一来，第三章的方法边界也会更清楚，并能更自然地引出第四章的网络级协同。
+从时域角度看，S2 的改进也主要集中在 on-off 边界，而不是稳态阶段。换句话说，Persistence 不会把原本不可分的静态样本变得可分，它做的是用跨 epoch 的弱记忆平滑短时抖动，减少候选短暂丢失带来的性能下降。这与图~\ref{fig:ch3_fig2_f1}(b) 中 S2 在静态场景下几乎没有额外收益的结果是一致的：Persistence 解决的是时间连续性问题，而不是静态结构可分性问题。
 
 \subsection{消融实验与参数敏感性分析}
 \label{sec:ch3_eval_ablation}
@@ -450,14 +450,14 @@ S2 的提升来自两个机制叠加。持续性采用加性奖励权重（$\alp
 本文方法的第一类边界来自候选覆盖率。实验已经表明，当攻击分散度继续增大（如 $M\geq500$）时，一级候选召回下降会成为主要瓶颈，多签名判别能力也随之受制于候选质量上限。该现象与 ICARUS 在高不确定路由、高分散流量下给出的资源上升但攻击仍可行这一结论并不冲突：二者共同说明，防御侧需要同时改进候选生成与候选内判别，而不能只优化后者\citess{icarus}。
 
 % [INS-ICARUS-12]
-第二类边界来自路由策略与网络级目标的差异。本文默认单星本地检测与队列调度处置，未显式建模多路径随机负载分担下的概率攻击构造，也未直接评估区域级断连目标。ICARUS 的结果表明，增强路径多样性虽然可以提高攻击成本，但也可能引入显著的时延代价；因此，本文结论应理解为既定路由与本地观测条件下的检测与调度优化收益，而不应直接外推为全网路由韧性的充分条件\citess{icarus,handley2018delay_not_option,handley2019ground_relays}。
+\textit{是否需要删除：第二类边界来自路由策略与网络级目标的差异。本文默认单星本地检测与队列调度处置，未显式建模多路径随机负载分担下的概率攻击构造，也未直接评估区域级断连目标。ICARUS 的结果表明，增强路径多样性虽然可以提高攻击成本，但也可能引入显著的时延代价；因此，本文结论应理解为既定路由与本地观测条件下的检测与调度优化收益，而不应直接外推为全网路由韧性的充分条件\citess{icarus,handley2018delay_not_option,handley2019ground_relays}。}
 
 \section{本章小结}
 本章针对大规模低轨卫星网络中的链路洪泛攻击，提出了 MS-SatShield 基于多签名在网检测与队列调度的 LFA 防御优化方法。该方法在 SatShield 的一级候选生成与队列调度框架上，引入 Fan-in/Fan-out 与持续性等结构性签名，用于弥补速率特征在退化攻击下的判别能力下降；同时通过“全量 sketch 粗筛 + 候选集显式恢复 + 候选内不同对端数量统计”的两级设计，将数据面状态开销控制在星载可实现范围内。
 
 实验结果表明，MS-SatShield 的主要收益来自两个方面。其一，在多 Decoy 分摊导致速率特征失真的场景中，FI/FO 能够显著恢复候选内的结构判别能力，使方法在 Rate-only 基线已明显失效时仍保持有效检测。其二，在脉冲式 on-off 攻击下，持续性特征并不改变静态样本的可分性，而是通过跨 epoch 的弱记忆平滑候选抖动，主要改善攻击启停边界处的识别稳定性与吞吐保护。消融实验表明，在本文评估设置下，$K\approx1000$、$m=256$、$\Delta=1.0$~s 是检测精度与资源开销之间较合适的一组经验折中参数。
 
-不过，本章方法仍然受限于单星、单链路视角。当攻击进一步碎片化时，一级候选覆盖率会重新成为主要瓶颈；即使本地节点已经完成检测与队列调度处置，攻击流仍可能在到达受害链路之前占用上游带宽。因此，第三章解决的是“单节点如何在受限数据面上尽可能准确地识别退化攻击并完成队列调度优化”的问题，而第四章将进一步回答“如何通过多星协同与逐跳推回，把防御位置从受害链路前移到网络上游”的问题。
+不过，本章方法仍然受限于单星、单链路视角。当攻击进一步碎片化时，一级候选覆盖率会重新成为主要瓶颈；即使本地节点已经完成检测与队列调度处置，攻击流仍可能在到达被攻击链路之前占用上游带宽。因此，第三章解决的是“单节点如何在受限数据面上尽可能准确地识别退化攻击并完成队列调度优化”的问题，而第四章将进一步回答“如何通过多星协同与逐跳推回，把防御位置从被攻击链路前移到网络上游”的问题。
 
 
 
