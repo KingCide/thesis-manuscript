@@ -1,8 +1,9 @@
-\chapter{低轨卫星网络链路洪泛攻击的多签名在网检测与队列缓解}
+%\chapter{低轨卫星网络链路洪泛攻击的多签名在网检测与队列缓解}
+\chapter{基于多签名在网检测与队列调度的LFA防御优化}
 \label{chap:ms_satshield}
 
 \section{引言}
-大规模低轨卫星网络通过星间链路与星地链路为全球提供低时延、广覆盖的互联网接入。然而，与地面骨干网类似，低轨卫星网络（Low Earth Orbit Satellite Network, LSN）作为高价值通信基础设施同样面临拒绝服务类攻击风险，其中以链路洪泛攻击尤为突出。LFA 的典型策略是利用分布式受控终端（bots）发起大量看似正常的低速流量，将其沿着特定路径汇聚到目标链路，从而在链路上形成拥塞，甚至阻断重要区域间通信。ICARUS 工作系统化刻画了面向 LSN 的 LFA 攻击面与攻击构造过程，指出攻击者可以借助公开轨道信息推测路由，并在拓扑动态变化下持续调整攻击流集合以维持链路拥塞，从而对 LSN 的可用性形成实质威胁\citess{icarus}。
+大规模低轨卫星网络通过星间链路与星地链路为全球提供低时延、广覆盖的互联网接入。然而，与地面骨干网类似，低轨卫星网络（Low Earth Orbit Satellite Network, LSN）作为高价值通信基础设施同样面临拒绝服务类攻击风险，其中以链路洪泛攻击尤为突出。LFA 的典型策略是利用分布式受控终端（Bots）发起大量看似正常的低速流量，将其沿着特定路径汇聚到目标链路，从而在链路上形成拥塞，甚至阻断重要区域间通信。ICARUS 系统化刻画了面向 LSN 的 LFA 攻击面与攻击构造过程，指出攻击者可以借助公开轨道信息推测路由，并在拓扑动态变化下持续调整攻击流集合以维持链路拥塞，从而对 LSN 的可用性形成实质威胁\citess{icarus}。
 
 从防御角度看，LSN 的网络形态使传统的控制面集中检测、再下发策略的闭环方案难以满足实时性。一方面，卫星网络控制通道的带宽和时延都较为受限，跨星或星地的控制闭环通常达到毫秒到十毫秒量级；另一方面，攻击流集合可能在亚秒级甚至更短时间尺度内变化，控制面统计汇聚与策略更新一旦滞后，防御效果就会明显下降。SatShield 针对这一问题提出将检测与缓解尽量下沉到数据平面：以地址聚合速率作为区分特征，在数据平面持续维护近似 top-$K$ 重流候选，并通过队列调度实现被动丢弃，从而达到近实时的在网缓解\citess{satshield}。
 
@@ -63,9 +64,11 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.92\linewidth]{figs/ch3/fig3_1_cdf.pdf}
-  \caption{可分性随 decoy 数 $M$ 退化的 CDF 对比。四个子图分别对应 $M=1,10,100,1000$，蓝色实线为良性 key 聚合速率 CDF，红色虚线为攻击 key 聚合速率 CDF（$M\leq10$ 时因攻击 key 数量少，改用垂直线与散点标注）。绿色阴影区标注可分性间隙及倍数，红色 overlap 标注表示攻击与良性分布已交叉。}
+  \caption{不同 decoy 数下的聚合速率 CDF。(a)$M=1$；(b)$M=10$；(c)$M=100$；(d)$M=1000$}
   \label{fig:ch3_fig1_cdf}
 \end{figure}
+
+图中蓝色实线表示良性 key 的经验 CDF，红色虚线或竖线表示攻击 key 的经验 CDF。绿色阴影对应仍存在可分性间隙的区间；出现 overlap 标注时，则表示攻击分布已经进入良性长尾并发生交叉。
 
 需要说明的是，图~\ref{fig:ch3_fig1_cdf} 中的可分性并非在任何条件下都成立。当攻击者采用更强的隐蔽策略时，速率特征可能退化并与良性长尾区间发生重叠。为明确方法的适用边界，并给出后续实验的退化路径，本章构造了三类典型设定：增大 bot 规模并降低单 bot 速率、将攻击流量分摊到更多 decoy 目的，以及采用脉冲式 on-off 策略使攻击 key 在窗口边界附近间歇出现。它们都满足 LFA 的基本约束，即总攻击注入量需要与目标链路剩余容量处于同一量级\citess{crossfire}：
 \begin{equation}
@@ -80,7 +83,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.96\linewidth]{figs/ch3/fig3-5_architecture.png}
-  \caption{MS-SatShield 总体架构。数据平面逐包完成报文解析、CMS 与候选缓存更新、活动候选判定、FO/FI 位图更新与队列映射；星上 Agent 在每个 epoch 末读取候选摘要、字节统计与活动候选位图，估计速率、结构特征与持续性，生成下一轮活动候选配置与队列优先级映射，并写回交换机后由流量管理模块执行高/低优先级两队列调度。}
+  \caption{MS-SatShield 总体架构}
   \label{fig:ch3_fig5_arch}
 \end{figure}
 
@@ -351,16 +354,18 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 
 \begin{figure}[!htb]
   \centering
-  \subfloat[rate-only 检测器各指标随 $M$ 变化]{%
+  \subfloat[]{%
     \includegraphics[width=0.48\linewidth]{figs/ch3/fig3_2a_topk_f1.pdf}%
   }%
   \hfill
-  \subfloat[S0(rate-only) vs S1(+FO/FI) 的 F1 对比]{%
+  \subfloat[]{%
     \includegraphics[width=0.48\linewidth]{figs/ch3/fig3_2b_degrade_f1.pdf}%
   }
-  \caption{退化攻击下的检测性能。(a) 仅靠聚合速率（rate-only）的一级候选 Recall、阈值判决 Recall/Precision/F1 随 decoy 数 $M$ 的变化；(b) rate-only (S0) 与引入 FO/FI 后 (S1) 的 F1 对比，展示 FO/FI 特征在静态退化场景下的作用。ground truth 以 decoy 目的地址为 key。}
+  \caption{退化攻击下的检测性能。(a)rate-only 的一级候选与判决指标；(b)S0 与 S1 的 F1 对比}
   \label{fig:ch3_fig2_f1}
 \end{figure}
+
+图~\ref{fig:ch3_fig2_f1} 的 ground truth 统一按 decoy 目的地址口径定义，因此子图(a)中的一级候选 Recall 与子图(b)中的 F1 都是在同一标签空间下统计得到的。
 
 \subsection{结果分析：退化证据链与多签名收益}
 
@@ -392,7 +397,7 @@ B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.94\linewidth]{figs/ch3/fig3_4_onoff.pdf}
-  \caption{脉冲式 on-off 攻击下的时域响应对比（$M=100$）。红色阴影表示攻击 on-phase；(a) 目标链路利用率随 epoch 的变化；(b) 一级候选命中的攻击 key 数量；(c) S0、S1、S2 三种方案的 Recall 时域曲线；(d) 三种方案下良性吞吐比例的时域曲线。S2 通过持续性加性奖励与历史候选扩展机制，在候选抖动处保持了更平滑、更高的检测与吞吐保护效果。}
+  \caption{脉冲式 on-off 攻击下的时域响应（$M=100$）。(a)目标链路利用率；(b)一级候选命中的攻击 key 数量；(c)不同方案的 Recall；(d)不同方案的良性吞吐比例}
   \label{fig:ch3_fig4_attackstate}
 \end{figure}
 
@@ -409,7 +414,7 @@ S2 的提升来自两个机制叠加。持续性采用加性奖励权重（$\alp
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_K.pdf}
-  \caption{候选规模 $K$ 对 Recall 与 F1 的影响（$M=100$, S1 方案）。$K=1000$ 时 Recall 饱和至 $1.0$，F1 达到约 $0.91$，为推荐的默认值。}
+  \caption{候选规模 $K$ 对 Recall 与 F1 的影响（$M=100$，S1 方案）}
   \label{fig:ch3_ablation_K}
 \end{figure}
 
@@ -423,7 +428,7 @@ S2 的提升来自两个机制叠加。持续性采用加性奖励权重（$\alp
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_m.pdf}
-  \caption{位图长度 $m$ 对 FO/FI 估计误差（MAPE）与总内存的影响（$M=100$, S1 方案）。$m=256$ 时 MAPE 降至 $1.1\%$，内存约 $200$~KB，为推荐的默认值。}
+  \caption{位图长度 $m$ 对 FO/FI 估计误差与总内存的影响（$M=100$，S1 方案）}
   \label{fig:ch3_ablation_m}
 \end{figure}
 
@@ -433,7 +438,7 @@ S2 的提升来自两个机制叠加。持续性采用加性奖励权重（$\alp
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.65\linewidth]{figs/ch3/ablation_delta.pdf}
-  \caption{epoch 长度 $\Delta$ 对反应时间与良性吞吐下降的影响（$M=100$, S1 方案）。$\Delta=1.0$~s 时反应时间约 $1$~s，良性吞吐下降约 $14\%$，为推荐的默认值。}
+  \caption{epoch 长度 $\Delta$ 对反应时间与良性吞吐下降的影响（$M=100$，S1 方案）}
   \label{fig:ch3_ablation_delta}
 \end{figure}
 
