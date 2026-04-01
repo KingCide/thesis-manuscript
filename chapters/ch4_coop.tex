@@ -53,14 +53,14 @@ W_{\text{waste}}(\tau) \approx \bar h\cdot A.
 数据面包含 6 个模块，可分为复用模块与新增模块两组：
 \begin{enumerate}
 \item \textbf{复用模块}（Ch.3 MS-SatShield）：CMS 与候选缓存组成的一级候选生成，用于维护候选 key 集合及其近似频次；FO/FI 位图，用于记录候选 key 的扇出或扇入结构特征；队列调度，用于基于 rank 执行优先级队列映射与限速。
-\item \textbf{新增模块}（$\star$~Ch.4）：入端口贡献统计，用于维护每个候选 key 在各入端口的字节统计$\text{bytes}(a,p)$，供后续 pushback 选择上游；EG/PT 消息解析，用于完成协同消息的轻量级 header 解析与 TTL 递减；seen-set 去重，用 Bloom Filter\citess{bloom1970space}实现 O(1) 消息去重。
+\item \textbf{新增模块}（$\star$~Ch.4）：入端口贡献统计，用于维护每个候选 key 在各入端口的字节统计$\text{bytes}(a,p)$，供后续 pushback 选择上游；证据扩散消息/推回令牌（Evidence Gossip/Pushback Token, EG/PT）解析，用于完成协同消息的轻量级 header 解析与生存时间（Time-To-Live, TTL）递减；seen-set 去重，用 Bloom Filter\citess{bloom1970space}实现 O(1) 消息去重。
 \end{enumerate}
 上述模块在设计语义上都可以映射到可编程交换机的寄存器阵列与 match-action 表\citess{bosshart2013rmt}，每包处理保持 O(1) 复杂度。
 
 控制面 Agent 包含 6 个模块：
 \begin{enumerate}
 \item 多签名评分（复用 Ch.3），计算候选 key 的多维可疑性评分；
-\item 证据缓存$\mathcal{E}_{v,\tau}$，存储 ROI 内接收到的 EG 消息；
+\item 证据缓存$\mathcal{E}_{v,\tau}$，存储感兴趣区域（Region of Interest, ROI）内接收到的 EG 消息；
 \item 抑制型扩散决策，执行冗余抑制判断（$cnt \ge k$时抑制发送）；
 \item 协同聚合$S^{\text{net}}$，计算网络级加权评分（式\eqref{eq:net_score}）；
 \item Pushback 判定，比较$S^{\text{net}}$与阈值$\Theta_{\text{pb}}$并触发推回；
@@ -87,7 +87,7 @@ W_{\text{waste}}(\tau) \approx \bar h\cdot A.
 c_{v,e}(\tau) = \mathbf{1}\big[q_{v,e}(\tau) > Q_{\text{th}} \ \vee \ d_{v,e}(\tau) > D_{\text{th}}\big],
 \label{eq:cong_indicator}
 \end{equation}
-其中$q_{v,e}(\tau)$表示该端口的队列占用（或排队时延估计），$d_{v,e}(\tau)$表示端口丢包率（或 RED/ECN 触发率），$Q_{\text{th}},D_{\text{th}}$为阈值。该指标完全来自数据面或交换机 traffic manager 的可观测量，符合星上实时性要求。为了便于后续权重计算，本章进一步定义归一化的拥塞等级：
+其中$q_{v,e}(\tau)$表示该端口的队列占用（或排队时延估计），$d_{v,e}(\tau)$表示端口丢包率（或随机早期检测/显式拥塞通知，Random Early Detection/Explicit Congestion Notification, RED/ECN 触发率），$Q_{\text{th}},D_{\text{th}}$为阈值。该指标完全来自数据面或交换机 traffic manager 的可观测量，符合星上实时性要求。为了便于后续权重计算，本章进一步定义归一化的拥塞等级：
 \begin{equation}
 \texttt{cong\_level}_{v,e}(\tau)=\min\!\left(1,\max\!\left\{\frac{q_{v,e}(\tau)}{Q_{\text{th}}},\ \frac{d_{v,e}(\tau)}{D_{\text{th}}}\right\}\right)\in[0,1].
 \label{eq:cong_level}
@@ -373,7 +373,7 @@ $T_{\text{life}}$ & PT 软状态生存期 & 10 epoch \\
 \toprule
 方案 & 说明 \\
 \midrule
-NoDefense & 无防御，FIFO/ECMP 默认转发。 \\
+NoDefense & 无防御，先进先出/等价多路径（First-In, First-Out/Equal-Cost Multi-Path, FIFO/ECMP）默认转发。 \\
 SatShield & 单星 top-$k$ 过滤 + 队列调度缓解\citess{satshield}。 \\
 MS-SatShield & \ref{chap:ms_satshield} 多签名增强，但无协同、无 pushback。 \\
 \textsc{CoopSatShield} & 本章方案：抑制型扩散协同 + 逐跳 pushback。 \\
