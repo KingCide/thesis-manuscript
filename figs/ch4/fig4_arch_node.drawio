@@ -1,0 +1,73 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram name="第 1 页" id="5AybyGj0IVWtXqNDJEAW">
+    <mxGraphModel dx="831" dy="706" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1920" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-5" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;fillColor=#eef5e6;strokeColor=#7aa65a;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="300" width="810" x="180" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-7" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;b&gt;星上 Agent（控制面）&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="480" x="345" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-9" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3d85c6;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;多签名评分&lt;/b&gt; &lt;font color=&quot;#3d85c6&quot; style=&quot;font-size:13px&quot;&gt;Ch.3 复用&lt;/font&gt;&lt;br/&gt;根据 &lt;i&gt;R(a)&lt;/i&gt;、&lt;i&gt;F(a)&lt;/i&gt;、&lt;i&gt;P(a)&lt;/i&gt;&lt;br/&gt;计算 &lt;i&gt;S&lt;/i&gt;&lt;sub&gt;v,&amp;tau;&lt;/sub&gt;(&lt;i&gt;a&lt;/i&gt;)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="195" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-11" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;抑制型扩散决策&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size:13px&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br/&gt;&lt;i&gt;cnt&lt;/i&gt; &amp;lt; &lt;i&gt;k&lt;/i&gt; 发送，&lt;br/&gt;&lt;i&gt;cnt&lt;/i&gt; ≥ &lt;i&gt;k&lt;/i&gt; 抑制&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="725" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-12" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;协同聚合&amp;nbsp;&lt;/b&gt;&lt;font color=&quot;#d97a1c&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br&gt;&amp;nbsp;&lt;i style=&quot;&quot;&gt;S&lt;/i&gt;&lt;sup style=&quot;&quot;&gt;net&lt;/sup&gt;(&lt;i style=&quot;&quot;&gt;a&lt;/i&gt;)&amp;nbsp;&lt;/div&gt;&lt;div&gt;加权聚合 ROI 内证据&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="195" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-13" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;Pushback 判定&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br&gt;&lt;i&gt;S&lt;/i&gt;&lt;sup&gt;net&lt;/sup&gt; ≥ θ&lt;sub&gt;pb&lt;/sub&gt;&amp;nbsp;&lt;br&gt;生成 PT 令牌&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="460" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-14" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;EG 消息处理 / 合并&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br&gt;Top-n 合并 +&lt;br&gt;digest 并集&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="725" y="778" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-15" edge="1" parent="1" source="1wMO7CdKsUsOyXVFzBSW-29" style="endArrow=classic;startArrow=classic;html=1;rounded=0;strokeColor=#6aa84f;strokeWidth=4;exitX=0.086;exitY=0.998;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="250" y="546" as="sourcePoint" />
+            <mxPoint x="250" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-16" edge="1" parent="1" source="1wMO7CdKsUsOyXVFzBSW-29" style="endArrow=classic;startArrow=classic;html=1;rounded=0;strokeColor=#6aa84f;strokeWidth=4;exitX=0.111;exitY=0.998;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="290" y="560" as="sourcePoint" />
+            <mxPoint x="270" y="600" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-17" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;font color=&quot;#4c8e32&quot;&gt;&lt;b&gt;每个 epoch 读取 / 写回&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="10" width="180" x="270" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-29" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#e9f1fb;strokeColor=#3d85c6;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="303" width="810" x="180" y="247" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-30" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;b&gt;P4 可编程交换机（数据面）&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="500" x="335" y="256" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-31" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3d85c6;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;Top-K 候选生成&lt;/b&gt; &lt;font color=&quot;#3d85c6&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.3 复用&lt;/font&gt;&lt;br&gt;维护候选集 &lt;i&gt;H&lt;/i&gt;&lt;sub&gt;t&lt;/sub&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="98" width="245" x="195" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-32" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3d85c6;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;FO/FI 位图&lt;/b&gt; &lt;font color=&quot;#3d85c6&quot; style=&quot;font-size:13px&quot;&gt;Ch.3 复用&lt;/font&gt;&lt;br/&gt;仅对 &lt;i&gt;H&lt;/i&gt;&lt;sub&gt;t&lt;/sub&gt; 中 &lt;i&gt;a&lt;/i&gt;&lt;br/&gt;维护 bitmap(&lt;i&gt;a&lt;/i&gt;)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="460" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-33" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3d85c6;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;队列调度&lt;/b&gt; &lt;font color=&quot;#3d85c6&quot; style=&quot;font-size:13px&quot;&gt;Ch.3 复用 + Ch.4 扩展&lt;/font&gt;&lt;br/&gt;rank(&lt;i&gt;a&lt;/i&gt;) → 队列映射 +&lt;br/&gt;Pushback 软状态规则&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="725" y="302" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-34" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;入端口贡献统计&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size:13px&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br/&gt;bytes(&lt;i&gt;a&lt;/i&gt;,&lt;i&gt;p&lt;/i&gt;) →&lt;br/&gt;pushback 路径选择&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="195" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-35" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;EG/PT 消息解析&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size:13px&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br/&gt;轻量 header 解析 +&lt;br/&gt;TTL 递减&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="460" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-36" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;Seen-set 去重&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br&gt;Bloom Filter 去重&lt;br&gt;EG 消息&lt;/div&gt;" vertex="1">
+          <mxGeometry height="105" width="250" x="725" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-42" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;b&gt;证据缓存&amp;nbsp;&lt;i&gt;E&lt;/i&gt;&lt;sub&gt;v,τ&lt;/sub&gt;&lt;/b&gt;&amp;nbsp;&lt;span style=&quot;color: rgb(217, 122, 28); font-size: 13px;&quot;&gt;Ch.4 新增&lt;/span&gt;&lt;br&gt;存储本地 + 接收到的&lt;br&gt;EG 证据摘要" vertex="1">
+          <mxGeometry height="105" width="250" x="460" y="655" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

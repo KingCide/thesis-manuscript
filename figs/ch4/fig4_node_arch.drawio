@@ -1,0 +1,155 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" compressed="false" version="29.6.4">
+  <diagram id="fig4_node_arch" name="fig4_node_arch">
+    <mxGraphModel dx="3431" dy="1151" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1920" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=28;fontStyle=1;" value="CoopSatShield：单节点内部架构（卫星节点 v）" vertex="1">
+          <mxGeometry height="40" width="880" x="360" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="outer" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;strokeWidth=2;strokeColor=#333333;fillColor=#ffffff;" value="" vertex="1">
+          <mxGeometry height="1110" width="1080" x="30" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="outerLabel" parent="1" style="text;html=1;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;" value="卫星节点 v 内部架构" vertex="1">
+          <mxGeometry height="30" width="280" x="60" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="cp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;strokeWidth=2;strokeColor=#2E7D32;fillColor=#E8F5E9;" value="" vertex="1">
+          <mxGeometry height="330" width="890" x="60" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cpLabel" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" value="星上 Agent（控制面）" vertex="1">
+          <mxGeometry height="28" width="280" x="85" y="145" as="geometry" />
+        </mxCell>
+        <mxCell id="mscore" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#1565C0;fillColor=#E3F2FD;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="多签名评分&#xa;Ch.3 复用&#xa;根据 R(a)、F(a)、P(a)&#xa;计算本地评分 S_{v,τ}(a)" vertex="1">
+          <mxGeometry height="110" width="180" x="90" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="ecache" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="证据缓存 E_{v,τ}&#xa;★ Ch.4 新增&#xa;存储本地证据与&#xa;接收到的 EG 证据摘要" vertex="1">
+          <mxGeometry height="120" width="210" x="310" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="snet" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="协同聚合 S^net(a)&#xa;★ Ch.4 新增&#xa;聚合 ROI 内多节点证据&#xa;得到网络级评分" vertex="1">
+          <mxGeometry height="112.5" width="160" x="560" y="188.75" as="geometry" />
+        </mxCell>
+        <mxCell id="pbjudge" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="Pushback 判定&#xa;★ Ch.4 新增&#xa;若 S^net(a) ≥ Θ_pb&#xa;则生成 PT 令牌" vertex="1">
+          <mxGeometry height="95" width="160" x="750" y="197.5" as="geometry" />
+        </mxCell>
+        <mxCell id="egmerge" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="EG 消息处理 / 合并&#xa;★ Ch.4 新增&#xa;对证据执行 top-n 合并&#xa;与 digest 并集" vertex="1">
+          <mxGeometry height="80" width="210" x="310" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="suppress" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="抑制型扩散决策&#xa;★ Ch.4 新增&#xa;若已听到 k 条等价证据则抑制&#xa;否则发送 EG" vertex="1">
+          <mxGeometry height="95" width="160" x="565" y="332.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dp" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;strokeWidth=2;strokeColor=#1565C0;fillColor=#E3F2FD;" value="" vertex="1">
+          <mxGeometry height="343" width="720" x="60" y="597" as="geometry" />
+        </mxCell>
+        <mxCell id="dpLabel" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" value="P4 可编程交换机（数据面）" vertex="1">
+          <mxGeometry height="28" width="320" x="85" y="612" as="geometry" />
+        </mxCell>
+        <mxCell id="topk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#1565C0;fillColor=#E3F2FD;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="top-K 候选生成&#xa;Ch.3 复用&#xa;CMS + 候选缓存&#xa;维护候选集 H_t 与近似频次" vertex="1">
+          <mxGeometry height="95" width="180" x="95" y="657" as="geometry" />
+        </mxCell>
+        <mxCell id="fofi" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#1565C0;fillColor=#E3F2FD;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="FO/FI 位图&#xa;Ch.3 复用&#xa;仅对 H_t 中候选 key&#xa;维护 bitmap(a)" vertex="1">
+          <mxGeometry height="95" width="180" x="315" y="657" as="geometry" />
+        </mxCell>
+        <mxCell id="queue" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#1565C0;fillColor=#E3F2FD;fontSize=15;fontStyle=1;align=center;verticalAlign=middle;" value="队列调度 / Pushback 规则执行&#xa;Ch.3 复用 + Ch.4 扩展&#xa;rank(a) → 队列映射&#xa;执行 PT 安装的软状态规则" vertex="1">
+          <mxGeometry height="95" width="180" x="535" y="657" as="geometry" />
+        </mxCell>
+        <mxCell id="ingress" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="入端口贡献统计&#xa;★ Ch.4 新增&#xa;维护 bytes(a,p)&#xa;供 pushback 选择上游端口" vertex="1">
+          <mxGeometry height="85" width="180" x="95" y="782" as="geometry" />
+        </mxCell>
+        <mxCell id="parser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="EG / PT 消息解析&#xa;★ Ch.4 新增&#xa;轻量 header 解析&#xa;与 TTL 递减" vertex="1">
+          <mxGeometry height="85" width="180" x="315" y="782" as="geometry" />
+        </mxCell>
+        <mxCell id="seen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;arcSize=10;strokeWidth=2;strokeColor=#F57C00;fillColor=#FFF3E0;fontSize=16;fontStyle=1;align=center;verticalAlign=middle;" value="seen-set 去重&#xa;★ Ch.4 新增&#xa;Bloom Filter&#xa;去重 EG 消息" vertex="1">
+          <mxGeometry height="85" width="180" x="535" y="782" as="geometry" />
+        </mxCell>
+        <mxCell id="midLabel" parent="1" style="text;html=1;strokeColor=none;fillColor=#ffffff;align=center;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#2E7D32;" value="每个 epoch 读取候选摘要、FO/FI 位图、bytes(a,p)&#xa;写回 rank 与 pushback 规则" vertex="1">
+          <mxGeometry height="45" width="420" x="195" y="542" as="geometry" />
+        </mxCell>
+        <mxCell id="in1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#1565C0;" value="普通数据包 / 攻击流" vertex="1">
+          <mxGeometry height="24" width="130" x="10" y="689" as="geometry" />
+        </mxCell>
+        <mxCell id="in2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#F57C00;" value="EG / PT 控制消息" vertex="1">
+          <mxGeometry height="24" width="130" x="250" y="902" as="geometry" />
+        </mxCell>
+        <mxCell id="out1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#1565C0;" value="普通转发流量" vertex="1">
+          <mxGeometry height="24" width="120" x="770" y="697" as="geometry" />
+        </mxCell>
+        <mxCell id="out2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#F57C00;" value="发往邻居的 EG / PT 消息" vertex="1">
+          <mxGeometry height="24" width="180" x="770" y="817" as="geometry" />
+        </mxCell>
+        <mxCell id="port1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;" value="ISL 入端口 p1...p4" vertex="1">
+          <mxGeometry height="24" width="180" x="90" y="902" as="geometry" />
+        </mxCell>
+        <mxCell id="port2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;" value="ISL 出端口" vertex="1">
+          <mxGeometry height="24" width="120" x="340" y="902" as="geometry" />
+        </mxCell>
+        <mxCell id="port3" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;" value="地面链路" vertex="1">
+          <mxGeometry height="24" width="100" x="565" y="902" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="mscore" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;endArrow=block;endFill=1;" target="ecache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="ecache" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;endArrow=block;endFill=1;" target="snet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="snet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;endArrow=block;endFill=1;" target="pbjudge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="ecache" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;endArrow=block;endFill=1;" target="egmerge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="egmerge" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;strokeColor=#2E7D32;endArrow=block;endFill=1;" target="suppress">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="dp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43A047;dashed=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="557" />
+            </Array>
+            <mxPoint x="485" y="527" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#43A047;dashed=1;endArrow=block;endFill=1;" target="dp">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="567" />
+            </Array>
+            <mxPoint x="430.09090909090855" y="527" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="topk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;endArrow=block;endFill=1;" target="fofi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="fofi" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;endArrow=block;endFill=1;" target="queue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="parser" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;endArrow=block;endFill=1;" target="seen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="seen" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;dashed=1;endArrow=block;endFill=1;" target="ecache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="queue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;dashed=1;endArrow=block;endFill=1;" target="out1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="suppress" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;dashed=1;endArrow=block;endFill=1;" target="out2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;dashed=1;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="656.91" />
+            </Array>
+            <mxPoint x="810.090909090909" y="307.91" as="sourcePoint" />
+            <mxPoint x="715" y="657.0009090909087" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="topk" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1565C0;dashed=1;endArrow=block;endFill=1;" target="in1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="parser" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#F57C00;dashed=1;endArrow=block;endFill=1;" target="in2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
