@@ -64,7 +64,7 @@
         <mxCell id="1wMO7CdKsUsOyXVFzBSW-36" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;div&gt;&lt;b&gt;Seen-set 去重&lt;/b&gt; &lt;font color=&quot;#d97a1c&quot; style=&quot;font-size: 13px;&quot;&gt;Ch.4 新增&lt;/font&gt;&lt;br&gt;Bloom Filter 去重&lt;br&gt;EG 消息&lt;/div&gt;" vertex="1">
           <mxGeometry height="105" width="250" x="725" y="425" as="geometry" />
         </mxCell>
-        <mxCell id="1wMO7CdKsUsOyXVFzBSW-42" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;b&gt;证据缓存&amp;nbsp;&lt;i&gt;E&lt;/i&gt;&lt;sub&gt;v,τ&lt;/sub&gt;&lt;/b&gt;&amp;nbsp;&lt;span style=&quot;color: rgb(217, 122, 28); font-size: 13px;&quot;&gt;Ch.4 新增&lt;/span&gt;&lt;br&gt;存储本地 + 接收到的&lt;br&gt;EG 证据摘要" vertex="1">
+        <mxCell id="1wMO7CdKsUsOyXVFzBSW-42" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#fbf1e7;strokeColor=#d97a1c;strokeWidth=2;fontSize=18;fontFamily=Times New Roman, Songti SC, SimSun;" value="&lt;b&gt;证据缓存&amp;nbsp;ℰ&lt;sub&gt;v,τ&lt;/sub&gt;&lt;/b&gt;&amp;nbsp;&lt;span style=&quot;color: rgb(217, 122, 28); font-size: 13px;&quot;&gt;Ch.4 新增&lt;/span&gt;&lt;br&gt;存储本地 + 接收到的&lt;br&gt;EG 证据摘要" vertex="1">
           <mxGeometry height="105" width="250" x="460" y="655" as="geometry" />
         </mxCell>
       </root>

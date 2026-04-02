@@ -51,14 +51,15 @@ W_{\text{waste}}(\tau) \approx \bar h\cdot A.
 \subsection{系统总体架构：CoopSatShield}
 \label{subsec:ch4_arch}
 
-为实现上述目标，本章提出多星协同防御优化系统\textsc{CoopSatShield}。系统由本地证据抽取（Local Evidence）、抑制型邻居扩散协同（Suppressed Gossip）和逐跳推回执行（Pushback Enforcement）三部分构成。图~\ref{fig:ch4_arch}展示单颗卫星节点$v$的内部架构，多节点协同拓扑将在后续图中单独给出。
-
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=0.8\linewidth]{figs/ch4/fig4_arch_node.pdf}
 \caption{\textsc{CoopSatShield}单节点内部架构}
 \label{fig:ch4_arch}
 \end{figure}
+
+
+为实现上述目标，本章提出多星协同防御优化系统\textsc{CoopSatShield}。系统由本地证据抽取（Local Evidence）、抑制型邻居扩散协同（Suppressed Gossip）和逐跳推回执行（Pushback Enforcement）三部分构成。图~\ref{fig:ch4_arch}展示单颗卫星节点$v$的内部架构，多节点协同拓扑将在后续图中单独给出。
 
 \subsection{本地证据抽取与证据单元构造}
 \label{subsec:ch4_local_evidence}
@@ -204,9 +205,9 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 \begin{algorithm}[t]
 \caption{抑制型邻居扩散协同（Suppressed Gossip Protocol）}
 \label{alg:suppressed_gossip}
-\Input{(1) 当前 epoch $\tau$ 的本地拥塞状态 $c_{v,e}(\tau)$ 与本地 EG 候选消息 $M_v$；\newline
-(2) 节点状态：证据缓存 $\mathcal{E}_{v,\tau}$ 与发送窗口 $I$；\newline
-(3) 协同参数：ROI 半径 $R$、抑制参数 $k$、重叠阈值 $\theta_\Omega$。}
+\Input{（1）当前 epoch $\tau$ 的本地拥塞状态 $c_{v,e}(\tau)$ 与本地 EG 候选消息 $M_v$；\newline
+（2）节点状态：证据缓存 $\mathcal{E}_{v,\tau}$ 与发送窗口 $I$；\newline
+（3）协同参数：ROI 半径 $R$、抑制参数 $k$、重叠阈值 $\theta_\Omega$。}
 \Output{节点本轮的发送结果 $O_v$：聚合 EG 消息 $\widetilde{M}_v$ 或抑制决策 \textsc{Suppress}。}
 \BlankLine
 \tcc{步骤 1：本地拥塞触发并启动抑制发送窗口}
@@ -235,7 +236,7 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 }{
     抑制发送（suppress）\;
 }
-\textbf{return} $O_v$\;
+\textbf{return} $O_v$。
 \end{algorithm}
 
 \noindent\textbf{\texttt{Aggregate}策略说明。}函数$\texttt{Aggregate}(\mathcal{E}_{v,\tau})$对缓存中的所有 EG 消息执行如下合并：（i）同一 key $a$若出现在多条消息中，则取$\widehat{s}(a) = \max_j \widehat{s}_j(a)$，保留最强证据；（ii）对 digest 按位 OR，得到 Bloom Filter 摘要并集，保证接收端能够判断聚合后候选集的覆盖范围；（iii）若合并后的 key 集合超过$n$，则按$\widehat{s}(a)$降序保留前$n$个，保证消息大小恒定。这样处理后，消息仍然紧凑，同时优先传播高置信度证据。
@@ -270,9 +271,9 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
 \begin{algorithm}[t]
 \caption{逐跳推回（Hop-by-hop Pushback）}
 \label{alg:pushback}
-\Input{(1) 触发 key 集合 $\mathcal{A}^{\text{pb}}_\tau$ 及其缓解等级 $\texttt{rank}(a)$；\newline
-(2) 各节点的入端口贡献分布 $\pi_{v,\tau}(a,p)$ 与本地软状态规则表；\newline
-(3) 推回参数：推回半径 $R_{\uparrow}$、上游分支数 $r$、软状态生存期 $T_{\text{life}}$。}
+\Input{（1）触发 key 集合 $\mathcal{A}^{\text{pb}}_\tau$ 及其缓解等级 $\texttt{rank}(a)$；\newline
+（2）各节点的入端口贡献分布 $\pi_{v,\tau}(a,p)$ 与本地软状态规则表；\newline
+（3）推回参数：推回半径 $R_{\uparrow}$、上游分支数 $r$、软状态生存期 $T_{\text{life}}$。}
 \Output{本地安装或刷新的缓解规则，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$。}
 \BlankLine
 \tcc{步骤 1：受害节点按入端口贡献选择上游并发起 PT}
@@ -293,7 +294,7 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
 }{
     丢弃该 PT\;
 }
-\textbf{return} 本地安装或刷新的缓解规则，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$\;
+\textbf{return} 本地安装或刷新的缓解规则，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$。\;
 \end{algorithm}
 
 \noindent\textbf{rank到队列映射与限速动作。}PT中的$\texttt{rank}$字段映射到三级缓解强度：（i）$\texttt{rank}=\text{High}$：匹配key的流量被调度至最低优先级队列Queue~0，带宽上限设为链路容量的$5\%$，实现近乎完全阻断；（ii）$\texttt{rank}=\text{Med}$：调度至Queue~1，带宽上限为$20\%$；（iii）$\texttt{rank}=\text{Low}$：调度至Queue~2，仅降低调度优先级但不硬限速。数据面通过match-action表项实现：以key哈希$\widehat{a}$匹配入向流量，命中后修改队列标记字段并施加对应meter速率。当同一key在同一epoch内收到多个PT（来自不同下游节点或路径），取最严格的rank值（即$\text{High} > \text{Med} > \text{Low}$）；若新PT的rank弱于已安装规则，则忽略。跨epoch时，新PT刷新$T_{\text{life}}$计时器，确保软状态的时效性。
