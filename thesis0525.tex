@@ -5,7 +5,7 @@
 \usepackage{xurl}
 \makeatletter
 \renewcommand{\bibfont}{%
-	\zihao{5}\setlength{\baselineskip}{20bp}\selectfont%
+		\zihao{5}\setlength{\baselineskip}{20bp}\selectfont%
 	\tolerance=2000%
 	\emergencystretch=2em%
 	\hyphenpenalty=200%
@@ -58,16 +58,16 @@
 	% 开启中文摘要
 	\zhabstract
 	
-	大规模低地球轨道（Low Earth Orbit, LEO）卫星巨型星座凭借低时延、广覆盖和全球互联能力，正逐步成为天地一体化信息网络的重要基础设施。然而，与地面骨干网相比，LEO 星座的星间链路（Inter-Satellite Link, ISL）带宽更有限，且卫星轨道、拓扑结构和部分链路信息具有较强的公开性与可预测性，使攻击者能够更容易构造面向关键链路的链路洪泛攻击（Link Flooding Attack, LFA）。这类攻击通过操纵大量分布式节点向合法目标发送低速但协同的流量，使攻击流在目标链路上汇聚形成拥塞，从而显著降低合法业务的吞吐并破坏网络可用性。
+	大规模低地球轨道卫星巨型星座凭借低时延、广覆盖和全球互联能力，正逐步成为天地一体化信息网络的重要基础设施。然而，低轨卫星的星间链路带宽有限，卫星轨道、拓扑结构和部分链路信息又具有较强的公开性与可预测性，使攻击者更容易围绕关键链路构造隐蔽的链路洪泛攻击。这类攻击通过操纵大量分布式节点向合法目标发送低速但协同的流量，使攻击流在目标链路上汇聚形成拥塞，从而降低合法业务吞吐并破坏网络可用性。
 
-	现有防御方法仍难以直接适用于 LEO 场景。一方面，依赖地面控制器或地面清洗中心的集中式方案受制于星地控制环路时延，难以及时响应毫秒级动态变化的攻击；另一方面，面向地面网络设计的可编程数据面方案通常假设拓扑稳定、硬件资源充足，并多依赖聚合速率等单一特征，多诱饵目的分摊、低速化和脉冲化等隐蔽攻击下容易出现漏检。此外，仅在受害链路附近进行本地处置，难以阻止攻击流在上游链路上的无效传输。针对上述问题，本文面向星载可编程数据面受限环境，围绕基于多签名在网检测与队列调度的 LFA 防御优化，以及基于多星协同与逐跳推回的 LFA 防御优化，开展了系统研究。
+	现有防御方法难以直接适用于低轨卫星网络场景。集中式方案受制于星地控制环路时延，难以及时响应动态变化的攻击；面向地面网络设计的可编程数据面方案多依赖聚合速率等单一特征，在多诱饵目的分摊、低速化和脉冲化等隐蔽攻击下容易失效；仅在受害链路附近进行本地处置，也难以减少攻击流在上游链路上的无效传输。针对上述问题，本文面向星载可编程数据面受限环境，从单星精确识别和多星协同抑制两个层面开展系统研究。
 
-	针对单星场景下隐蔽 LFA 难以准确识别的问题，本文提出基于多签名在网检测与队列调度的 LFA 防御优化方法。该方法采用“Top-$K$ 候选生成 + 多维结构特征提取”的级联式检测架构，在有限状态开销下联合利用聚合速率、扇入度（Fan-in, FI）、扇出度（Fan-out, FO）和持续性（Persistence）等特征，实现对退化攻击的鲁棒检测，并通过队列优先级调度对可疑流实施差异化处置。实验结果表明，在多诱饵目的分摊退化设定下（$M=100$），仅依赖聚合速率的基线方案 F1 降至 0.017，而引入 FI/FO 后 F1 恢复至 0.908；在脉冲式 on-off 攻击下，持续性特征进一步将召回率（Recall）提升至 0.999，且数据面总状态开销仅约 200~KB。
+	针对单星场景下隐蔽链路洪泛攻击难以准确识别的问题，本文提出一种基于多签名在网检测与队列调度的防御方法。该方法采用“Top-$K$ 候选生成 + 多维结构特征提取”的级联式检测架构，在有限状态开销下联合利用聚合速率、扇入度、扇出度和持续性等特征，对典型退化攻击建立更稳定的判别依据，并通过队列优先级调度将检测结果转化为低误伤的处置动作。实验结果表明，该方法能够在资源开销可控的前提下显著提升隐蔽链路洪泛攻击的识别能力，并保持较好的检测鲁棒性与业务保护效果。
 
-	针对单星本地处置难以降低上游链路带宽浪费的问题，本文进一步提出基于多星协同与逐跳推回的 LFA 防御优化方法。该方法通过抑制型邻居扩散协议在局部区域内聚合多星攻击证据，并结合逐跳推回机制将防御位置从受害链路前移至上游入口，从而减少攻击流在网络中的无效占用。实验结果表明，在 $M=100$ 退化场景下，CoopSatShield 可将无效带宽占用降至无防御方案的 11.0\%，使攻击期间良性吞吐稳态维持在 0.959，控制带宽仅占 ISL 容量的 0.004\%。本文工作为大规模低轨卫星网络提供了一种兼顾低时延、低资源开销与抗退化能力的在网安全防御优化思路。
+	针对单星本地处置难以降低上游链路带宽浪费的问题，本文进一步提出一种基于多星协同与逐跳推回的协同防御方法。该方法通过抑制型邻居扩散协议在局部区域内聚合多星攻击证据，并结合逐跳推回机制将防御位置从受害链路前移至上游入口，从而把受害点被动缓解扩展为沿路径主动抑制。实验结果表明，该方法能够在有限协同开销下减少攻击流在网络中的无效占用，改善攻击期间合法业务的吞吐表现，并提升大规模星座环境下防御机制的整体协同效率。本文工作为大规模低轨卫星网络提供了一种兼顾低时延、低资源开销与抗退化能力的在网安全防御优化思路。
 
 	% 中文关键字
-	\zhkeywords{低轨卫星网络；链路洪泛攻击；在网计算；可编程数据平面}
+	\zhkeywords{低轨卫星网络；链路洪泛攻击；在网计算；可编程数据平面；协同防御}
 	
 	
 
@@ -76,16 +76,16 @@
 	% 开启英文摘要
 	\enabstract
 	
-	Large-scale Low Earth Orbit (LEO) mega-constellations, with their low latency, wide coverage, and global connectivity, are becoming an important foundation of space-ground integrated information networks. However, compared with terrestrial backbone networks, LEO constellations feature more bandwidth-limited Inter-Satellite Links (ISLs), while orbital, topological, and partial link information is highly public and predictable. This makes it easier for attackers to launch Link Flooding Attacks (LFAs) against critical links. In such attacks, a large number of distributed nodes send low-rate yet coordinated traffic to legitimate destinations, causing attack flows to converge on a target link, create congestion, and significantly degrade benign throughput and network availability.
+	Large-scale Low Earth Orbit (LEO) mega-constellations, with their low latency, wide coverage, and global connectivity, are becoming an important foundation of space-ground integrated information networks. However, LEO constellations rely on bandwidth-limited Inter-Satellite Links (ISLs), while orbital, topological, and partial link information remains highly public and predictable. This makes it easier for attackers to launch stealthy Link Flooding Attacks (LFAs) against critical links. In such attacks, a large number of distributed nodes send low-rate yet coordinated traffic to legitimate destinations, causing attack flows to converge on target links and degrade benign throughput and network availability.
 
-	Existing defense mechanisms remain difficult to apply directly to LEO scenarios. On the one hand, centralized approaches relying on ground controllers or ground scrubbing centers are constrained by the latency of space-ground control loops and cannot respond promptly to millisecond-scale attack dynamics. On the other hand, programmable-data-plane solutions originally designed for terrestrial networks usually assume stable topologies and abundant hardware resources, and often rely on single features such as aggregate rate, which leads to missed detections under stealthy strategies including multi-Decoy dilution, low-rate attacks, and pulsed attacks. In addition, actions taken only near the victim link cannot prevent wasted bandwidth consumption along upstream paths. To address these issues, this thesis investigates two complementary LFA defense optimizations for resource-constrained spaceborne programmable data planes: one based on multi-signature in-network detection and queue scheduling, and the other based on multi-satellite cooperation and hop-by-hop pushback.
+	Existing defense mechanisms remain difficult to apply directly to LEO scenarios. Centralized approaches are constrained by the latency of space-ground control loops and cannot respond promptly to evolving attacks. Programmable-data-plane solutions originally designed for terrestrial networks often rely on single features such as aggregate rate and therefore struggle under multi-Decoy dilution, low-rate attacks, and pulsed attacks. Moreover, actions taken only near the victim link cannot prevent wasted bandwidth consumption along upstream paths. To address these issues, this thesis conducts a systematic study from two perspectives: accurate single-satellite identification and cooperative multi-satellite suppression.
 
-	To address the difficulty of accurately identifying stealthy LFAs from a single-satellite perspective, this thesis proposes MS-SatShield, an LFA defense optimization based on multi-signature in-network detection and queue scheduling. MS-SatShield adopts a cascaded architecture of Top-$K$ candidate generation and multi-dimensional structural feature extraction, jointly exploiting aggregate rate, Fan-in (FI), Fan-out (FO), and Persistence under limited state overhead to achieve robust detection against degraded attacks, while translating detection outputs into differentiated queue scheduling actions. Experimental results show that under a multi-Decoy dilution setting ($M=100$), the F1 score of a Rate-only baseline drops to 0.017, whereas incorporating FI/FO restores it to 0.908; under pulsed on-off attacks, the persistence feature further improves Recall to 0.999, while the total data-plane state overhead remains only about 200~KB.
+	To address the difficulty of accurately identifying stealthy LFAs from a single-satellite perspective, this thesis proposes a defense method based on multi-signature in-network detection and queue scheduling. MS-SatShield adopts a cascaded architecture of Top-$K$ candidate generation and multi-dimensional structural feature extraction, jointly exploiting aggregate rate, Fan-in (FI), Fan-out (FO), and Persistence under limited state overhead to establish more reliable detection cues against degraded attacks, while translating detection outputs into differentiated queue scheduling actions. Experimental results show that the proposed method significantly improves the identification of stealthy LFAs, remains robust under typical degraded attacks, and preserves a practical data-plane resource footprint.
 
-	To address the limitation that local handling at a single satellite cannot reduce wasted bandwidth on upstream links, this thesis further proposes CoopSatShield, an LFA defense optimization based on multi-satellite cooperation and hop-by-hop pushback. CoopSatShield aggregates attack evidence within a local region through a suppressed neighbor-gossip protocol and combines it with a hop-by-hop pushback mechanism that moves the defense point from the victim link toward upstream ingress points, thereby reducing wasted bandwidth occupancy of attack traffic in the network. Experimental results show that under the degraded setting of $M=100$, CoopSatShield reduces wasted bandwidth to 11.0\% of the no-defense baseline, maintains benign throughput at a steady state of 0.959 during attacks, and consumes only 0.004\% of ISL capacity for control signaling. Overall, this work provides an in-network security defense optimization framework for large-scale LEO satellite networks that jointly achieves low latency, low resource overhead, and robustness against attack degradation.
+	To address the limitation that local handling at a single satellite cannot reduce wasted bandwidth on upstream links, this thesis further proposes a cooperative defense method based on multi-satellite cooperation and hop-by-hop pushback. CoopSatShield aggregates attack evidence within a local region through a suppressed neighbor-gossip protocol and combines it with a hop-by-hop pushback mechanism that moves the defense point from the victim link toward upstream ingress points, thereby extending local mitigation into path-aware suppression. Experimental results show that CoopSatShield can reduce wasted attack occupancy along upstream paths, improve benign throughput during attacks, and maintain low coordination overhead in large-scale constellation environments. Overall, this work provides an in-network security defense optimization framework for large-scale LEO satellite networks that jointly achieves low latency, low resource overhead, and robustness against attack degradation.
 
 	% 英文关键字
-	\enkeywords{LEO Satellite Networks; Link Flooding Attack; In-Network Computing; Programmable Data Plane}
+	\enkeywords{LEO Satellite Networks; Link Flooding Attack; In-Network Computing; Programmable Data Plane; Cooperative Defense}
 
 	
 	\tableofcontents  % 主目录，必要
