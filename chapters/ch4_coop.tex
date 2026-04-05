@@ -193,14 +193,6 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 \subsubsection*{（3）抑制型扩散协议（Suppressed Gossip Protocol）}
 设节点$v$在 epoch $\tau$内维护一个证据缓存$\mathcal{E}_{v,\tau}$，存储 ROI 内观察到的 EG 消息摘要。对任意$(\tau,\texttt{link\_id})$，节点以固定时隙$I = \Delta/4$执行一次抑制型扩散，即每个 epoch 内最多执行 4 轮扩散，且$I \ll \Delta$足以保证在 epoch 结束前完成收敛。其基本过程是：节点先在$I$内随机选择一个发送时刻$t_{\text{send}}$；若在$t_{\text{send}}$之前已经监听到至少$k$条等价证据（同一 epoch、同一 link\_id 且 digest 高度相似），则抑制本次发送；否则就在$t_{\text{send}}$发送聚合后的 EG 消息。通过随机化发送时机和冗余抑制，系统可以在保持传播速度的同时减少重复广播。
 
-进一步地，为保证传播局部化，本章规定 EG 消息只有在满足相关性门限时才会继续转发。节点$v$收到来自邻居$u$的 EG 消息$M$后，计算其与本地候选集合$\mathcal{A}_{v,\tau}$的重叠度：
-\begin{equation}
-\Omega(M,v) = \frac{|\mathcal{A}_{v,\tau}\cap \mathcal{A}(M)|}{|\mathcal{A}(M)|},
-\label{eq:overlap}
-\end{equation}
-其中$\mathcal{A}(M)$表示消息中的 Top-$n$ key 集合。只有当$\Omega(M,v)\ge \theta_\Omega$或本地链路同样处于拥塞态$c_{v,e}(\tau)=1$时，节点才会将该证据纳入缓存并参与后续转发。这个机制借助本地观测的一致性过滤无关扩散，是控制信令规模的重要一环。
-
-算法~\ref{alg:suppressed_gossip}给出了抑制型扩散协议的流程。与朴素 Gossip 相比，这里的重点不在于能否传播，而在于结合物理网络的局部性和低度数结构，把传播范围控制在 ROI 内，并尽量避免同一证据在区域内反复回旋。
 
 \begin{algorithm}[htbp]
 \caption{抑制型邻居扩散协同}
@@ -240,6 +232,16 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 \textbf{return} $O_v$。
 \end{algorithm}
 
+
+进一步地，为保证传播局部化，本章规定 EG 消息只有在满足相关性门限时才会继续转发。节点$v$收到来自邻居$u$的 EG 消息$M$后，计算其与本地候选集合$\mathcal{A}_{v,\tau}$的重叠度：
+\begin{equation}
+\Omega(M,v) = \frac{|\mathcal{A}_{v,\tau}\cap \mathcal{A}(M)|}{|\mathcal{A}(M)|},
+\label{eq:overlap}
+\end{equation}
+其中$\mathcal{A}(M)$表示消息中的 Top-$n$ key 集合。只有当$\Omega(M,v)\ge \theta_\Omega$或本地链路同样处于拥塞态$c_{v,e}(\tau)=1$时，节点才会将该证据纳入缓存并参与后续转发。这个机制借助本地观测的一致性过滤无关扩散，是控制信令规模的重要一环。
+
+算法~\ref{alg:suppressed_gossip}给出了抑制型扩散协议的流程。与朴素 Gossip 相比，这里的重点不在于能否传播，而在于结合物理网络的局部性和低度数结构，把传播范围控制在 ROI 内，并尽量避免同一证据在区域内反复回旋。
+
 函数$\texttt{Aggregate}(\mathcal{E}_{v,\tau})$对缓存中的所有 EG 消息执行如下合并：（i）同一 key $a$若出现在多条消息中，则取$\widehat{s}(a) = \max_j \widehat{s}_j(a)$，保留最强证据；（ii）对 digest 按位 OR，得到 Bloom Filter 摘要并集，保证接收端能够判断聚合后候选集的覆盖范围；（iii）若合并后的 key 集合超过$n$，则按$\widehat{s}(a)$降序保留前$n$个，保证消息大小恒定。这样处理后，消息仍然紧凑，同时优先传播高置信度证据。
 
 算法~\ref{alg:suppressed_gossip}中的聚合发送步骤采用$\texttt{ttl}\leftarrow \min(\texttt{ttl}_{\text{received}}-1, R)$，从而保证每次转发时 TTL 至少递减 1，即使经过聚合节点也不会被重置为完整 TTL。因此，在$R$跳半径的 ROI 内，消息最多经历$R$次转发后就会终止，不存在无限传播风险。
@@ -265,7 +267,6 @@ S^{\text{net}}_{\tau}(a) = \sum_{v\in \mathcal{R}_{\tau}}\omega_v \cdot \widetil
 当存在$a$使$S^{\text{net}}_{\tau}(a)\ge \Theta_{\text{pb}}$时，系统对该 key 触发逐跳推回；若多个 key 满足条件，则按$S^{\text{net}}_{\tau}(a)$排序取前$n_{\text{pb}}$个执行，以保证数据面策略表规模可控。
 
 \subsubsection*{（2）推回令牌与逐跳传播}
-pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳可观测的上游贡献来实现近似反向路径传播。具体来说，被攻击链路附近节点$v$对 key $a$计算其入端口贡献分布$\pi_{v,\tau}(a,p)$（式\eqref{eq:ingress_contrib}），再选择贡献最大的前$r=\min(2,d-1)$个上游端口集合$\mathcal{P}^\uparrow_{v}(a)$；在$d=4$的 LEO 星间链路结构中，$r=2$。随后，节点向对应上游邻居发送 PT 令牌。令牌携带软状态生存期$T_{\text{life}}$与剩余推回跳数$R_{\uparrow}$，上游节点收到后立即在本地数据面安装短时效缓解规则，如队列降权或限速，并继续沿相同思路向更上游传播。记本地推回软状态规则表为 $\mathcal{R}^{\text{pb}}$。由于 LEO 网络连接度较低、拓扑变化发生在秒级\citess{icarus}，这种逐跳机制在每个 epoch 内都具有稳定语义；同时，软状态到期后会自动失效，从而避免拓扑变化后留下过期规则。算法~\ref{alg:pushback}给出了pushback传播流程。
 
 \begin{algorithm}[htbp]
 \caption{逐跳推回（Hop-by-hop Pushback）}
@@ -296,6 +297,8 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
 }
 \textbf{return} $\mathcal{R}^{\text{pb}}$和$\mathcal{T}^{\uparrow}$。
 \end{algorithm}
+
+pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳可观测的上游贡献来实现近似反向路径传播。具体来说，被攻击链路附近节点$v$对 key $a$计算其入端口贡献分布$\pi_{v,\tau}(a,p)$（式\eqref{eq:ingress_contrib}），再选择贡献最大的前$r=\min(2,d-1)$个上游端口集合$\mathcal{P}^\uparrow_{v}(a)$；在$d=4$的 LEO 星间链路结构中，$r=2$。随后，节点向对应上游邻居发送 PT 令牌。令牌携带软状态生存期$T_{\text{life}}$与剩余推回跳数$R_{\uparrow}$，上游节点收到后立即在本地数据面安装短时效缓解规则，如队列降权或限速，并继续沿相同思路向更上游传播。记本地推回软状态规则表为 $\mathcal{R}^{\text{pb}}$。由于 LEO 网络连接度较低、拓扑变化发生在秒级\citess{icarus}，这种逐跳机制在每个 epoch 内都具有稳定语义；同时，软状态到期后会自动失效，从而避免拓扑变化后留下过期规则。算法~\ref{alg:pushback}给出了pushback传播流程。
 
 PT中的$\texttt{rank}$字段映射到三级缓解强度：（i）$\texttt{rank}=\text{High}$：匹配key的流量被调度至最低优先级队列Queue~0，带宽上限设为链路容量的$5\%$，实现近乎完全阻断；（ii）$\texttt{rank}=\text{Med}$：调度至Queue~1，带宽上限为$20\%$；（iii）$\texttt{rank}=\text{Low}$：调度至Queue~2，仅降低调度优先级但不硬限速。数据面通过match-action表项实现：以key哈希$\widehat{a}$匹配入向流量，命中后修改队列标记字段并施加对应meter速率。当同一key在同一epoch内收到多个PT（来自不同下游节点或路径），取最严格的rank值（即$\text{High} > \text{Med} > \text{Low}$）；若新PT的rank弱于已安装规则，则忽略。跨epoch时，新PT刷新$T_{\text{life}}$计时器，确保软状态的时效性。
 
