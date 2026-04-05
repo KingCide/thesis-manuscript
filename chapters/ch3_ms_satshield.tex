@@ -65,7 +65,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 \subsection{速率可分性退化与多签名动机}
 在给出正式系统设计之前，本文先用一个预实验说明单一速率特征在退化攻击下如何失效，并据此引出后续的多签名设计。SatShield 的一个重要观察是，在现有 LEO 系统约束下，攻击者若要使目标 ISL 达到拥塞，必须注入接近链路容量量级的总攻击流量；但受单终端上行能力、单星可服务用户数等约束，攻击流按源地址或目的地址聚合后，仍会呈现 Mb/s 量级的重尾分布，因此与绝大多数良性聚合速率之间存在可分性\citess{satshield}。基于这一观察，本章采用与 SatShield 一致的 LEO 仿真与流量构造思路：使用 Starlink Shell 1 星座拓扑（1584 颗卫星）和 ISL 容量 $20$~Gb/s 作为基本网络模型，良性背景流量由 CAIDA 匿名互联网流量轨迹数据（CAIDA Anonymized Internet Traces 2018 数据集，采集自 Equinix-Chicago 监测点）经重放得到，并通过人口分布模型映射到城市对之间的通信需求（映射方法详见文献\cite{satshield} 第~IV-A~节）。该流量轨迹数据采集于 2018 年，与当前互联网流量分布可能存在差异，但本文关注的是攻击侧与正常侧的相对可分性，良性分布的绝对形状对结论影响有限。
 
-图~\ref{fig:ch3_fig1_cdf} 以 $2\times2$ 子图展示了不同 Decoy 数 $M$ 下，良性与攻击流量在每个地址 key 聚合速率维度上的经验累积分布函数（Cumulative Distribution Function, CDF）。绘制过程如下：先在仿真中固定 epoch 长度 $\Delta$，对每个 epoch 统计所有 key 的 $\text{bytes}_t(a)$，再由式~(\ref{eq:rate_def_rate}) 计算 $R_t(a)$；再分别对良性与攻击 key 集合绘制 CDF 曲线。当 $M=1$ 时，良性 $p_{99}\approx485$~Mb/s 与攻击聚合速率 $10{,}024$~Mb/s 之间存在约 $21$ 倍间隙；$M=10$ 时这一间隙缩小到约 $2$ 倍；$M=100$ 时攻击 key 速率下降到 $100$~Mb/s，已经落入良性分布的长尾区间；$M=1000$ 时攻击 key 与良性 key 基本重叠。该图展示了可分性随 $M$ 增大而退化的过程，也为后续多签名检测（图~\ref{fig:ch3_fig2_f1}）提供了动机。
+图~\ref{fig:ch3_fig1_cdf} 展示了不同 Decoy 数 $M$ 下，良性与攻击流量在每个地址 key 聚合速率维度上的经验累积分布函数（Cumulative Distribution Function, CDF）。绘制过程如下：先在仿真中固定 epoch 长度 $\Delta$，对每个 epoch 统计所有 key 的 $\text{bytes}_t(a)$，再由式~(\ref{eq:rate_def_rate}) 计算 $R_t(a)$；再分别对良性与攻击 key 集合绘制 CDF 曲线。当 $M=1$ 时，良性 $p_{99}\approx485$~Mb/s 与攻击聚合速率 $10{,}024$~Mb/s 之间存在约 $21$ 倍间隙；$M=10$ 时这一间隙缩小到约 $2$ 倍；$M=100$ 时攻击 key 速率下降到 $100$~Mb/s，已经落入良性分布的长尾区间；$M=1000$ 时攻击 key 与良性 key 基本重叠。该图展示了可分性随 $M$ 增大而退化的过程，也为后续多签名检测（图~\ref{fig:ch3_fig2_f1}）提供了动机。
 
 \begin{figure}[!htb]
   \centering
