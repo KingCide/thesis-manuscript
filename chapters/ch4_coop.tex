@@ -6,17 +6,17 @@
 
 上一章（\ref{chap:ms_satshield}）讨论了单星、单节点视角下基于多签名在网检测与队列调度的 LFA 防御优化，利用可编程交换机的数据面线速能力实现了对可疑聚合 key 的实时识别与队列调度处置。这类星上本地闭环的优势很直接，即不必依赖地面控制器完成统计上报和策略下发，从而避开卫星到地面以及星间控制链路带来的时延开销。在 LEO 星座网络中，这一点尤其重要。现有研究指出，卫星网络控制环路的延迟可达几十毫秒，而攻击流量能够在亚毫秒级完成自适应变化，因此依赖中心控制器的传统 LFA 防御很难跟上快速演化的攻击\citess{satshield}。
 
-然而，只依赖受害链路附近的本地缓解仍有两方面不足。本地缓解往往发生在拥塞已经形成之后，攻击流量在到达目标瓶颈链路前，已经沿多条星间链路消耗了大量带宽和队列资源。这种末端丢弃会在网络内部制造额外拥塞风险，也会明显放大对良性业务的影响。另一方面，低轨卫星网络的 LFA 攻击具有明显的全网性与漂移性。攻击者可以利用公开的轨道和拓扑信息，结合低时延路由偏好带来的路径可预测性，在全球范围内灵活选择 Bot 分布和攻击路径，使攻击证据以碎片化形式分散在多个卫星节点上\citess{icarus}。在这种情况下，即使单个节点具备较强的本地检测能力，缺乏跨节点信息共享仍会限制整体缓解效果。各节点只能在本地丢弃已经到达的攻击流量，难以把抑制动作前推到更靠近攻击源头的上游节点，结果就是大量链路带宽被白白占用。
+然而，只依赖被攻击链路附近的本地缓解仍有两方面不足。本地缓解往往发生在拥塞已经形成之后，攻击流量在到达目标瓶颈链路前，已经沿多条星间链路消耗了大量带宽和队列资源。这种末端丢弃会在网络内部制造额外拥塞风险，也会明显放大对良性业务的影响。另一方面，低轨卫星网络的 LFA 攻击具有明显的全网性与漂移性。攻击者可以利用公开的轨道和拓扑信息，结合低时延路由偏好带来的路径可预测性，在全球范围内灵活选择 Bot 分布和攻击路径，使攻击证据以碎片化形式分散在多个卫星节点上\citess{icarus}。在这种情况下，即使单个节点具备较强的本地检测能力，缺乏跨节点信息共享仍会限制整体缓解效果。各节点只能在本地丢弃已经到达的攻击流量，难以把抑制动作前推到更靠近攻击源头的上游节点，结果就是大量链路带宽被白白占用。
 
 
 % [INS-2026-CH4-01]
-2025年以来的产业实践也让多星协同的必要性更加明确。Starlink 通过 Stargaze 在星座内部形成空间态势感知能力，OneWeb 将自动化避碰纳入运营流程，Direct to Cell 与企业私网业务又使同一套卫星网络同时承载更强的连续性和关键业务保障要求\citess{spacex_stargaze_2026, eutelsat_responsible_space_2026, starlink_direct_to_cell_2026, amazon_leo_enterprise_2025, eu_iris2_2024}。在这一背景下，只在受害点附近做本地限速已经难以满足星座的自治需求。防御系统需要在邻近卫星之间快速交换证据，并把抑制动作前移到更上游的位置，使其能够和轨道侧其他自治闭环并行工作。多星协同与逐跳推回因此不再只是性能优化，而是与星座运行方式相匹配的防御需求。
+2025年以来的产业实践也让多星协同的必要性更加明确。Starlink 通过 Stargaze 在星座内部形成空间态势感知能力，OneWeb 将自动化避碰纳入运营流程，Direct to Cell 与企业私网业务又使同一套卫星网络同时承载更强的连续性和关键业务保障要求\citess{spacex_stargaze_2026, eutelsat_responsible_space_2026, starlink_direct_to_cell_2026, amazon_leo_enterprise_2025, eu_iris2_2024}。在这一背景下，只在被攻击点附近做本地限速已经难以满足星座的自治需求。防御系统需要在邻近卫星之间快速交换证据，并把抑制动作前移到更上游的位置，使其能够和轨道侧其他自治闭环并行工作。多星协同与逐跳推回因此不再只是性能优化，而是与星座运行方式相匹配的防御需求。
 
 从系统条件看，LEO 星座网络本身具备开展多星协同防御的基础。典型星座的星间连接度较低，例如 Starlink Shell 1 中每颗卫星通常配置 4 条 ISL，单条 ISL 的容量可达 20~Gb/s 量级\citess{icarus}。与此同时，星座拓扑和最短路结构的变化发生在秒级时间尺度上，因此可以将系统近似为一系列稳定的拓扑快照并分时处理\citess{icarus}。此外，卫星节点也在逐步演进到全栈可编程架构，已经具备在数据面执行轻量计算、在星上 Agent 执行局部控制的条件\citess{satshield}。基于这些条件，本章提出一种面向大规模 LEO 的\textbf{抑制型邻居扩散协同}与\textbf{逐跳推回}机制，在不依赖地面中心控制器的前提下，实现跨卫星的攻击证据聚合以及更靠近源头的分布式防御优化，并通过区域限制、抑制扩散和速率配额来避免大规模网络中的信令风暴。
 
 本章主要做了三件事。首先，给出本地证据抽取、协同证据聚合和逐跳推回执行组成的多星协同框架，将上一章的本地检测能力扩展到网络级威胁判断。其次，设计面向大规模星座的抑制型邻居扩散协议，在尽量保持协同收敛速度的同时降低控制信令开销。最后，在 Starlink Shell 1 拓扑和真实流量背景（CAIDA trace）下完成系统实现与实验评估，量化展示其相对 NoDefense、SatShield 和 MS-SatShield 三类星载基线的防御收益。至于 LinkScope、Woodpecker、RADAR、Ripple 与 Mew 等地面 LFA 防御方案，本文仍将它们保留为设计参照和假设差异的讨论对象，但不把它们作为正文图表中的数值基线\citess{satshield,icarus,linkscope,woodpecker,radar,ripple,mew}。
 
-\section{基于多星协同与逐跳推回的LFA防御优化方法}
+\section{问题定义与方法设计}
 \label{sec:ch4_method}
 
 \subsection{问题模型与设计目标}
@@ -43,40 +43,40 @@ W_{\text{waste}}(\tau) \approx \bar h\cdot A.
 \label{eq:waste_bw_approx}
 \end{equation}
 
-若只关心受害链路上游的额外浪费，可以在式\eqref{eq:waste_bw_def}基础上减去目标链路上的聚合速率$A$；但为了与后文图示和实验统计保持一致，本文统一采用式\eqref{eq:waste_bw_def}给出的全路径积分口径。在 Starlink Shell 1 中，ISL 容量约为 20~Gb/s\citess{icarus}，而 ICARUS 与 SatShield 都表明，攻击者在数百到数千 Bot 规模下即可形成可观的攻击带宽\citess{icarus,satshield}。因此，即使$\bar h$取较小常数，$W_{\text{waste}}$仍可能达到数十 Gb/s$\cdot$hop 量级，并进一步引发更广泛的链路排队与连锁拥塞。推回收益能够用这一指标直接度量，这也是本章引入多星协同与 pushback 机制的直接动机。
+若只关心被攻击链路上游的额外浪费，可以在式\eqref{eq:waste_bw_def}基础上减去目标链路上的聚合速率$A$；但为了与后文图示和实验统计保持一致，本文统一采用式\eqref{eq:waste_bw_def}给出的全路径积分口径。在 Starlink Shell 1 中，ISL 容量约为 20~Gb/s\citess{icarus}，而 ICARUS 与 SatShield 都表明，攻击者在数百到数千 Bot 规模下即可形成可观的攻击带宽\citess{icarus,satshield}。因此，即使$\bar h$取较小常数，$W_{\text{waste}}$仍可能达到数十 Gb/s$\cdot$hop 量级，并进一步引发更广泛的链路排队与连锁拥塞。推回收益能够用这一指标直接度量，这也是本章引入多星协同与 pushback 机制的直接动机。
 
 \textbf{（3）设计目标}\quad
 在上述模型下，本章主要关注三个目标。首先是快速性，协同判断与 pushback 传播需要在攻击自适应时间尺度之前完成闭环更新，避免再次落回中心控制器的高时延反馈环\citess{satshield}。其次是可扩展性，当星座规模达到数千甚至上万颗卫星时，协同机制不能采用全网广播式信令，控制开销应远小于 ISL 带宽，并且保持数据面可实现。最后是稳健性，面对分散化、低速化、脉冲化和滚动目标等攻击策略，协同机制需要把碎片化证据汇聚成网络级信号，减少本地 Top-$K$ 漏检对整体防御效果的影响。这个问题在\ref{chap:ms_satshield}中已经通过退化设定作过论证。
 
-\subsection{系统总体架构：CoopSatShield}
+\subsection{CoopSatShield总体架构}
 \label{subsec:ch4_arch}
 
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=0.8\linewidth]{figs/ch4/fig4_arch_node.pdf}
-\caption{\textsc{CoopSatShield}单节点内部架构}
+\caption{CoopSatShield单节点内部架构}
 \label{fig:ch4_arch}
 \end{figure}
 
 
-为实现上述目标，本章提出多星协同防御优化系统\textsc{CoopSatShield}。系统由本地证据抽取（Local Evidence）、抑制型邻居扩散协同（Suppressed Gossip）和逐跳推回执行（Pushback Enforcement）三部分构成。图~\ref{fig:ch4_arch}展示单颗卫星节点$v$的内部架构，多节点协同拓扑将在后续图中单独给出。
+为实现上述目标，本章提出多星协同防御优化系统CoopSatShield。系统由本地证据抽取（Local Evidence）、抑制型邻居扩散协同（Suppressed Gossip）和逐跳推回执行（Pushback Enforcement）三部分构成。图~\ref{fig:ch4_arch}展示单颗卫星节点$v$的内部架构，多节点协同拓扑将在后续图中单独给出。
 
-\subsection{本地证据抽取与证据单元构造}
-\label{subsec:ch4_local_evidence}
+%\subsection{本地证据抽取与证据单元构造}
+%\label{subsec:ch4_local_evidence}
 
 \textbf{单节点内部架构}（图~\ref{fig:ch4_arch}）分为上下两层：上层为面向 P4 可编程交换机\citess{bosshart2014p4} 的数据面快路径，下层为星上 Agent（控制面，以 epoch 为周期）。
 
 数据面包含 6 个模块，可分为复用模块与新增模块两组：
 \begin{enumerate}
-\item \textbf{复用模块}（Ch.3 MS-SatShield）：CMS 与候选缓存组成的一级候选生成，用于维护候选 key 集合及其近似频次；FI/FO 位图，用于记录候选 key 的扇入度或扇出度结构特征；队列调度，用于基于 rank 执行优先级队列映射与限速。
-\item \textbf{新增模块}（Ch.4）：入端口贡献统计，用于维护每个候选 key 在各入端口的字节统计$\text{bytes}(a,p)$，供后续 pushback 选择上游；证据扩散消息/推回令牌解析，用于完成协同消息的轻量级头部解析与生存时间（Time-To-Live, TTL）递减；Seen-set 去重，用 Bloom Filter\citess{bloom1970space}实现 O(1) 消息去重。
+\item \textbf{复用模块}（Ch.3 复用）：CMS 与候选缓存组成的一级候选生成，用于维护候选 key 集合及其近似频次；FI/FO 位图，用于记录候选 key 的扇入度或扇出度结构特征；队列调度，用于基于 rank 执行优先级队列映射与限速。
+\item \textbf{新增模块}（Ch.4 新增）：入端口贡献统计，用于维护每个候选 key 在各入端口的字节统计$\text{bytes}(a,p)$，供后续 pushback 选择上游；证据扩散消息/推回令牌解析，用于完成协同消息的轻量级头部解析与生存时间（Time-To-Live, TTL）递减；Seen-set 去重，用 Bloom Filter\citess{bloom1970space}实现 O(1) 消息去重。
 \end{enumerate}
 
 上述模块在设计语义上都可以映射到可编程交换机的寄存器阵列与 Match-Action 表\citess{bosshart2013rmt}，每包处理保持 O(1) 复杂度。
 
 控制面 Agent 包含 6 个模块：
 \begin{enumerate}
-\item 多签名评分（复用 Ch.3），计算候选 key 的多维可疑性评分；
+\item 多签名评分（复用第三章），计算候选 key 的多维可疑性评分；
 \item 证据缓存$\mathcal{E}_{v,\tau}$，存储感兴趣区域内接收到的 EG 消息；
 \item 抑制型扩散决策，执行冗余抑制判断（$cnt \ge k$时抑制发送）；
 \item 协同聚合$S^{\text{net}}$，计算网络级加权评分（式\eqref{eq:net_score}）；
@@ -107,11 +107,11 @@ c_{v,e}(\tau) = \mathbf{1}\big[q_{v,e}(\tau) > Q_{\text{th}} \ \vee \ d_{v,e}(\t
 \end{equation}
 其中$p$为$v$的入端口编号，$\text{bytes}_{v,\tau}(a,p)$为 epoch 内从端口$p$进入且匹配 key $a$ 的字节数。由于 LEO 星间连接度较低（典型为 4 条 ISL 加地面链路）\citess{icarus}，这一分布统计可以在有限状态下实现，也能直接用于识别攻击流主要来自哪个上游邻居。
 
-\subsection{抑制型邻居扩散协同：避免信令风暴的gossip设计}
+\subsection{抑制型邻居扩散协同机制}
 \label{subsec:ch4_gossip}
 
 \subsubsection*{（1）为何需要抑制机制}
-在大规模星座中，朴素 gossip 的做法是每个 epoch 内每个节点都向所有邻居发送摘要并继续转发，这会使控制信令随网络规模快速增长。即使单条消息本身很小，当$|V|$达到数千时，持续扩散仍会带来不必要的链路占用和处理负担，更严重的是会在拥塞期间与数据业务争抢资源，出现防御信令反过来挤压业务的情况。LEO 网络的一个重要特征在于，攻击影响通常集中在受害链路及其上游汇聚路径附近，因此协同传播也应局部化、事件驱动，并且能够抑制重复传播。
+在大规模星座中，朴素 gossip 的做法是每个 epoch 内每个节点都向所有邻居发送摘要并继续转发，这会使控制信令随网络规模快速增长。即使单条消息本身很小，当$|V|$达到数千时，持续扩散仍会带来不必要的链路占用和处理负担，更严重的是会在拥塞期间与数据业务争抢资源，出现防御信令反过来挤压业务的情况。LEO 网络的一个重要特征在于，攻击影响通常集中在被攻击链路及其上游汇聚路径附近，因此协同传播也应局部化、事件驱动，并且能够抑制重复传播。
 
 本章用三种约束来控制信令扩散。首先采用事件驱动，只有当$c_{v,e}(\tau)=1$或接收到新颖证据时才触发发送；其次采用区域限制，让每条证据消息携带 TTL，最多传播$R$跳，从而形成受影响区域 ROI；最后采用抑制扩散，借鉴传感网中的冗余抑制思想\citess{demers1987epidemic}，当节点在一个发送周期内已经听到足够多重复证据时，就自动抑制自身转发，避免扩散规模持续膨胀。这里的实现接近 Trickle 协议\citess{levis2004trickle}的抑制思想，但并不沿用其倍增窗口机制，而是采用固定时隙$I$来简化星上实现。
 
@@ -184,7 +184,7 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 \begin{figure}[!htb]
 \centering
 \includegraphics[width=1.0\linewidth]{figs/ch4/fig4_header.pdf}
-\caption{EG/PT 协同控制消息格式（默认配置）。上：Evidence Gossip（EG）消息；下：Pushback Token（PT）消息}
+\caption{EG/PT 协同控制消息格式}
 \label{fig:ch4_header}
 \end{figure}
 
@@ -202,21 +202,22 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 
 算法~\ref{alg:suppressed_gossip}给出了抑制型扩散协议的流程。与朴素 gossip 相比，这里的重点不在于能否传播，而在于结合物理网络的局部性和低度数结构，把传播范围控制在 ROI 内，并尽量避免同一证据在区域内反复回旋。
 
-\begin{algorithm}[t]
+\begin{algorithm}[htbp]
 \caption{抑制型邻居扩散协同（Suppressed Gossip Protocol）}
 \label{alg:suppressed_gossip}
-\Input{（1）当前 epoch $\tau$ 的本地拥塞状态 $c_{v,e}(\tau)$ 与本地 EG 候选消息 $M_v$；\newline
-（2）节点状态：证据缓存 $\mathcal{E}_{v,\tau}$ 与发送窗口 $I$；\newline
+\Input{\\
+（1）当前 epoch $\tau$ 的本地拥塞状态 $c_{v,e}(\tau)$ 与本地 EG 候选消息 $M_v$；\\
+（2）节点状态：证据缓存 $\mathcal{E}_{v,\tau}$ 与发送窗口 $I$；\\
 （3）协同参数：ROI 半径 $R$、抑制参数 $k$、重叠阈值 $\theta_\Omega$。}
 \Output{节点本轮的发送结果 $O_v$：聚合 EG 消息 $\widetilde{M}_v$ 或抑制决策 \textsc{Suppress}。}
 \BlankLine
-\tcc{步骤 1：本地拥塞触发并启动抑制发送窗口}
+\tcc{本地拥塞触发并启动抑制发送窗口}
 初始化发送结果 $O_v\leftarrow \textsc{Suppress}$\;
 若存在链路$e$使$c_{v,e}(\tau)=1$，构造本地EG候选消息$M_v$\;
 将$M_v$加入缓存$\mathcal{E}_{v,\tau}$，并进入抑制发送窗口$I$\;
 在窗口$I$内随机选择$t_{\text{send}}$\;
 \BlankLine
-\tcc{步骤 2：监听邻居消息并合并等价证据}
+\tcc{监听邻居消息并合并等价证据}
 \While{$t < t_{\text{send}}$}{
     监听邻居EG消息$M_u$\;
     \If{$M_u$未去重（nonce未见过）且$M_u.\texttt{ttl}>0$}{
@@ -228,7 +229,7 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 }
 统计窗口$I$内等价证据数量$cnt$\;
 \BlankLine
-\tcc{步骤 3：根据冗余程度决定转发或抑制}
+\tcc{根据冗余程度决定转发或抑制}
 \eIf{$cnt < k$}{
     生成聚合消息$\widetilde{M}_v = \texttt{Aggregate}(\mathcal{E}_{v,\tau})$\;
     设置$\widetilde{M}_v.\texttt{ttl}\leftarrow \min(\texttt{ttl}_{\text{received}}-1,\, R)$，向所有邻居发送（不回发原入端口）\;
@@ -243,7 +244,7 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 
 \noindent\textbf{TTL收敛性保证。}算法~\ref{alg:suppressed_gossip}中的聚合发送步骤采用$\texttt{ttl}\leftarrow \min(\texttt{ttl}_{\text{received}}-1, R)$，从而保证每次转发时 TTL 至少递减 1，即使经过聚合节点也不会被重置为完整 TTL。因此，在$R$跳半径的 ROI 内，消息最多经历$R$次转发后就会终止，不存在无限传播风险。
 
-\subsection{协同判定与逐跳推回：从受害链路推回到上游入口}
+\subsection{协同判定与推回机制}
 \label{subsec:ch4_pushback}
 
 \subsubsection*{（1）协同证据聚合与判定}
@@ -252,31 +253,32 @@ $T_{\text{life}}$ & 软状态生存期（8-bit，以 epoch 为单位），到期
 S^{\text{net}}_{\tau}(a) = \sum_{v\in \mathcal{R}_{\tau}}\omega_v \cdot \widetilde{S}_{v,\tau}(a),
 \label{eq:net_score}
 \end{equation}
-其中$\mathcal{R}_{\tau}$为在epoch $\tau$内参与协同的ROI节点集合，$\widetilde{S}_{v,\tau}(a)$为归一化后的本地评分，$\omega_v$为权重。权重的设计根植于物理可观测量：拥塞越强、越接近受害链路的节点，其证据应更可靠。于是本章取：
+其中$\mathcal{R}_{\tau}$为在epoch $\tau$内参与协同的ROI节点集合，$\widetilde{S}_{v,\tau}(a)$为归一化后的本地评分，$\omega_v$为权重。权重的设计根植于物理可观测量：拥塞越强、越接近被攻击链路的节点，其证据应更可靠。于是本章取：
 \begin{equation}
 \omega_v = \frac{\left(1+\lambda\cdot \texttt{cong\_level}_v\right)\cdot \exp\!\left(-\mu\cdot \operatorname{dist}(v,e^\ast)\right)}{\sum_{u\in\mathcal{R}_\tau}\left(1+\lambda\cdot \texttt{cong\_level}_u\right)\cdot \exp\!\left(-\mu\cdot \operatorname{dist}(u,e^\ast)\right)},
 \label{eq:weight}
 \end{equation}
-其中$\operatorname{dist}(v,e^\ast)$表示$v$到受害链路$e^\ast$的跳数距离，$\lambda,\mu$为超参数，且所有参与节点的权重满足$\sum_{v\in\mathcal{R}_\tau}\omega_v = 1$。$\lambda$控制拥塞等级对权重的放大程度，$\mu$控制距离衰减速率。实现时，为避免复杂指数运算，控制面 Agent 采用查表或分段线性近似完成权重计算；数据面只需提供$\texttt{cong\_level}$与邻接关系。式\eqref{eq:net_score}在本章中的主要用途是让 pushback 触发更稳定。它通过汇总 ROI 内的局部证据来压制单节点的瞬时误判，避免某处偶发异常立刻触发全区域推回。在后文的均匀 Bot 分布实验中，CoopSatShield 与 MS-SatShield 的检测 F1 保持一致，因此本章的证据更支持把它理解为网络级触发融合机制，而不是证明加权聚合在检测能力上一定优于简单的 max 或 avg 规则。
+其中$\operatorname{dist}(v,e^\ast)$表示$v$到被攻击链路$e^\ast$的跳数距离，$\lambda,\mu$为超参数，且所有参与节点的权重满足$\sum_{v\in\mathcal{R}_\tau}\omega_v = 1$。$\lambda$控制拥塞等级对权重的放大程度，$\mu$控制距离衰减速率。实现时，为避免复杂指数运算，控制面 Agent 采用查表或分段线性近似完成权重计算；数据面只需提供$\texttt{cong\_level}$与邻接关系。式\eqref{eq:net_score}在本章中的主要用途是让 pushback 触发更稳定。它通过汇总 ROI 内的局部证据来压制单节点的瞬时误判，避免某处偶发异常立刻触发全区域推回。在后文的均匀 Bot 分布实验中，CoopSatShield 与 MS-SatShield 的检测 F1 保持一致，因此本章的证据更支持把它理解为网络级触发融合机制，而不是证明加权聚合在检测能力上一定优于简单的 max 或 avg 规则。
 
 推回判定阈值$\Theta_{\text{pb}}$的选取遵循如下工程原则：在预设验证场景下（含$M=10,50,100$三组碎片化设定），控制误推回率（即良性key被触发推回的概率）不超过$5\%$，并在此约束下选择一组稳定的触发工作点。后续实验统一采用$\Theta_{\text{pb}}=0.7$、$\lambda=1.0$、$\mu=0.5$。由于本章尚未单列weighted / unweighted / max三类聚合规则的消融对比，这些参数应理解为可工作的默认配置，而非全局最优解。
 
 当存在$a$使$S^{\text{net}}_{\tau}(a)\ge \Theta_{\text{pb}}$时，系统对该 key 触发逐跳推回；若多个 key 满足条件，则按$S^{\text{net}}_{\tau}(a)$排序取前$n_{\text{pb}}$个执行，以保证数据面策略表规模可控。
 
 \subsubsection*{（2）推回令牌（PT）与逐跳传播}
-pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳可观测的上游贡献来实现近似反向路径传播。具体来说，受害链路附近节点$v$对 key $a$计算其入端口贡献分布$\pi_{v,\tau}(a,p)$（式\eqref{eq:ingress_contrib}），再选择贡献最大的前$r=\min(2,d-1)$个上游端口集合$\mathcal{P}^\uparrow_{v}(a)$；在$d=4$的 LEO ISL 结构中，$r=2$。随后，节点向对应上游邻居发送 PT 令牌。令牌携带软状态生存期$T_{\text{life}}$与剩余推回跳数$R_{\uparrow}$，上游节点收到后立即在本地数据面安装短时效缓解规则，如队列降权或限速，并继续沿相同思路向更上游传播。由于 LEO 网络连接度较低、拓扑变化发生在秒级\citess{icarus}，这种逐跳机制在每个 epoch 内都具有稳定语义；同时，软状态到期后会自动失效，从而避免拓扑变化后留下过期规则。
+pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳可观测的上游贡献来实现近似反向路径传播。具体来说，被攻击链路附近节点$v$对 key $a$计算其入端口贡献分布$\pi_{v,\tau}(a,p)$（式\eqref{eq:ingress_contrib}），再选择贡献最大的前$r=\min(2,d-1)$个上游端口集合$\mathcal{P}^\uparrow_{v}(a)$；在$d=4$的 LEO ISL 结构中，$r=2$。随后，节点向对应上游邻居发送 PT 令牌。令牌携带软状态生存期$T_{\text{life}}$与剩余推回跳数$R_{\uparrow}$，上游节点收到后立即在本地数据面安装短时效缓解规则，如队列降权或限速，并继续沿相同思路向更上游传播。记本地推回软状态规则表为 $\mathcal{R}^{\text{pb}}$。由于 LEO 网络连接度较低、拓扑变化发生在秒级\citess{icarus}，这种逐跳机制在每个 epoch 内都具有稳定语义；同时，软状态到期后会自动失效，从而避免拓扑变化后留下过期规则。
 
 算法~\ref{alg:pushback}给出了pushback传播流程。
 
-\begin{algorithm}[t]
+\begin{algorithm}[htbp]
 \caption{逐跳推回（Hop-by-hop Pushback）}
 \label{alg:pushback}
-\Input{（1）触发 key 集合 $\mathcal{A}^{\text{pb}}_\tau$ 及其缓解等级 $\texttt{rank}(a)$；\newline
-（2）各节点的入端口贡献分布 $\pi_{v,\tau}(a,p)$ 与本地软状态规则表；\newline
+\Input{\\
+（1）触发 key 集合 $\mathcal{A}^{\text{pb}}_\tau$ 及其缓解等级 $\texttt{rank}(a)$；\\
+（2）各节点的入端口贡献分布 $\pi_{v,\tau}(a,p)$ 与本地软状态规则表 $\mathcal{R}^{\text{pb}}$；\\
 （3）推回参数：推回半径 $R_{\uparrow}$、上游分支数 $r$、软状态生存期 $T_{\text{life}}$。}
-\Output{本地安装或刷新的缓解规则，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$。}
+\Output{更新后的本地软状态规则表 $\mathcal{R}^{\text{pb}}$，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$。}
 \BlankLine
-\tcc{步骤 1：受害节点按入端口贡献选择上游并发起 PT}
+\tcc{被攻击节点按入端口贡献选择上游并发起 PT}
 初始化待转发 PT 集合 $\mathcal{T}^{\uparrow}\leftarrow\varnothing$\;
 \ForEach{$a\in\mathcal{A}^{\text{pb}}_\tau$}{
     在节点$v$生成PT令牌：$\langle a,\, \texttt{rank},\, \tau,\, R_{\uparrow},\, T_{\text{life}}\rangle$\;
@@ -285,34 +287,34 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
     将对应 PT 记入 $\mathcal{T}^{\uparrow}$\;
 }
 \BlankLine
-\tcc{步骤 2：上游节点安装软状态并递归继续推回}
+\tcc{上游节点安装软状态并递归继续推回}
 \eIf{PT未过期且$R_{\uparrow}>0$}{
-    在本地数据面安装/刷新软状态规则：$\texttt{rank}(a)\leftarrow$ PT.$\texttt{rank}$，有效期$T_{\text{life}}$\;
+    在本地软状态规则表 $\mathcal{R}^{\text{pb}}$ 中安装/刷新 $a$ 的缓解项：$\mathcal{R}^{\text{pb}}[a].\texttt{rank}\leftarrow$ PT.$\texttt{rank}$，有效期$T_{\text{life}}$\;
     $R_{\uparrow}\leftarrow R_{\uparrow}-1$\;
     基于$\pi_{u,\tau}(a,\cdot)$继续向上游前$r$大邻居传播\;
     将更新后的 PT 记入 $\mathcal{T}^{\uparrow}$\;
 }{
     丢弃该 PT\;
 }
-\textbf{return} 本地安装或刷新的缓解规则，以及继续向上游传播的 PT 令牌集合 $\mathcal{T}^{\uparrow}$。\;
+\textbf{return} $\mathcal{R}^{\text{pb}}, \mathcal{T}^{\uparrow}$。
 \end{algorithm}
 
-\noindent\textbf{rank到队列映射与限速动作。}PT中的$\texttt{rank}$字段映射到三级缓解强度：（i）$\texttt{rank}=\text{High}$：匹配key的流量被调度至最低优先级队列Queue~0，带宽上限设为链路容量的$5\%$，实现近乎完全阻断；（ii）$\texttt{rank}=\text{Med}$：调度至Queue~1，带宽上限为$20\%$；（iii）$\texttt{rank}=\text{Low}$：调度至Queue~2，仅降低调度优先级但不硬限速。数据面通过match-action表项实现：以key哈希$\widehat{a}$匹配入向流量，命中后修改队列标记字段并施加对应meter速率。当同一key在同一epoch内收到多个PT（来自不同下游节点或路径），取最严格的rank值（即$\text{High} > \text{Med} > \text{Low}$）；若新PT的rank弱于已安装规则，则忽略。跨epoch时，新PT刷新$T_{\text{life}}$计时器，确保软状态的时效性。
-
-图~\ref{fig:ch4_pushback}直观展示了上述推回过程的完整生命周期。该图分为三个阶段：
-
-\textbf{阶段1}（图左上角）展示受害节点$V$的拥塞检测过程：数据面检测到受害链路$e^*$的队列占用超过阈值（$q_{v,e^*}>Q_\text{th}$，即$c(v,e^*)=1$），并输出 Top-$K$ 候选 key 的入端口贡献分布$\pi(a_1,p)$。图中小型条形图显示key $a_1$在三个入端口的贡献比例分别为$70\%$、$20\%$和$10\%$，指明主攻击方向。当协同聚合评分$S^\text{net}(a_1)=0.87\ge\Theta_\text{pb}=0.7$时，系统触发推回。
-
-\textbf{阶段2}（图中部）展示PT令牌的逐跳反向传播。受害节点$V$生成PT$=\langle a_1, \texttt{rank}=\text{High}, \tau, R_\uparrow=3, T_\text{life}=10\rangle$，选择贡献最大的前$r=2$个上游端口（$p_1$: $65\%\rightarrow U_1$，$p_2$: $20\%\rightarrow U_1'$），向对应邻居发送PT。各接收节点（$U_1, U_1'$）立即在本地数据面安装软状态缓解规则$\texttt{rank}(a_1)\leftarrow\text{High}$，并将$R_\uparrow$递减后继续向上游传播。经过3跳后$R_\uparrow=0$，传播终止于节点$U_3, U_3'$。图中金色shield图标标注了所有已安装缓解规则的节点，绿色渐变链路标注了推回释放的带宽。
-
-\textbf{阶段3}（图右下角）定量对比推回前后的效果：按本文统一采用的路径积分无效占用成本口径，推回前攻击流经历$h=5$跳到达$e^*$，$W_\text{waste}=\text{rate}\times5$；推回后攻击流在$U_3$处被限速/丢弃（$h=2$跳），$W_\text{waste}=\text{rate}\times2$，降低$60\%$。图右上角的时间线展示了软状态生命周期$T_\text{life}$：PT在epoch $\tau$安装后持续生效$T_\text{life}=10$个epoch，到期自动清除；若攻击仍在持续，新一轮PT将刷新规则，避免拓扑变化后产生“幽灵规则”。
+PT中的$\texttt{rank}$字段映射到三级缓解强度：（i）$\texttt{rank}=\text{High}$：匹配key的流量被调度至最低优先级队列Queue~0，带宽上限设为链路容量的$5\%$，实现近乎完全阻断；（ii）$\texttt{rank}=\text{Med}$：调度至Queue~1，带宽上限为$20\%$；（iii）$\texttt{rank}=\text{Low}$：调度至Queue~2，仅降低调度优先级但不硬限速。数据面通过match-action表项实现：以key哈希$\widehat{a}$匹配入向流量，命中后修改队列标记字段并施加对应meter速率。当同一key在同一epoch内收到多个PT（来自不同下游节点或路径），取最严格的rank值（即$\text{High} > \text{Med} > \text{Low}$）；若新PT的rank弱于已安装规则，则忽略。跨epoch时，新PT刷新$T_{\text{life}}$计时器，确保软状态的时效性。
 
 \begin{figure}[!htb]
 \centering
-\includegraphics[width=0.93\linewidth]{figs/ch4/fig4_pushback.png}
-\caption{逐跳推回过程示意。(a)拥塞检测与入端口贡献分布；(b)PT 令牌逐跳推回；(c)软状态生命周期；(d)推回前后的 $W_{\text{waste}}$ 对比}
+\includegraphics[width=0.96\linewidth]{figs/ch4/fig4_pushback.pdf}
+\caption{逐跳推回缓解传播示意}
 \label{fig:ch4_pushback}
 \end{figure}
+
+图~\ref{fig:ch4_pushback}直观展示了逐跳推回的核心过程，并额外给出了软状态生命周期时间线。图中的被攻击链路$e^\ast$由两个端点节点$V$与$V'$构成，示意推回可以沿链路两侧各自的上游方向并行传播。
+
+\textbf{阶段1}（图左上角）展示被攻击节点$V$的拥塞检测过程：数据面检测到被攻击链路$e^*$的队列占用超过阈值（$q_{v,e^*}>Q_\text{th}$，即$c(v,e^*)=1$），并输出 Top-$K$ 候选 key 的入端口贡献分布$\pi(a_1,p)$。图中小型条形图显示key $a_1$在三个入端口的贡献比例分别为$70\%$、$20\%$和$10\%$，指明主攻击方向。当协同聚合评分$S^\text{net}(a_1)=0.87\ge\Theta_\text{pb}=0.7$时，系统触发推回。
+
+\textbf{阶段2}（图中部）展示PT令牌的逐跳反向传播。为与被攻击链路$e^\ast=(V,V')$的双端结构对应，图中给出了沿链路两侧并行推进的两条上游分支：左侧为$V\!\rightarrow\!U_1\!\rightarrow\!U_2\!\rightarrow\!U_3$，右侧为$V'\!\rightarrow\!U_1'\!\rightarrow\!U_2'\!\rightarrow\!U_3'$。在每一侧，受害链路端点生成携带$\texttt{rank}(a_1)=\text{High}$的PT，并使剩余推回跳数$R_\uparrow$按$3\!\to\!2\!\to\!1\!\to\!0$逐跳递减；各接收节点在本地数据面安装或刷新对应的软状态缓解规则，直至$R_\uparrow=0$时停止继续传播。图中盾牌图标标注了已安装 PT 规则的节点，绿色高亮链路表示攻击流被更早抑制后释放出的中间链路带宽。
+
+\textbf{阶段3}（图下方）定量对比推回前后的效果：按本文统一采用的路径积分无效占用成本口径，推回前攻击流沿一侧入口路径经历$h=5$跳后到达$e^\ast$，因此$W_\text{waste}=\text{rate}\times5$；推回后，攻击流已在更靠近入口的$U_3/U_3'$邻近位置被限速或丢弃，仅经历$h=2$跳，故$W_\text{waste}=\text{rate}\times2$，对应图中给出的$60\%$降幅。图右上角的时间线则补充说明软状态生命周期$T_\text{life}$：PT在epoch $\tau$生成并安装，epoch $\tau+1$开始生效并持续若干epoch，在epoch $\tau+10$到期清除；若攻击仍持续，则新的 PT 会刷新规则，避免拓扑变化后残留过期状态。
 
 \subsection{信令开销与可实现性分析}
 \label{subsec:ch4_overhead}
@@ -326,7 +328,7 @@ pushback 的重点在于，它不依赖全局路由逆推，而是利用逐跳�
 当$d=4$时，上界为$| \text{ROI}(R) | \le 2\cdot 3^R -1$。例如$R=4$时，最坏触达规模不超过161个节点，远小于Starlink Shell 1的1584节点总规模\citess{icarus}。因此，TTL本身已经把协同传播限制在受影响的局部区域内，避免全网泛洪。
 
 \subsubsection*{（2）抑制机制下的消息量与带宽开销}
-在抑制型扩散中，节点在一个发送窗口内若监听到不少于$k$条等价证据即抑制发送，从而大幅降低重复广播。对\emph{单个协同事件}$(\tau,\texttt{link\_id})$而言，设ROI内有效参与节点数为$N_R$，且每个节点在该事件上每epoch至多发送一次聚合EG消息，则EG消息总数满足：
+在抑制型扩散中，节点在一个发送窗口内若监听到不少于$k$条等价证据即抑制发送，从而大幅降低重复广播。对单个协同事件$(\tau,\texttt{link\_id})$而言，设ROI内有效参与节点数为$N_R$，且每个节点在该事件上每epoch至多发送一次聚合EG消息，则EG消息总数满足：
 \begin{equation}
 M_{\text{EG}}(\tau,\texttt{link\_id}) \le N_R.
 \label{eq:msg_count}
@@ -347,7 +349,7 @@ B_{\text{ctrl}}^{(\tau,\texttt{link\_id})} \le \frac{M_{\text{EG}}(\tau,\texttt{
 \subsection{实验设置}
 \label{subsec:ch4_setup}
 
-本章的仿真实验基于自研 Python 仿真框架实现（与\ref{chap:ms_satshield}相同）。该框架集成了星座拓扑构建、最短路计算、epoch 级事件驱动与数据面行为模拟，拓扑构建与路由策略参考 Hypatia 仿真平台\citess{hypatia}的快照路由模型\citess{handley2019delay}。评估采用 Starlink Shell 1 拓扑，该拓扑包含 1584 颗卫星（72 轨道面$\times$22 颗/面），ISL 为典型的 4 链路连接结构，ISL 带宽 20~Gb/s，上下行链路容量为数 Gb/s 量级\citess{icarus}。epoch 长度取$\Delta=1$~s，与卫星拓扑快照更新周期对齐\citess{icarus}。表~\ref{tab:ch4_params}汇总了本章实验使用的主要参数。为贴近真实网络背景流量，本文采用 CAIDA UCSD Anonymized Internet Traces 2018 数据集（OC-192 链路，采集于 Equinix-Chicago 监测点）构造良性流量：原始 trace 按比例缩放至 20~Gb/s ISL 容量级别，并按人口加权的城市对分布模型将源-目的 IP 映射到 LEO 地面终端对，映射参数与\ref{chap:ms_satshield}中的设置一致\citess{satshield}。攻击流量则采用 ICARUS 式 LFA 策略生成，攻击者利用公开轨道与拓扑信息选择 Bot-Decoy 对并计算使目标链路拥塞的流量分配\citess{icarus}；同时，在更强的对手模型下引入低速化、多 Decoy、脉冲化和滚动目标等策略，用来检验协同机制对碎片化证据的聚合能力。
+本章的仿真实验基于与\ref{chap:ms_satshield}相同的仿真框架实现。该框架集成了星座拓扑构建、最短路计算、epoch 级事件驱动与数据面行为模拟，拓扑构建与路由策略参考 Hypatia 仿真平台\citess{hypatia}的快照路由模型\citess{handley2019delay}。评估采用 Starlink Shell 1 拓扑，该拓扑包含 1584 颗卫星（72 轨道面$\times$22 颗/面），ISL 为典型的 4 链路连接结构，ISL 带宽 20~Gb/s，上下行链路容量为数 Gb/s 量级\citess{icarus}。epoch 长度取$\Delta=1$~s，与卫星拓扑快照更新周期对齐\citess{icarus}。表~\ref{tab:ch4_params}汇总了本章实验使用的主要参数。为贴近真实网络背景流量，本文采用 CAIDA UCSD Anonymized Internet Traces 2018 数据集（OC-192 链路，采集于 Equinix-Chicago 监测点）构造良性流量：原始 trace 按比例缩放至 20~Gb/s ISL 容量级别，并按人口加权的城市对分布模型将源-目的 IP 映射到 LEO 地面终端对，映射参数与\ref{chap:ms_satshield}中的设置一致\citess{satshield}。攻击流量则采用 ICARUS 式 LFA 策略生成，攻击者利用公开轨道与拓扑信息选择 Bot-Decoy 对并计算使目标链路拥塞的流量分配\citess{icarus}；同时，在更强的对手模型下引入低速化、多 Decoy、脉冲化和滚动目标等策略，用来检验协同机制对碎片化证据的聚合能力。
 
 为避免实验设置中声明的指标多于正文实际汇报的指标，本章只报告与后续图表直接对应的四类结果：路径积分无效带宽占用成本$W_{\text{waste}}$（定义见式\eqref{eq:waste_bw_def}，量纲见式\eqref{eq:waste_bw_unit}）；攻击期间的良性吞吐，以及两类响应时延，本地检测生效时延$T_{\text{det}}=t_{\text{first-local-rule}}-t_{\text{attack-start}}$和 pushback 生效时延$T_{\text{pb}}=t_{\text{first-pushback-rule}}-t_{\text{attack-start}}$；检测质量，即攻击相关 key 识别的 Precision、Recall 和 F1（定义同\ref{chap:ms_satshield}式~(\ref{eq:f1_def_precision})--(\ref{eq:f1_def_f1})）；以及协同开销，即 EG/PT 消息数与字节开销。除非特别说明，下文提到的吞吐都指攻击持续阶段的 epoch 平均值，不包含 warmup 与恢复段。
 
@@ -358,8 +360,8 @@ B_{\text{ctrl}}^{(\tau,\texttt{link\_id})} \le \frac{M_{\text{EG}}(\tau,\texttt{
 \small
 \begin{tabular}{@{}
 >{\raggedright\arraybackslash}p{2.2cm}
->{\raggedright\arraybackslash}p{3.1cm}
->{\raggedright\arraybackslash}p{6.0cm}
+>{\raggedright\arraybackslash}p{3.8cm}
+>{\raggedright\arraybackslash}p{5.4cm}
 @{}}
 \toprule
 \textbf{参数} & \textbf{含义} & \textbf{取值} \\
@@ -395,7 +397,7 @@ $T_{\text{life}}$ & PT 软状态生存期 & 10 epoch \\
 
 \begin{table}[t]
 \centering
-\caption{量化对比基线设置（第四章正文结果）}
+\caption{量化对比基线设置x}
 \label{tab:ch4_baselines}
 \small
 \begin{tabular}{@{}
@@ -405,18 +407,18 @@ $T_{\text{life}}$ & PT 软状态生存期 & 10 epoch \\
 \toprule
 \textbf{方案} & \textbf{说明} \\
 \midrule
-NoDefense & 无防御，先进先出/等价多路径（First-In, First-Out/Equal-Cost Multi-Path, FIFO/ECMP）默认转发。 \\
+NoDefense & 无防御，先进先出/等价多路径默认转发。 \\
 \midrule
 SatShield & 单星 Top-$K$ 过滤 + 队列调度缓解\citess{satshield}。 \\
 \midrule
 MS-SatShield & \ref{chap:ms_satshield} 多签名增强，但无协同、无 pushback。 \\
 \midrule
-\textsc{CoopSatShield} & 本章方案：抑制型扩散协同 + 逐跳 pushback。 \\
+CoopSatShield & 本章方案：抑制型扩散协同 + 逐跳 pushback。 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-表~\ref{tab:ch4_baselines}中的四种方案构成了本章正文图表的量化比较范围。至于 LinkScope、Woodpecker、RADAR、Ripple 与 Mew 等典型地面 LFA 防御机制\citess{linkscope,woodpecker,radar,ripple,mew}，本文仍将其作为相关工作与设计参照。它们分别代表主动测量、集中式流量工程、相关性检测和可编程数据面分布式防御等不同技术路线，但由于这些方案依赖的控制闭环、硬件资源或拓扑稳定性假设与 LEO 场景差异明显，本章尚未在统一的 LEO 仿真口径下完成等价复现，因此不把它们写成正文中的数值基线，也不据此宣称实验优势。若后续补齐统一实现，更合适的呈现方式应是一张代表场景下的指标汇总表，而不是继续堆叠多条长曲线。
+表~\ref{tab:ch4_baselines}中的四种方案构成了本章正文图表的量化比较范围。至于 LinkScope、Woodpecker、RADAR、Ripple 与 Mew 等典型地面 LFA 防御机制\citess{linkscope,woodpecker,radar,ripple,mew}，本文仍将其作为相关工作与设计参照。它们分别代表主动测量、集中式流量工程、相关性检测和可编程数据面分布式防御等不同技术路线，但由于这些方案依赖的控制闭环、硬件资源或拓扑稳定性假设与 LEO 场景差异明显，本章尚未在统一的 LEO 仿真口径下完成等价复现，因此不把它们写成正文中的数值基线，也不据此宣称实验优势。
 
 \subsection{结果与分析}
 \label{subsec:ch4_results}
@@ -462,11 +464,11 @@ MS-SatShield & \ref{chap:ms_satshield} 多签名增强，但无协同、无 push
 \subsubsection*{（3）协同开销与无信令风暴验证}
 本章最关心的工程风险之一，是大规模网络中的信令风暴。图~\ref{fig:ch4_ctrl_overhead}用$1\times3$子图展示了协同开销和抑制机制的效果。
 
-子图~(a)比较了有抑制（$k=3$）和无抑制两种情况下，EG 消息数随 ROI 半径$R$的变化。无抑制时，EG 消息数从$R=1$的 45 条增长到$R=6$的 765 条，接近超线性增长；加入抑制后，同一区间只从 45 条增长到 347 条。在$R=4$时，抑制机制把消息数从 369 条压低到 203 条，减少了$45\%$。PT 消息数则稳定在 44 条，因为它只沿推回路径单向传播，不受$R$影响。图中的浅红色填充区域直观展示了抑制带来的收益。
+图~\ref{fig:ch4_ctrl_overhead}(a)比较了有抑制（$k=3$）和无抑制两种情况下，EG 消息数随 ROI 半径$R$的变化。无抑制时，EG 消息数从$R=1$的 45 条增长到$R=6$的 765 条，接近超线性增长；加入抑制后，同一区间只从 45 条增长到 347 条。在$R=4$时，抑制机制把消息数从 369 条压低到 203 条，减少了$45\%$。PT 消息数则稳定在 44 条，因为它只沿推回路径单向传播，不受$R$影响。图中的浅红色填充区域直观展示了抑制带来的收益。
 
-子图~(b)进一步将消息数换算为控制带宽（KB/epoch），并用右侧$y$轴给出其占 ISL 容量（20~Gb/s）的百分比。这里的字节统计采用了更保守的 EG 载荷配置$n=100$，并将 EG 与 PT 消息一并计入，因此 104~KB/epoch 应理解为压力条件下的上界估计，而不是默认$n=10$配置下的运行时均值。在推荐配置$R=4$时，该口径下的控制带宽仅占 ISL 容量的$0.004\%$；即使在$R=6$的最大测试半径下，占比也不超过$0.008\%$。这说明协同开销本身很低，也与式\eqref{eq:roi_bound}和式\eqref{eq:ctrl_bw}的理论分析一致。
+图~\ref{fig:ch4_ctrl_overhead}(b)进一步将消息数换算为控制带宽（KB/epoch），并用右侧$y$轴给出其占 ISL 容量（20~Gb/s）的百分比。这里的字节统计采用了更保守的 EG 载荷配置$n=100$，并将 EG 与 PT 消息一并计入，因此 104~KB/epoch 应理解为压力条件下的上界估计，而不是默认$n=10$配置下的运行时均值。在推荐配置$R=4$时，该口径下的控制带宽仅占 ISL 容量的$0.004\%$；即使在$R=6$的最大测试半径下，占比也不超过$0.008\%$。这说明协同开销本身很低，也与式\eqref{eq:roi_bound}和式\eqref{eq:ctrl_bw}的理论分析一致。
 
-子图~(c)展示了抑制参数$k$对 EG 消息数与抑制率的影响。$k=1$时抑制率高达$80\%$，但消息只有 9 条，覆盖明显不足；$k=10$时抑制率降到$0\%$，基本等同于无抑制。本文推荐的$k=3$（图中红色标注）在覆盖与开销之间取得了较好的平衡，此时抑制率为$30\%$，消息数为 203 条。基于当前结果，可以把$k=3$视为工程上可工作的默认配置；它对检测质量的影响仍需在后续补充实验中与$k=10$等配置进一步比较。
+图~\ref{fig:ch4_ctrl_overhead}(c)展示了抑制参数$k$对 EG 消息数与抑制率的影响。$k=1$时抑制率高达$80\%$，但消息只有 9 条，覆盖明显不足；$k=10$时抑制率降到$0\%$，基本等同于无抑制。本文推荐的$k=3$（图中红色标注）在覆盖与开销之间取得了较好的平衡，此时抑制率为$30\%$，消息数为 203 条。基于当前结果，可以把$k=3$视为工程上可工作的默认配置；它对检测质量的影响仍需在后续补充实验中与$k=10$等配置进一步比较。
 
 \begin{figure}[!htb]
 \centering
@@ -477,17 +479,17 @@ MS-SatShield & \ref{chap:ms_satshield} 多签名增强，但无协同、无 push
 \end{figure}
 
 \subsubsection*{（4）对碎片化攻击证据的鲁棒性}
-图~\ref{fig:ch4_robustness}用$2\times2$子图评估了各方案在碎片化攻击（$M\in\{1,5,10,50,100,500,1000\}$）下的表现。四个子图分别给出检测效果（F1 与 Recall）、检测精度（Precision）、良性吞吐恢复以及无效带宽占用。
+图~\ref{fig:ch4_robustness}用$2\times2$子图评估了各方案在碎片化攻击（$M\in\{1,5,10,50,100,500,1000\}$）下的表现。其中，图~\ref{fig:ch4_robustness}(a)--(d)分别给出检测效果（F1 与 Recall）、检测精度（Precision）、良性吞吐恢复以及无效带宽占用。
 
-\textbf{F1 的倒 U 型变化}（子图(a)）：MS-SatShield 与 CoopSatShield 的 F1 随$M$呈现倒 U 型，而不是简单的单调递减，这一变化大致可以分成三段。
+\textbf{F1 的倒 U 型变化}（图~\ref{fig:ch4_robustness}(a)）：MS-SatShield 与 CoopSatShield 的 F1 随$M$呈现倒 U 型，而不是简单的单调递减，这一变化大致可以分成三段。
 
-当$M\leq10$时，所有方案的 Recall 都保持在$1.0$（虚线所示），说明攻击 key 已被完整捕获；但 F1 仍然偏低，例如$M=1$时约为$0.09$。原因并不在于漏检，而在于存在约 19 个良性重流 key 被持续误判为可疑，这些 key 的聚合速率为$474\sim606$~Mb/s，超过$\tau\cdot\text{rate}_{p99}=242.5$~Mb/s。由子图(b)可见，$M=1$时 Precision 只有$0.05$（TP$=1$，FP$\approx19$），因此 F1 偏低主要是 Precision 不足造成的。这里需要强调，F1 较低并不意味着检测无效：在$M=1$时，唯一的攻击 key（聚合速率$10{,}024$~Mb/s）仍被正确识别，子图(c)也表明 SatShield 与 MS-SatShield 的吞吐都恢复到了$0.886$，CoopSatShield 通过推回则进一步恢复到$1.000$。
+当$M\leq10$时，所有方案的 Recall 都保持在$1.0$（虚线所示），说明攻击 key 已被完整捕获；但 F1 仍然偏低，例如$M=1$时约为$0.09$。原因并不在于漏检，而在于存在约 19 个良性重流 key 被持续误判为可疑，这些 key 的聚合速率为$474\sim606$~Mb/s，超过$\tau\cdot\text{rate}_{p99}=242.5$~Mb/s。由图~\ref{fig:ch4_robustness}(b)可见，$M=1$时 Precision 只有$0.05$（TP$=1$，FP$\approx19$），因此 F1 偏低主要是 Precision 不足造成的。这里需要强调，F1 较低并不意味着检测无效：在$M=1$时，唯一的攻击 key（聚合速率$10{,}024$~Mb/s）仍被正确识别，图~\ref{fig:ch4_robustness}(c)也表明 SatShield 与 MS-SatShield 的吞吐都恢复到了$0.886$，CoopSatShield 通过推回则进一步恢复到$1.000$。
 
 当$M=50\sim100$时，攻击 key 数量已经明显多于误报数，FI/FO 特征开始有效地区分攻击流量与良性流量。$M=100$时，MS-SatShield 的 Precision 升至$0.833$，Recall 仍保持$1.0$，F1 达到峰值$0.909$。同一区间内，SatShield 已经完全失效，$M=50$时 F1 仅为$0.057$，$M=100$时进一步降到$0.017$，因为此时攻击 per-key 速率已经接近良性$p_{99}$，Rate-only 无法完成区分。这一结果与\ref{chap:ms_satshield}图~\ref{fig:ch3_fig2_f1}(b)中的分离段分析保持一致。
 
 当$M\geq500$时，攻击 key 的单 key 速率降至$20\sim35$~Mb/s，大量 key 脱离 Top-$K$ 候选集（Top-$K$~Recall$\approx0.30$）。MS-SatShield 的 Precision 反而提高到$0.936\sim1.000$，因为被筛入候选集的攻击 key 几乎都能被正确识别，但 Recall 只有$0.30$，最终使 F1 降至$0.445\sim0.466$。
 
-\textbf{CoopSatShield 与 MS-SatShield 的 F1 完全一致}（子图(a)中两条 F1 实线重合）。原因在于二者共享同一检测流水线，即同一个多签名评分器。在当前实验采用的 Bot 均匀分布场景下，各节点的本地 Top-$K$ 命中率已经足够高，协同证据聚合不会改变单节点的检测输出。因此，本章协同机制的价值主要体现在缓解层面，而不是检测层面。gossip 负责跨节点共享攻击信息，pushback 则据此把缓解动作从受害链路前推到更上游的入口，这正对应了引言中提出的上游带宽浪费问题。子图(c)显示，在低到中等碎片化范围内，CoopSatShield 的良性吞吐明显高于 MS-SatShield。若统一采用与图~\ref{fig:ch4_throughput}一致的攻击期间稳态平均吞吐口径，则$M\leq 50$时其恢复值接近$1.000$，$M=100$时仍为$0.959$，显著高于 MS-SatShield 的$0.886$；子图(d)则显示，CoopSatShield 的$W_{\text{waste}}$在各个$M$值下都保持最低，这也与图~\ref{fig:ch4_waste_reduction}中的渐进退化分析一致。当$M\geq500$时，所有方案的吞吐都开始退化，CoopSatShield 也下降到$0.80$，反映出候选集覆盖率瓶颈最终会传导到缓解层面。需要补充说明的是，在 Bot 分布极不均匀的特定场景下，例如攻击流量集中经过少数中继节点、而这些节点的本地候选集又无法完全覆盖时，协同聚合仍然可能提高检测 Recall；但在本章采用的均匀 Bot 分布假设下，这种效果没有显现。
+\textbf{CoopSatShield 与 MS-SatShield 的 F1 完全一致}（图~\ref{fig:ch4_robustness}(a)中两条 F1 实线重合）。原因在于二者共享同一检测流水线，即同一个多签名评分器。在当前实验采用的 Bot 均匀分布场景下，各节点的本地 Top-$K$ 命中率已经足够高，协同证据聚合不会改变单节点的检测输出。因此，本章协同机制的价值主要体现在缓解层面，而不是检测层面。gossip 负责跨节点共享攻击信息，pushback 则据此把缓解动作从被攻击链路前推到更上游的入口，这正对应了引言中提出的上游带宽浪费问题。图~\ref{fig:ch4_robustness}(c)显示，在低到中等碎片化范围内，CoopSatShield 的良性吞吐明显高于 MS-SatShield。若统一采用与图~\ref{fig:ch4_throughput}一致的攻击期间稳态平均吞吐口径，则$M\leq 50$时其恢复值接近$1.000$，$M=100$时仍为$0.959$，显著高于 MS-SatShield 的$0.886$；图~\ref{fig:ch4_robustness}(d)则显示，CoopSatShield 的$W_{\text{waste}}$在各个$M$值下都保持最低，这也与图~\ref{fig:ch4_waste_reduction}中的渐进退化分析一致。当$M\geq500$时，所有方案的吞吐都开始退化，CoopSatShield 也下降到$0.80$，反映出候选集覆盖率瓶颈最终会传导到缓解层面。需要补充说明的是，在 Bot 分布极不均匀的特定场景下，例如攻击流量集中经过少数中继节点、而这些节点的本地候选集又无法完全覆盖时，协同聚合仍然可能提高检测 Recall；但在本章采用的均匀 Bot 分布假设下，这种效果没有显现。
 
 % TODO: 这里的图口径和上一章的图口径不一致，需要统一
 % \noindent\textbf{图口径说明。} 若后续重绘图~\ref{fig:ch4_robustness}(c)，建议将$M=100$点调整为与图~\ref{fig:ch4_throughput}一致的稳态平均口径；若沿用当前导出脚本，则应至少在图注中显式注明其统计定义是“恢复峰值”还是“攻击期均值”。
@@ -502,17 +504,23 @@ MS-SatShield & \ref{chap:ms_satshield} 多签名增强，但无协同、无 push
 \subsection{适用边界与讨论}
 \label{subsec:ch4_discussion}
 
-\noindent\textbf{量化比较范围。} 本章正文中的数值比较严格限定在 NoDefense、SatShield、MS-SatShield 与 CoopSatShield 四类星载方案之内。LinkScope、Woodpecker、RADAR、Ripple 与 Mew 等地面 LFA 防御机制仍然有参考价值，但在统一的 LEO 实现完成之前，它们更适合作为设计假设和控制闭环差异的讨论对象，而不适合直接写入本章实验结论。
+\textbf{（1）量化比较范围。} 
 
-\noindent\textbf{协同聚合的作用层次。} 在当前均匀 Bot 分布设定下，协同聚合评分$S^{\text{net}}$并未改变检测 F1，因此本章能够支持的主要结论是：加权聚合有助于稳定 pushback 触发，但没有表现出显著提高检测能力的作用。若后续需要进一步说明式\eqref{eq:net_score}与式\eqref{eq:weight}相对于简单 avg 或 max 规则的必要性，最直接的办法是补充聚合规则消融以及$\Theta_{\text{pb}},\lambda,\mu$的敏感性实验。
+本章正文中的数值比较严格限定在 NoDefense、SatShield、MS-SatShield 与 CoopSatShield 四类星载方案之内。LinkScope、Woodpecker、RADAR、Ripple 与 Mew 等地面 LFA 防御机制仍然有参考价值，但在统一的 LEO 实现完成之前，它们更适合作为设计假设和控制闭环差异的讨论对象，而不适合直接写入本章实验结论。
 
-\noindent\textbf{推回覆盖率与候选集瓶颈。} CoopSatShield 在$M=100$时仍只能将稳态良性吞吐恢复到$0.959$，说明近似反向路径推回与局部 ROI 覆盖仍然受制于拓扑分叉和路径不确定性；当$M\ge 500$时，一级候选集覆盖率下降又会进一步把检测瓶颈传导到缓解层面。就本章的证据而言，可以较明确地说明推回能够前移缓解位置并显著降低网络内部成本，但还不能说明它在任意碎片化强度下都能近乎完全消除攻击影响。
+\textbf{（2）协同聚合的作用层次。} 
+
+在当前均匀 Bot 分布设定下，协同聚合评分$S^{\text{net}}$并未改变检测 F1，因此本章能够支持的主要结论是：加权聚合有助于稳定 pushback 触发，但没有表现出显著提高检测能力的作用。若后续需要进一步说明式\eqref{eq:net_score}与式\eqref{eq:weight}相对于简单 avg 或 max 规则的必要性，最直接的办法是补充聚合规则消融以及$\Theta_{\text{pb}},\lambda,\mu$的敏感性实验。
+
+\textbf{（3）推回覆盖率与候选集瓶颈。} 
+
+CoopSatShield 在$M=100$时仍只能将稳态良性吞吐恢复到$0.959$，说明近似反向路径推回与局部 ROI 覆盖仍然受制于拓扑分叉和路径不确定性；当$M\ge 500$时，一级候选集覆盖率下降又会进一步把检测瓶颈传导到缓解层面。就本章的证据而言，可以较明确地说明推回能够前移缓解位置并显著降低网络内部成本，但还不能说明它在任意碎片化强度下都能近乎完全消除攻击影响。
 
 \section{本章小结}
 \label{sec:ch4_summary}
 
-本章面向大规模低轨卫星网络中的链路洪泛攻击，将研究范围从单星本地闭环防御进一步扩展到基于多星协同与逐跳推回的 LFA 防御优化。针对 LEO 网络中控制环延迟高、拓扑变化快、攻击自适应速度快等约束\citess{satshield,icarus}，本文提出\textsc{CoopSatShield}：在\ref{chap:ms_satshield}的本地多签名检测基础上，将检测输出组织为可协同处理的证据单元；设计抑制型邻居扩散协议，通过事件驱动、ROI 限制和冗余抑制来控制大规模网络中的信令扩散；再结合逐跳 pushback 机制，利用入端口贡献分布实现不依赖全局逆路由的逐跳推回，把攻击抑制位置前移到上游入口，从而降低网络内部无效带宽占用并提升良性吞吐保护。
+本章面向大规模低轨卫星网络中的链路洪泛攻击，将研究范围从单星本地闭环防御进一步扩展到多星协同与逐跳推回的网络级防御。针对 LEO 网络中控制环延迟高、拓扑变化快、攻击证据分散等约束，本文提出了 CoopSatShield。该方法在\ref{chap:ms_satshield} 本地多签名检测的基础上，将检测输出组织为可协同处理的证据单元；通过事件驱动、ROI 限制和冗余抑制构造轻量级邻居扩散机制；再结合逐跳 pushback 与入端口贡献分布，将缓解动作从被攻击链路附近前移到更上游的位置，从而把本地检测能力扩展为跨节点的协同处置能力。
 
-实验结果表明，CoopSatShield 在$M=100$时可将路径积分无效带宽占用成本$W_{\text{waste}}$降至 NoDefense 的$11.0\%$，相比 MS-SatShield（$17.1\%$）再降低$6.1$个百分点；在良性吞吐方面，攻击期间的稳态吞吐维持在$0.959$，相较 MS-SatShield（$0.886$）提升$7.3$个百分点，本地检测与 pushback 的生效时延分别为$T_{\text{det}}=1$~epoch和$T_{\text{pb}}=2$~epoch；在协同开销方面，推荐配置$R=4,k=3$下，按保守$n=100$口径统计的控制带宽仅占 ISL 容量的$0.004\%$，抑制机制还使 EG 消息数比无抑制基线减少$45\%$，没有出现信令风暴；在碎片化攻击场景下，$M=100$时 F1 达到峰值$0.909$，低至中等碎片化范围内良性吞吐接近$1.000$，即使在$M=100$时也仍保持$0.959$。这些结果把全文关于大规模低轨卫星在网计算的研究，从单节点处理自然推进到了多节点协同处理。
+实验结果表明，CoopSatShield 的主要收益体现在两个方面。其一，在攻击证据分散到多个节点、单节点局部处置不足以抑制网络内部资源浪费的场景中，协同机制能够将碎片化本地观测汇聚为更稳定的网络级触发信号，并借助 pushback 将丢弃与限速位置前移，因此相较仅在被攻击链路附近执行缓解的方案，更能降低网络内部的无效带宽占用并改善良性业务保护。其二，在工程实现层面，事件驱动、ROI 限制与抑制扩散的组合，使协同开销始终受控，没有出现信令风暴，说明该方法在大规模星座中具备继续扩展的可行性。整体上看，第四章解决了“如何在多星之间传播和聚合攻击证据，并将防御位置从被攻击链路前移到网络上游”的问题。
 
-\noindent\textbf{局限性与未来方向。} 本章仍有几方面局限。首先，在本章采用的均匀 Bot 分布假设下，协同聚合评分$S^{\text{net}}$并未改变单节点检测输出，因此协同的主要收益仍停留在缓解层面，也就是 pushback；在 Bot 分布极不均匀或攻击流量集中经过少数中继节点的场景下，协同聚合可能提高检测 Recall，但这一点还需要专门验证。其次，候选集覆盖率仍是主要瓶颈。$M\geq500$时，大量攻击 key 的单 key 速率低于 Top-$K$ 门限而脱离候选集，导致所有方案的 F1 与吞吐保护都开始退化。如何在候选集规模与数据面资源消耗之间找到更合适的平衡，仍有待进一步研究。最后，本章默认所有邻居节点均可信，没有考虑恶意节点注入虚假 EG/PT 消息的情况。针对这类拜占庭攻击，后续可以引入轻量级签名或声誉机制来验证消息；此外，跨轨道面协同以及与 SDN 控制面的混合架构对接，也值得继续展开。
+不过，本章方法仍然存在一定边界。首先，在本文采用的均匀 Bot 分布设定下，协同聚合主要提升的是缓解层面的效果，而对单节点检测输出本身的改变有限，因此其核心增益仍体现在 pushback 所带来的网络级资源节约。其次，当攻击进一步碎片化时，一级候选覆盖率仍然会重新成为主要瓶颈，说明多星协同并不能完全替代本地候选生成质量。最后，本文默认协同邻居可信，尚未讨论虚假 EG/PT 消息注入、跨轨道面更大范围协同以及与地面控制系统联动等问题，这些都可以作为后续工作继续展开。
