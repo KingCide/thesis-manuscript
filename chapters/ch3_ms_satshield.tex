@@ -97,8 +97,8 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 
 为了便于从处理流程理解图~\ref{fig:ch3_fig5_arch}，下面分别说明包级数据流与 epoch 级控制流。为避免时序歧义，本文保留 $\mathcal{H}_t$ 与 $\text{rank}_t(\cdot)$ 表示基于 epoch $t$ 统计结果导出的观测候选集与观测优先级，并约定：
 \begin{align*}
-\mathcal{H}_t^{\mathrm{act}} &= \mathcal{H}_{t-1},\\
-\text{rank}_t^{\mathrm{act}} &= \text{rank}_{t-1}.
+&\mathcal{H}_t^{\mathrm{act}} = \mathcal{H}_{t-1}, \subeqtag[eq:epoch_act_set]\\
+&\text{rank}_t^{\mathrm{act}} = \text{rank}_{t-1}. \subeqtag[eq:epoch_act_rank]
 \end{align*}
 
 因此，在 epoch $t$ 的包处理中，交换机实际使用的是上一窗口导出的活动配置 $(\mathcal{H}_t^{\mathrm{act}},\text{rank}_t^{\mathrm{act}})$；而 epoch $t$ 结束后，代理根据当前窗口统计结果计算新的 $(\mathcal{H}_t,\text{rank}_t)$，并将其写回交换机，于 epoch $t+1$ 生效。
@@ -108,7 +108,7 @@ P_t(a)=\sum_{i=1}^{k_p}\mathbf{1}\left[a\in \mathcal{H}_{t-i}\right],
 epoch 级控制流由星上 Agent 触发。Agent 按固定周期读取当前窗口的 CMS/候选缓存摘要与候选级字节计数，形成观测候选集合 $\mathcal{H}_t$；再读取活动候选 $\mathcal{H}_t^{\mathrm{act}}$ 对应的位图，用线性计数估计 $\widehat{F}_t(a)$，并更新持续性 $P_{t+1}(a)$；随后将 $R_t(a)$、$\widehat{F}_t(a)$、$P_t(a)$ 归一化并融合为可疑度 $S_t(a)$，再映射为下一轮活动优先级 $\text{rank}_{t+1}^{\mathrm{act}}(a)$ 并写回交换机。候选筛选、排序、归一化、对数或倒数等复杂运算都放在 Agent 侧完成，数据平面只承担寄存器读写与简单计算，符合 PISA 流水线的可实现约束\citess{bosshart2013rmt}。
 
 \subsection{基于 CMS 与候选缓存的一级候选生成}
-与精确逐流状态不同，CMS 用固定大小的计数矩阵维护全局频率摘要，每包只需执行固定次数的哈希与计数更新，适合映射到 P4/PISA 流水线；但 CMS 本身不显式保存 key 身份，因此不能直接输出当前 Top-$K$ key 列表。为同时兼顾全局频率估计和显式 key 恢复，MS-SatShield 在一级候选生成中采用 CMS 与固定容量候选缓存的组合：CMS 负责提供近似频率估计，候选缓存负责维护显式 key 集合及其候选级元数据。
+与精确逐流状态不同，CMS 用固定大小的计数矩阵维护全局频率摘要，每包只需执行固定次数的哈希与计数更新，适合映射到 P4/PISA 流水线；但 CMS 本身不显式保存 key 身份，因此不能直接输出当前 Top-$K$ 的 key 列表。为同时兼顾全局频率估计和显式 key 恢复，MS-SatShield 在一级候选生成中采用 CMS 与固定容量候选缓存的组合：CMS 负责提供近似频率估计，候选缓存负责维护显式 key 集合及其候选级元数据。
 
 具体地，设 CMS 由 $d$ 行、每行宽度为 $w$ 的计数矩阵 $\mathbf{S}_t\in\mathbb{N}^{d\times w}$ 构成，第 $i$ 行对应哈希函数 $h_i(\cdot)$。当包 $p$（长度为 $len$）携带 key $a$ 到达时，数据平面执行：
 \begin{equation}
@@ -236,8 +236,10 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \label{alg:ms_satshield}
 \Input{\\
 （1）当前到达数据包 $p=\langle a,x,len\rangle$；\\
-（2）当前窗口数据面状态：CMS 计数矩阵 $\mathbf{S}_t$、候选缓存 $\mathcal{C}_t$、候选级字节计数 $\text{bytes}_t(\cdot)$、活动候选集 $\mathcal{H}_t^{\mathrm{act}}$、位图 $\text{Bitmap}_t(\cdot)$；\\
-（3）控制面状态与参数：持续性 $P_t(\cdot)$、epoch 长度 $\Delta$、位图长度 $m$、评分权重 $\alpha、\beta、\gamma$。}
+（2）当前窗口数据面状态：CMS 计数矩阵 $\mathbf{S}_t$、候选缓存 $\mathcal{C}_t$、候选级字节计数 \\
+\phantom{（2）}$\text{bytes}_t(\cdot)$、活动候选集 $\mathcal{H}_t^{\mathrm{act}}$、位图 $\text{Bitmap}_t(\cdot)$；\\
+（3）控制面状态与参数：持续性 $P_t(\cdot)$、epoch 长度 $\Delta$、位图长度 $m$、评分权重\\
+\phantom{（3）} $\alpha、\beta、\gamma$。}
 \Output{
 当前包的队列优先级决策，以及下一轮活动候选配置 $(\mathcal{H}_{t+1}^{\mathrm{act}}, \text{rank}_{t+1}^{\mathrm{act}}(\cdot))$。}
 
