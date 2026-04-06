@@ -327,27 +327,19 @@ M_{\text{total}} \approx M_{\mathrm{CMS}} + M_{\mathrm{cache}} + M_{\text{bytes}
 \textbf{参数} & \textbf{取值} \\
 \midrule
 星座拓扑 & Starlink Shell 1（1584 颗卫星） \\
-\midrule
 ISL 容量 $C_e$ & 20 Gb/s \\
-\midrule
 单终端上行/下行峰值 & 64 Mb/s(上行) / 384 Mb/s（下行） \\
-\midrule
 单星最大服务终端数 & 2080 \\
-\midrule
 背景流量来源 & CAIDA trace 重放并按人口分布模型映射 \\
-\midrule
 epoch 长度 $\Delta$ & 1.0~s \\
-\midrule
 候选规模 $K$ & $\mathrm{clip}(0.3\cdot N_{\text{keys}},\;50,\;1000)$（自适应）\tnote{a} \\
-\midrule
 位图长度 $m$ & 256~bits \\
-\midrule
 持续窗口 $k_p$ & 5~epochs \\
-\midrule
+
 可疑度阈值 $\tau$ & 0.5 \\
-\midrule
+
 活动队列数 $Q$ & 2（高/低优先级） \\
-\midrule
+
 高优先级带宽比 & 0.8（80\% 带宽保留给良性/低可疑流量）\\
 \bottomrule
 \end{tabular}
@@ -372,11 +364,11 @@ lllll>{\raggedright\arraybackslash}p{4.2cm}
 \textbf{组别} & \textbf{$|\mathcal{B}|$} & \textbf{$r$ (Mb/s)} & \textbf{$A$ (Gb/s)} & \textbf{$M$} & \textbf{单 Decoy 聚合速率 $A/M$} \\
 \midrule
 B1 & 2000 & 5 & 10 & 1    & 10 Gb/s \\
-\midrule
+
 B2 & 2000 & 5 & 10 & 10   & 1 Gb/s \\
-\midrule
+
 B3 & 2000 & 5 & 10 & 100  & 100 Mb/s \\
-\midrule
+
 B4 & 2000 & 5 & 10 & 1000 & 10 Mb/s \\
 \bottomrule
 \end{tabular}
