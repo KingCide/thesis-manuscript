@@ -22,3 +22,18 @@
 
 # 编译产物（如需追踪 PDF 请删除下面这行）
 # *.pdf
+
+# latexdiff 审阅版产物
+review-diff/
+diff/
+*-diff.tex
+*-diff.pdf
+*-diff.aux
+*-diff.bbl
+*-diff.blg
+*-diff.fdb_latexmk
+*-diff.fls
+*-diff.log
+*-diff.out
+*-diff.toc
+*-diff.xdv
