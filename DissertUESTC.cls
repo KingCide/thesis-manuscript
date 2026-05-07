@@ -44,7 +44,7 @@
 \newcommand{\reviewers}{}
 \newcommand{\uestcauthor}{}
 \newcommand{\chineseabstractpagelimit}{2}
-\newcommand{\acknowledgementpagelimit}{1}
+\newcommand{\acknowledgementpagelimit}{2}
 \newcounter{chineseabstractstartpage}
 \newcounter{chineseabstractpagespan}
 \newcounter{acknowledgementstartpage}
